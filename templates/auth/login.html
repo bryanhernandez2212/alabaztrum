@@ -212,9 +212,9 @@
                     } catch (error) {
                         console.error('Error al verificar rol:', error);
                         // Si hay error, redirigir a página principal por defecto
-                        setTimeout(() => {
-                            window.location.href = '/';
-                        }, 1500);
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1500);
                     }
                 } else {
                     const errorMsg = result && result.error ? result.error : 'Error desconocido al iniciar sesión';
@@ -273,9 +273,9 @@
                     } catch (error) {
                         console.error('Error al verificar rol:', error);
                         // Si hay error, redirigir a página principal por defecto
-                        setTimeout(() => {
-                            window.location.href = '/';
-                        }, 1500);
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1500);
                     }
                 } else {
                     messageDiv.className = 'mb-4 p-3 rounded-lg text-sm bg-red-500 text-white';

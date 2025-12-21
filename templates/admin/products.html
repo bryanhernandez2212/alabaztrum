@@ -13,21 +13,22 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
-<body class="bg-white admin-body">
+<body class="bg-gray-50 admin-body">
     {% include 'partials/navbar-admin.html' %}
 
-    <main class="min-h-screen py-8">
+    <main class="min-h-screen py-8 bg-gray-50">
         <div class="container mx-auto px-6">
             <div class="max-w-7xl mx-auto">
                 <!-- Header -->
                 <div class="mb-8">
                     <div class="flex items-center justify-between">
                         <div>
-                            <h1 class="text-2xl font-normal text-gray-900">Productos</h1>
-                            <p class="text-sm text-gray-500 mt-1">Gestiona todos tus productos</p>
+                            <h1 class="text-3xl font-bold text-gray-900 mb-2">Productos</h1>
+                            <p class="text-sm text-gray-600">Gestiona todos tus productos</p>
                         </div>
-                        <a href="/admin/products/add" class="bg-black hover:bg-gray-800 text-white text-sm font-normal py-2 px-4 rounded-lg transition">
-                            + Agregar producto
+                        <a href="/admin/products/add" class="bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium py-2.5 px-5 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md flex items-center gap-2">
+                            <i class="fas fa-plus text-xs"></i>
+                            Agregar producto
                         </a>
                     </div>
                 </div>
@@ -36,46 +37,48 @@
                 <div id="message" class="hidden mb-4 p-3 rounded-lg text-sm"></div>
 
                 <!-- Tabla de productos -->
-                <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full">
-                            <thead>
-                                <tr class="border-b border-gray-200">
-                                    <th class="px-4 py-3 text-left text-xs font-normal text-gray-600">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                         IMAGEN
                                     </th>
-                                    <th class="px-4 py-3 text-left text-xs font-normal text-gray-600">
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                         NOMBRE
                                     </th>
-                                    <th class="px-4 py-3 text-left text-xs font-normal text-gray-600">
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                         MARCA
                                     </th>
-                                    <th class="px-4 py-3 text-left text-xs font-normal text-gray-600">
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                         GÉNERO
                                     </th>
-                                    <th class="px-4 py-3 text-left text-xs font-normal text-gray-600">
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                         TIPO
                                     </th>
-                                    <th class="px-4 py-3 text-left text-xs font-normal text-gray-600">
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                         PRECIO
                                     </th>
-                                    <th class="px-4 py-3 text-left text-xs font-normal text-gray-600">
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                         DECANT
                                     </th>
-                                    <th class="px-4 py-3 text-left text-xs font-normal text-gray-600">
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                         FECHA
                                     </th>
-                                    <th class="px-4 py-3 text-right text-xs font-normal text-gray-600">
+                                    <th class="px-6 py-4 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                         ACCIONES
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody id="productsList" class="divide-y divide-gray-100">
+                            <tbody id="productsList" class="bg-white divide-y divide-gray-200">
                                 <tr>
-                                    <td colspan="9" class="px-6 py-12 text-center">
+                                    <td colspan="9" class="px-6 py-16 text-center">
                                         <div class="flex flex-col items-center">
-                                            <i class="fas fa-spinner fa-spin text-gray-400 text-2xl mb-2"></i>
-                                            <p class="text-gray-500">Cargando productos...</p>
+                                            <div class="bg-gray-100 rounded-full p-4 mb-3">
+                                                <i class="fas fa-spinner fa-spin text-gray-400 text-2xl"></i>
+                                            </div>
+                                            <p class="text-gray-600 font-medium">Cargando productos...</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -83,8 +86,8 @@
                         </table>
                     </div>
                     <!-- Footer -->
-                    <div class="px-6 py-3 border-t border-gray-200">
-                        <p class="text-xs text-gray-500" id="productsCount">Mostrando 0 producto(s)</p>
+                    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                        <p class="text-sm text-gray-600 font-medium" id="productsCount">Mostrando 0 producto(s)</p>
                     </div>
                 </div>
             </div>
@@ -106,12 +109,16 @@
                 if (productsSnapshot.empty) {
                     productsList.innerHTML = `
                         <tr>
-                            <td colspan="9" class="px-6 py-16 text-center">
+                            <td colspan="9" class="px-6 py-20 text-center">
                                 <div class="flex flex-col items-center">
-                                    <i class="fas fa-inbox text-gray-300 text-3xl mb-3"></i>
-                                    <p class="text-gray-500 mb-2 text-sm">No hay productos registrados</p>
-                                    <a href="/admin/products/add" class="text-gray-900 hover:text-gray-700 text-sm underline">
-                                        + Agregar primer producto
+                                    <div class="bg-gray-100 rounded-full p-6 mb-4">
+                                        <i class="fas fa-inbox text-gray-400 text-4xl"></i>
+                                    </div>
+                                    <p class="text-gray-600 mb-1 text-base font-medium">No hay productos registrados</p>
+                                    <p class="text-gray-500 mb-4 text-sm">Comienza agregando tu primer producto</p>
+                                    <a href="/admin/products/add" class="inline-flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium py-2.5 px-5 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md">
+                                        <i class="fas fa-plus text-xs"></i>
+                                        Agregar primer producto
                                     </a>
                                 </div>
                             </td>
@@ -144,39 +151,43 @@
                     const genderText = product.gender === 'hombre' ? 'Hombre' : 'Mujer';
                     
                     const row = document.createElement('tr');
-                    row.className = 'hover:bg-gray-50 transition';
+                    row.className = 'hover:bg-gray-50 transition-colors duration-150';
                     row.innerHTML = `
-                        <td class="px-4 py-3">
-                            <img src="${imageUrl}" alt="${product.name || ''}" class="w-10 h-10 object-cover rounded-lg" onerror="this.src='https://via.placeholder.com/40x40?text=No+Image'">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <img src="${imageUrl}" alt="${product.name || ''}" class="w-12 h-12 object-cover rounded-lg border border-gray-200 shadow-sm" onerror="this.src='https://via.placeholder.com/48x48?text=No+Image'">
                         </td>
-                        <td class="px-4 py-3">
-                            <div class="text-sm text-gray-900">${product.name || 'Sin nombre'}</div>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">${product.name || 'Sin nombre'}</div>
                         </td>
-                        <td class="px-4 py-3">
+                        <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm text-gray-600">${product.brand || 'N/A'}</div>
                         </td>
-                        <td class="px-4 py-3">
-                            <div class="text-sm text-gray-600">${genderText}</div>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${product.gender === 'hombre' ? 'bg-blue-100 text-blue-800' : 'bg-pink-100 text-pink-800'}">
+                                ${genderText}
+                            </span>
                         </td>
-                        <td class="px-4 py-3">
+                        <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm text-gray-600">${product.fragranceType || 'N/A'}</div>
                         </td>
-                        <td class="px-4 py-3">
-                            <div class="text-sm text-gray-900">$${product.price ? product.price.toFixed(2) : '0.00'}</div>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-semibold text-gray-900">$${product.price ? product.price.toFixed(2) : '0.00'}</div>
                         </td>
-                        <td class="px-4 py-3">
-                            <div class="text-sm text-gray-600">${product.isDecant ? 'Sí' : 'No'}</div>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${product.isDecant ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                                ${product.isDecant ? 'Sí' : 'No'}
+                            </span>
                         </td>
-                        <td class="px-4 py-3">
+                        <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm text-gray-600">${formattedDate}</div>
                         </td>
-                        <td class="px-4 py-3 text-right">
-                            <div class="flex items-center justify-end space-x-2">
-                                <button onclick="editProduct('${doc.id}')" class="text-gray-400 hover:text-gray-600 transition cursor-pointer" title="Editar">
-                                    <i class="fas fa-edit text-xs"></i>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div class="flex items-center justify-end space-x-3">
+                                <button onclick="editProduct('${doc.id}')" class="text-blue-600 hover:text-blue-900 hover:bg-blue-50 p-2 rounded-lg transition-all duration-200" title="Editar">
+                                    <i class="fas fa-edit"></i>
                                 </button>
-                                <button onclick="deleteProduct('${doc.id}')" class="text-gray-400 hover:text-gray-600 transition cursor-pointer" title="Eliminar">
-                                    <i class="fas fa-trash text-xs"></i>
+                                <button onclick="deleteProduct('${doc.id}')" class="text-red-600 hover:text-red-900 hover:bg-red-50 p-2 rounded-lg transition-all duration-200" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
                                 </button>
                             </div>
                         </td>
@@ -191,11 +202,14 @@
                 const productsList = document.getElementById('productsList');
                 productsList.innerHTML = `
                     <tr>
-                        <td colspan="9" class="px-6 py-12 text-center">
-                        <div class="flex flex-col items-center">
-                            <i class="fas fa-exclamation-triangle text-red-400 text-2xl mb-2"></i>
-                            <p class="text-red-500 text-sm">Error al cargar los productos</p>
-                        </div>
+                        <td colspan="9" class="px-6 py-16 text-center">
+                            <div class="flex flex-col items-center">
+                                <div class="bg-red-100 rounded-full p-4 mb-3">
+                                    <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+                                </div>
+                                <p class="text-red-600 font-medium mb-1">Error al cargar los productos</p>
+                                <p class="text-gray-500 text-sm">Por favor, intenta recargar la página</p>
+                            </div>
                         </td>
                     </tr>
                 `;

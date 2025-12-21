@@ -204,6 +204,83 @@ header .relative .absolute {
     text-align: center;
 }
 
+/* Dropdown de Fragancias */
+#fragrances-dropdown {
+    min-width: 400px;
+}
+
+#fragrances-dropdown > div {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+#fragrances-dropdown > div::-webkit-scrollbar {
+    width: 6px;
+}
+
+#fragrances-dropdown > div::-webkit-scrollbar-track {
+    background: #1a1a1a;
+}
+
+#fragrances-dropdown > div::-webkit-scrollbar-thumb {
+    background: #4a4a4a;
+    border-radius: 3px;
+}
+
+#fragrances-dropdown > div::-webkit-scrollbar-thumb:hover {
+    background: #5a5a5a;
+}
+
+/* Mantener el dropdown visible al hacer hover */
+nav .group:hover #fragrances-dropdown,
+nav .group:hover #decants-dropdown {
+    display: block !important;
+}
+
+/* Asegurar que el dropdown permanezca visible cuando el mouse está sobre él */
+#fragrances-dropdown:hover,
+#decants-dropdown:hover {
+    display: block !important;
+}
+
+/* Crear un puente invisible entre el trigger y el dropdown */
+nav .group::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    height: 0.5rem;
+    background: transparent;
+}
+
+/* Dropdown de Decants */
+#decants-dropdown {
+    min-width: 400px;
+}
+
+#decants-dropdown > div {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+#decants-dropdown > div::-webkit-scrollbar {
+    width: 6px;
+}
+
+#decants-dropdown > div::-webkit-scrollbar-track {
+    background: #1a1a1a;
+}
+
+#decants-dropdown > div::-webkit-scrollbar-thumb {
+    background: #4a4a4a;
+    border-radius: 3px;
+}
+
+#decants-dropdown > div::-webkit-scrollbar-thumb:hover {
+    background: #5a5a5a;
+}
+
 /* Estilos para Login */
 .login-card {
     background-color: #000000;
@@ -346,6 +423,177 @@ select.login-input option {
     
     .login-card {
         padding: 2rem 1.5rem;
+    }
+}
+
+/* Estilos para el formulario de agregar producto */
+.add-product-form-container {
+    width: 100%;
+    background: #ffffff;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid #e5e7eb;
+}
+
+.add-product-form-container:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.add-product-form {
+    width: 100%;
+}
+
+.add-product-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.add-product-column {
+    width: 100%;
+    min-width: 0;
+}
+
+/* Mejoras para los campos del formulario */
+.add-product-form input[type="text"],
+.add-product-form input[type="number"],
+.add-product-form select,
+.add-product-form textarea {
+    transition: all 0.3s ease;
+    border: 2px solid #e5e7eb;
+}
+
+.add-product-form input[type="text"]:focus,
+.add-product-form input[type="number"]:focus,
+.add-product-form select:focus,
+.add-product-form textarea:focus {
+    border-color: #6b7280;
+    box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.1);
+    transform: translateY(-1px);
+}
+
+.add-product-form input[type="text"]:hover,
+.add-product-form input[type="number"]:hover,
+.add-product-form select:hover,
+.add-product-form textarea:hover {
+    border-color: #d1d5db;
+}
+
+/* Estilos para el área de carga de imágenes */
+.add-product-form #imageUploadArea {
+    transition: all 0.3s ease;
+    border: 2px dashed #d1d5db;
+    background: #f9fafb;
+}
+
+.add-product-form #imageUploadArea:hover {
+    border-color: #9ca3af;
+    background: #f3f4f6;
+    transform: scale(1.01);
+}
+
+.add-product-form #imageUploadArea.drag-over {
+    border-color: #6b7280;
+    background: #f3f4f6;
+    transform: scale(1.02);
+}
+
+/* Estilos para los radio buttons */
+.add-product-form input[type="radio"] {
+    accent-color: #3b82f6;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.add-product-form label[for*="gender"] {
+    transition: all 0.2s ease;
+}
+
+.add-product-form label[for*="gender"]:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+.add-product-form input[type="radio"]:checked + span {
+    color: #111827;
+    font-weight: 600;
+}
+
+/* Estilos para los botones */
+.add-product-form button[type="submit"] {
+    transition: all 0.3s ease;
+    background: #111827;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.add-product-form button[type="submit"]:hover {
+    background: #1f2937;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.15);
+}
+
+.add-product-form button[type="submit"]:active {
+    transform: translateY(0);
+}
+
+/* Estilos para los labels */
+.add-product-form label {
+    transition: color 0.2s ease;
+}
+
+.add-product-form label:hover {
+    color: #374151;
+}
+
+/* Estilos para los selects con chevron */
+.add-product-form .relative select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+}
+
+.add-product-form .relative select:focus {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+}
+
+/* Animación para el título de la sección */
+.add-product-form h2 {
+    position: relative;
+    padding-bottom: 1rem;
+}
+
+.add-product-form h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, #6b7280, #9ca3af);
+    border-radius: 2px;
+}
+
+/* Mejoras para el preview de imágenes */
+.add-product-form #imagePreview img {
+    transition: all 0.3s ease;
+    border: 2px solid #e5e7eb;
+}
+
+.add-product-form #imagePreview img:hover {
+    transform: scale(1.05);
+    border-color: #9ca3af;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+    .add-product-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1.5rem !important;
     }
 }
 

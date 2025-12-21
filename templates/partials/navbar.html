@@ -22,14 +22,14 @@
             </div>
             
             <!-- Barra de búsqueda (solo desktop) -->
-            <div id="search-bar" class="hidden md:flex flex-1 mx-8 max-w-2xl" style="display: none !important;">
+            <div id="search-bar" class="hidden md:flex flex-1 mx-8 max-w-2xl">
                 <div class="relative w-full">
                     <input 
                         type="text" 
                         placeholder="¿Qué estás buscando?" 
-                        class="w-full px-4 py-2 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600"
+                        class="w-full px-4 py-2 bg-white text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-300 placeholder-gray-500"
                     >
-                    <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
+                    <i class="fas fa-search absolute right-3 top-3 text-gray-500"></i>
                 </div>
             </div>
             
@@ -94,9 +94,9 @@
                         <input 
                             type="text" 
                             placeholder="¿Qué estás buscando?" 
-                            class="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600"
+                            class="w-full px-4 py-3 bg-white text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-300 placeholder-gray-500"
                         >
-                        <i class="fas fa-search absolute right-3 top-3.5 text-gray-400"></i>
+                        <i class="fas fa-search absolute right-3 top-3.5 text-gray-500"></i>
                     </div>
                 </div>
                 
@@ -160,14 +160,66 @@
     <div class="container mx-auto px-4">
         <!-- Navegación para clientes -->
         <div id="client-nav" class="flex items-center justify-center space-x-6 py-3">
-            <a href="#" class="nav-link flex items-center hover:text-gray-300 transition">
-                Fragancias
-                <i class="fas fa-chevron-down ml-1 text-xs"></i>
-            </a>
-            <a href="#" class="nav-link flex items-center hover:text-gray-300 transition">
-                Decants
-                <i class="fas fa-chevron-down ml-1 text-xs"></i>
-            </a>
+            <!-- Menú Fragancias con dropdown -->
+            <div class="relative group">
+                <a href="/fragancias" class="nav-link flex items-center hover:text-gray-300 transition cursor-pointer">
+                    Fragancias
+                    <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                </a>
+                <!-- Dropdown de Fragancias -->
+                <div id="fragrances-dropdown" class="absolute top-full left-1/2 transform -translate-x-1/2 pt-2 w-96 bg-transparent z-50 hidden group-hover:block">
+                    <div class="bg-black border border-gray-800 rounded-lg shadow-xl py-4">
+                        <div class="grid grid-cols-2 gap-0">
+                            <!-- Columna Masculinas -->
+                            <div class="px-6">
+                                <h3 class="text-white font-bold text-base mb-3 pb-2 border-b border-gray-700">Masculinas</h3>
+                                <div id="fragrances-masculinas" class="space-y-2">
+                                    <!-- Los tipos de fragancia se cargarán aquí dinámicamente -->
+                                    <div class="text-gray-400 text-sm">Cargando...</div>
+                                </div>
+                            </div>
+                            <!-- Columna Femeninas -->
+                            <div class="px-6 border-l border-gray-800">
+                                <h3 class="text-white font-bold text-base mb-3 pb-2 border-b border-gray-700">Femeninas</h3>
+                                <div id="fragrances-femeninas" class="space-y-2">
+                                    <!-- Los tipos de fragancia se cargarán aquí dinámicamente -->
+                                    <div class="text-gray-400 text-sm">Cargando...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Menú Decants con dropdown -->
+            <div class="relative group">
+                <a href="/decants" class="nav-link flex items-center hover:text-gray-300 transition cursor-pointer">
+                    Decants
+                    <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                </a>
+                <!-- Dropdown de Decants -->
+                <div id="decants-dropdown" class="absolute top-full left-1/2 transform -translate-x-1/2 pt-2 w-96 bg-transparent z-50 hidden group-hover:block">
+                    <div class="bg-black border border-gray-800 rounded-lg shadow-xl py-4">
+                        <div class="grid grid-cols-2 gap-0">
+                            <!-- Columna Masculinas -->
+                            <div class="px-6">
+                                <h3 class="text-white font-bold text-base mb-3 pb-2 border-b border-gray-700">Masculinas</h3>
+                                <div id="decants-masculinas" class="space-y-2">
+                                    <!-- Los tipos de fragancia se cargarán aquí dinámicamente -->
+                                    <div class="text-gray-400 text-sm">Cargando...</div>
+                                </div>
+                            </div>
+                            <!-- Columna Femeninas -->
+                            <div class="px-6 border-l border-gray-800">
+                                <h3 class="text-white font-bold text-base mb-3 pb-2 border-b border-gray-700">Femeninas</h3>
+                                <div id="decants-femeninas" class="space-y-2">
+                                    <!-- Los tipos de fragancia se cargarán aquí dinámicamente -->
+                                    <div class="text-gray-400 text-sm">Cargando...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <a href="#" class="nav-link flex items-center hover:text-gray-300 transition">
                 Decants x4 (20%off)
                 <i class="fas fa-chevron-down ml-1 text-xs"></i>
@@ -214,5 +266,128 @@
             });
         }
     });
+
+    // Cargar tipos de fragancia para el dropdown
+    async function loadFragranceTypes() {
+        try {
+            if (typeof db === 'undefined') {
+                // Esperar a que Firebase esté listo
+                setTimeout(loadFragranceTypes, 500);
+                return;
+            }
+
+            const typesSnapshot = await db.collection('fragranceTypes').orderBy('name').get();
+            const masculinasContainer = document.getElementById('fragrances-masculinas');
+            const femeninasContainer = document.getElementById('fragrances-femeninas');
+            
+            if (typesSnapshot.empty) {
+                masculinasContainer.innerHTML = '<div class="text-gray-400 text-sm">No hay tipos disponibles</div>';
+                femeninasContainer.innerHTML = '<div class="text-gray-400 text-sm">No hay tipos disponibles</div>';
+                return;
+            }
+            
+            // Limpiar contenedores
+            masculinasContainer.innerHTML = '';
+            femeninasContainer.innerHTML = '';
+            
+            // Mostrar todos los tipos en ambas columnas
+            typesSnapshot.forEach((doc) => {
+                const type = doc.data();
+                const typeName = type.name;
+                
+                // Crear enlace para Masculinas
+                const linkMasculinas = document.createElement('a');
+                linkMasculinas.href = `/fragancias?tipo=${encodeURIComponent(typeName)}&genero=hombre`;
+                linkMasculinas.className = 'block text-gray-300 hover:text-white transition text-sm py-1';
+                linkMasculinas.textContent = typeName;
+                
+                // Crear enlace para Femeninas
+                const linkFemeninas = document.createElement('a');
+                linkFemeninas.href = `/fragancias?tipo=${encodeURIComponent(typeName)}&genero=mujer`;
+                linkFemeninas.className = 'block text-gray-300 hover:text-white transition text-sm py-1';
+                linkFemeninas.textContent = typeName;
+                
+                // Agregar a cada columna correspondiente
+                masculinasContainer.appendChild(linkMasculinas);
+                femeninasContainer.appendChild(linkFemeninas);
+            });
+            
+        } catch (error) {
+            console.error('Error al cargar tipos de fragancia:', error);
+            const masculinasContainer = document.getElementById('fragrances-masculinas');
+            const femeninasContainer = document.getElementById('fragrances-femeninas');
+            if (masculinasContainer) masculinasContainer.innerHTML = '<div class="text-red-400 text-sm">Error al cargar</div>';
+            if (femeninasContainer) femeninasContainer.innerHTML = '<div class="text-red-400 text-sm">Error al cargar</div>';
+        }
+    }
+
+    // Cargar tipos de fragancia para el dropdown de Decants
+    async function loadDecantTypes() {
+        try {
+            if (typeof db === 'undefined') {
+                setTimeout(loadDecantTypes, 500);
+                return;
+            }
+
+            const typesSnapshot = await db.collection('fragranceTypes').orderBy('name').get();
+            const masculinasContainer = document.getElementById('decants-masculinas');
+            const femeninasContainer = document.getElementById('decants-femeninas');
+            
+            if (!masculinasContainer || !femeninasContainer) {
+                return; // Los elementos no existen en esta página
+            }
+            
+            if (typesSnapshot.empty) {
+                masculinasContainer.innerHTML = '<div class="text-gray-400 text-sm">No hay tipos disponibles</div>';
+                femeninasContainer.innerHTML = '<div class="text-gray-400 text-sm">No hay tipos disponibles</div>';
+                return;
+            }
+            
+            masculinasContainer.innerHTML = '';
+            femeninasContainer.innerHTML = '';
+            
+            typesSnapshot.forEach((doc) => {
+                const type = doc.data();
+                const typeName = type.name;
+                
+                // Crear enlace para Masculinas
+                const linkMasculinas = document.createElement('a');
+                linkMasculinas.href = `/decants?tipo=${encodeURIComponent(typeName)}&genero=hombre`;
+                linkMasculinas.className = 'block text-gray-300 hover:text-white transition text-sm py-1';
+                linkMasculinas.textContent = typeName;
+                
+                // Crear enlace para Femeninas
+                const linkFemeninas = document.createElement('a');
+                linkFemeninas.href = `/decants?tipo=${encodeURIComponent(typeName)}&genero=mujer`;
+                linkFemeninas.className = 'block text-gray-300 hover:text-white transition text-sm py-1';
+                linkFemeninas.textContent = typeName;
+                
+                masculinasContainer.appendChild(linkMasculinas);
+                femeninasContainer.appendChild(linkFemeninas);
+            });
+            
+        } catch (error) {
+            console.error('Error al cargar tipos de fragancia para decants:', error);
+            const masculinasContainer = document.getElementById('decants-masculinas');
+            const femeninasContainer = document.getElementById('decants-femeninas');
+            if (masculinasContainer) masculinasContainer.innerHTML = '<div class="text-red-400 text-sm">Error al cargar</div>';
+            if (femeninasContainer) femeninasContainer.innerHTML = '<div class="text-red-400 text-sm">Error al cargar</div>';
+        }
+    }
+
+    // Cargar tipos cuando el DOM esté listo y Firebase esté inicializado
+    if (typeof db !== 'undefined') {
+        loadFragranceTypes();
+        loadDecantTypes();
+    } else {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                if (typeof db !== 'undefined') {
+                    loadFragranceTypes();
+                    loadDecantTypes();
+                }
+            }, 1000);
+        });
+    }
 </script>
 

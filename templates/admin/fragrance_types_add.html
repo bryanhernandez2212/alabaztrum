@@ -16,9 +16,9 @@
 <body class="bg-gray-50 admin-body">
     {% include 'partials/navbar-admin.html' %}
 
-    <main class="min-h-screen py-12">
+    <main class="min-h-screen py-12 bg-gray-50">
         <div class="container mx-auto px-4">
-            <div class="max-w-2xl mx-auto">
+            <div class="max-w-full mx-auto">
                 <!-- Header -->
                 <div class="mb-8">
                     <!-- Breadcrumbs -->
@@ -37,33 +37,45 @@
                 <div id="message" class="hidden mb-6 p-4 rounded-lg text-sm"></div>
 
                 <!-- Formulario -->
-                <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                    <form id="fragranceTypeForm" onsubmit="handleSubmit(event)" class="p-8">
-                        <!-- Nombre del tipo -->
-                        <div class="mb-6">
-                            <label for="typeName" class="block text-gray-700 font-semibold mb-2 text-sm">
-                                Nombre del Tipo <span class="text-red-500">*</span>
-                            </label>
-                            <input 
-                                type="text" 
-                                id="typeName" 
-                                name="typeName" 
-                                required
-                                class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition"
-                                placeholder="Ej: Floral, Amaderado, Cítrico, Oriental..."
-                            >
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden add-product-form-container">
+                    <form id="fragranceTypeForm" onsubmit="handleSubmit(event)" class="p-10 add-product-form">
+                        <!-- Sección: Información del Tipo de Fragancia -->
+                        <div class="mb-10">
+                            <h2 class="text-2xl font-bold text-gray-900 mb-2 pb-4 border-b border-gray-200">Información del Tipo de Fragancia</h2>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                                <!-- Columna Izquierda -->
+                                <div class="add-product-column">
+                                    <!-- Nombre del tipo -->
+                                    <div>
+                                        <label for="typeName" class="block text-gray-900 font-semibold mb-2 text-sm">
+                                            Nombre del Tipo <span class="text-red-500">*</span>
+                                        </label>
+                                        <input 
+                                            type="text" 
+                                            id="typeName" 
+                                            name="typeName" 
+                                            required
+                                            class="w-full px-4 py-3.5 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400 text-gray-900 placeholder-gray-500"
+                                            placeholder="Ej: Floral, Amaderado, Cítrico, Oriental..."
+                                        >
+                                    </div>
+                                </div>
+                                <!-- Columna Derecha (vacía para mantener el diseño) -->
+                                <div class="add-product-column"></div>
+                            </div>
                         </div>
 
                         <!-- Botones -->
-                        <div class="flex items-center justify-end space-x-3 pt-6 border-t border-gray-200">
-                            <a href="/admin/fragrance-types" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200 transition font-medium">
+                        <div class="flex items-center justify-end space-x-3 pt-6 border-t border-gray-200 mt-6">
+                            <a href="/admin/fragrance-types" class="px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200 font-medium text-sm">
                                 Cancelar
                             </a>
                             <button 
                                 type="submit" 
                                 class="bg-gray-900 hover:bg-gray-800 text-white font-medium py-2 px-5 text-sm rounded-lg transition-all duration-200 shadow-sm hover:shadow"
                             >
-                                AGREGAR TIPO
+                                <i class="fas fa-save mr-1.5 text-xs"></i>Guardar Tipo
                             </button>
                         </div>
                     </form>

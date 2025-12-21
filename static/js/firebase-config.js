@@ -19,10 +19,11 @@ try {
 }
 
 // Inicializar servicios
-let auth, db;
+let auth, db, storage;
 try {
     auth = firebase.auth();
     db = firebase.firestore();
+    storage = firebase.storage();
     console.log('Servicios de Firebase inicializados');
 } catch (error) {
     console.error('Error al inicializar servicios de Firebase:', error);

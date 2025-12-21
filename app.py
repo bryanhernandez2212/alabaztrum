@@ -82,6 +82,10 @@ def admin_messages():
 def admin_add_product():
     return render_template('admin/add_product.html')
 
+@app.route('/admin/products/edit/<product_id>')
+def admin_edit_product(product_id):
+    return render_template('admin/edit_product.html', product_id=product_id)
+
 @app.route('/admin/brands')
 def admin_brands():
     return render_template('admin/brands.html')
@@ -98,8 +102,18 @@ def admin_fragrance_types():
 def admin_fragrance_types_add():
     return render_template('admin/fragrance_types_add.html')
 
+@app.route('/fragancias')
+def fragancias():
+    return render_template('fragancias.html')
+
+@app.route('/decants')
+def decants():
+    return render_template('decants.html')
+
 if __name__ == '__main__':
     import os
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    # Para desarrollo local, usa el puerto 5001 si 5000 está ocupado
+    # En Railway, usará la variable de entorno PORT
+    port = int(os.environ.get('PORT', 5001))
+    app.run(host='127.0.0.1', port=port, debug=True)
 
