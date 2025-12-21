@@ -1,7 +1,14 @@
 /* Estilos personalizados para ALABAZTRUM */
 
-body {
+html, body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+    width: 100% !important;
+}
+
+* {
+    box-sizing: border-box;
 }
 
 /* Asegurar que el botón de cerrar del menú móvil sea visible cuando NO tiene la clase hidden */
@@ -98,8 +105,70 @@ body:not(.admin-body) header {
     right: 0;
     z-index: 1000;
     width: 100%;
+    max-width: 100vw;
     background-color: #000000;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow-x: hidden;
+}
+
+/* Asegurar que el contenedor del header no cause overflow */
+body:not(.admin-body) header .container {
+    max-width: 100%;
+    overflow-x: visible;
+    overflow-y: visible;
+}
+
+body:not(.admin-body) header .container > div {
+    max-width: 100%;
+    overflow-x: visible;
+    overflow-y: visible;
+}
+
+/* Asegurar que el ícono del carrito y su badge se vean completos */
+#cart-icon {
+    overflow: visible !important;
+    position: relative;
+}
+
+#cart-icon > div {
+    overflow: visible !important;
+}
+
+/* Asegurar que el badge del carrito no se corte */
+#cart-icon .relative {
+    overflow: visible !important;
+}
+
+#cart-icon .absolute {
+    overflow: visible !important;
+}
+
+/* Panel de filtros móvil - prevenir overflow horizontal */
+#mobile-filters-panel {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+}
+
+#mobile-filters-panel > div {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+}
+
+#mobile-filters-panel * {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Asegurar que el botón de cerrar sea visible y funcional */
+#mobile-filters-close {
+    z-index: 100 !important;
+    position: relative !important;
+    cursor: pointer !important;
 }
 
 /* Ocultar barra de búsqueda en móvil */
@@ -146,7 +215,9 @@ body:not(.admin-body) nav {
     right: 0;
     z-index: 999;
     width: 100%;
+    max-width: 100vw;
     background-color: #000000;
+    overflow-x: hidden;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -674,6 +745,26 @@ select.login-input option {
 
 .mobile-submenu button:hover {
     background-color: #1a1a1a;
+}
+
+.mobile-submenu button:active,
+.mobile-submenu button:focus {
+    background-color: transparent !important;
+    outline: none;
+}
+
+/* Eliminar estado activo persistente en elementos del menú móvil */
+#mobile-menu button:active,
+#mobile-menu button:focus,
+#mobile-menu a:active,
+#mobile-menu a:focus {
+    background-color: transparent !important;
+    outline: none;
+}
+
+#mobile-menu button:active:hover,
+#mobile-menu a:active:hover {
+    background-color: #1a1a1a !important;
 }
 
 .mobile-submenu #fragancias-mobile-icon,

@@ -110,6 +110,10 @@ def fragancias():
 def decants():
     return render_template('decants.html')
 
+@app.route('/producto/<product_id>')
+def producto_detalle(product_id):
+    return render_template('producto_detalle.html', product_id=product_id)
+
 if __name__ == '__main__':
     import os
     # Para desarrollo local, usa el puerto 5001 si 5000 está ocupado
