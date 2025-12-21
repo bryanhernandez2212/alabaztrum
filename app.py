@@ -1,8 +1,16 @@
 from flask import Flask, render_template
 import os
 import traceback
+import logging
+
+# Configurar logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
+
+# Log al iniciar
+logger.info("Flask app initialized")
 
 # Manejo de errores
 @app.errorhandler(404)
@@ -20,7 +28,13 @@ def health():
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    try:
+        logger.info("Rendering index.html")
+        return render_template('index.html')
+    except Exception as e:
+        logger.error(f"Error rendering index: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise
 
 @app.route('/login')
 def login():
