@@ -1,0 +1,218 @@
+<!-- Header -->
+<header class="bg-black text-white">
+    <div class="container mx-auto px-4 py-4">
+        <div class="flex items-center justify-between relative">
+            <!-- Menú hamburguesa (solo móvil) -->
+            <button id="mobile-menu-toggle" class="md:hidden text-white focus:outline-none" aria-label="Abrir menú de navegación">
+                <i class="fas fa-bars text-2xl"></i>
+            </button>
+            
+            <!-- Logo - centrado en móvil, izquierda en desktop -->
+            <div class="flex items-center absolute left-1/2 transform -translate-x-1/2 md:relative md:left-0 md:transform-none">
+                <div class="logo-icon mr-3">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Icono estilizado tipo botella de perfume/cruz -->
+                        <rect x="12" y="4" width="8" height="20" rx="2" fill="white"/>
+                        <rect x="14" y="24" width="4" height="4" rx="1" fill="white"/>
+                        <line x1="16" y1="4" x2="16" y2="2" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="16" y1="28" x2="16" y2="30" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <span class="text-2xl font-bold tracking-tight">ALABAZTRUM</span>
+            </div>
+            
+            <!-- Barra de búsqueda (solo desktop) -->
+            <div id="search-bar" class="hidden md:flex flex-1 mx-8 max-w-2xl" style="display: none !important;">
+                <div class="relative w-full">
+                    <input 
+                        type="text" 
+                        placeholder="¿Qué estás buscando?" 
+                        class="w-full px-4 py-2 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600"
+                    >
+                    <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
+                </div>
+            </div>
+            
+            <!-- Iconos derecho -->
+            <div class="flex items-center space-x-6">
+                <!-- Ayuda (solo desktop) -->
+                <div class="hidden md:flex flex-col items-center cursor-pointer hover:text-gray-300 transition">
+                    <i class="far fa-comment-dots text-2xl mb-1"></i>
+                    <span class="text-xs">Ayuda</span>
+                </div>
+                <!-- Menú de usuario (solo desktop) -->
+                <div class="hidden md:block relative group" id="user-menu-container">
+                    <!-- Versión no autenticado (por defecto) -->
+                    <div id="user-not-logged" class="flex flex-col items-center cursor-pointer hover:text-gray-300 transition">
+                        <i class="far fa-user text-2xl mb-1"></i>
+                        <span class="text-xs">Iniciar sesión</span>
+                    </div>
+                    <div id="user-not-logged-menu" class="dropdown-menu">
+                        <a href="{{ url_for('login') }}" class="dropdown-item">
+                            <i class="far fa-sign-in-alt mr-2"></i>
+                            Iniciar sesión
+                        </a>
+                        <a href="{{ url_for('register') }}" class="dropdown-item">
+                            <i class="far fa-user-plus mr-2"></i>
+                            Crear cuenta
+                        </a>
+                    </div>
+                    
+                    <!-- Versión autenticado (oculto por defecto) -->
+                    <div id="user-logged" class="hidden flex flex-col items-center cursor-pointer hover:text-gray-300 transition">
+                        <i class="far fa-user text-2xl mb-1"></i>
+                        <span class="text-xs" id="user-name">Mi cuenta</span>
+                    </div>
+                    <div id="user-logged-menu" class="hidden dropdown-menu">
+                        <a href="{{ url_for('profile') }}" class="dropdown-item" id="profile-link">
+                            <i class="far fa-user-circle mr-2"></i>
+                            Mi perfil
+                        </a>
+                        <a href="#" class="dropdown-item" onclick="handleLogout(event)">
+                            <i class="far fa-sign-out-alt mr-2"></i>
+                            Cerrar sesión
+                        </a>
+                    </div>
+                </div>
+                <!-- Carrito (solo para clientes) -->
+                <div id="cart-icon" class="flex flex-col items-center cursor-pointer hover:text-gray-300 transition">
+                    <div class="relative inline-block">
+                        <i class="far fa-shopping-cart text-2xl mb-1"></i>
+                        <span class="absolute top-0 right-0 bg-white text-black rounded-full w-4 h-4 flex items-center justify-center text-[10px] font-bold transform translate-x-1 -translate-y-1">0</span>
+                    </div>
+                    <span class="text-xs hidden md:block">Mi carrito</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Menú móvil (oculto por defecto) -->
+        <div id="mobile-menu" class="hidden md:hidden mt-4 pb-4 border-t border-gray-800 pt-4 max-h-[calc(100vh-120px)] overflow-y-auto">
+            <div class="flex flex-col space-y-1">
+                <!-- Barra de búsqueda móvil -->
+                <div class="mb-4 px-4">
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            placeholder="¿Qué estás buscando?" 
+                            class="w-full px-4 py-3 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600"
+                        >
+                        <i class="fas fa-search absolute right-3 top-3.5 text-gray-400"></i>
+                    </div>
+                </div>
+                
+                <!-- Menú de usuario (solo móvil) -->
+                <div id="mobile-user-menu" class="mb-2">
+                    <!-- Versión no autenticado -->
+                    <div id="mobile-user-not-logged" class="space-y-1">
+                        <a href="{{ url_for('login') }}" class="hover:bg-gray-900 active:bg-gray-800 transition text-base font-medium py-4 px-4 rounded-lg block">
+                            Iniciar sesión
+                        </a>
+                        <a href="{{ url_for('register') }}" class="hover:bg-gray-900 active:bg-gray-800 transition text-base font-medium py-4 px-4 rounded-lg block">
+                            Crear cuenta
+                        </a>
+                    </div>
+                    <!-- Versión autenticado (oculto por defecto) -->
+                    <div id="mobile-user-logged" class="hidden space-y-1">
+                        <a href="{{ url_for('profile') }}" class="hover:bg-gray-900 active:bg-gray-800 transition text-base font-medium py-4 px-4 rounded-lg block">
+                            Mi perfil
+                        </a>
+                        <a href="#" onclick="handleLogout(event)" class="hover:bg-gray-900 active:bg-gray-800 transition text-base font-medium py-4 px-4 rounded-lg block">
+                            Cerrar sesión
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="pt-3 mt-2 border-t border-gray-800">
+                    <div class="text-gray-400 text-xs font-semibold uppercase tracking-wider px-4 py-2 mb-2">
+                        Categorías
+                    </div>
+                    <div class="space-y-1">
+                        <a href="#" class="hover:bg-gray-900 active:bg-gray-800 transition text-base font-medium block py-4 px-4 rounded-lg">
+                            Fragancias
+                        </a>
+                        <a href="#" class="hover:bg-gray-900 active:bg-gray-800 transition text-base font-medium block py-4 px-4 rounded-lg">
+                            Decants
+                        </a>
+                        <a href="#" class="hover:bg-gray-900 active:bg-gray-800 transition text-base font-medium block py-4 px-4 rounded-lg">
+                            Decants x4 (20%off)
+                        </a>
+                        <a href="#" class="hover:bg-gray-900 active:bg-gray-800 transition text-base font-medium block py-4 px-4 rounded-lg">
+                            Sprays (2x1)
+                        </a>
+                        <a href="#" class="hover:bg-gray-900 active:bg-gray-800 transition text-base font-medium block py-4 px-4 rounded-lg">
+                            Marcas
+                        </a>
+                        <a href="#" class="hover:bg-gray-900 active:bg-gray-800 transition text-base font-medium block py-4 px-4 rounded-lg">
+                            Beauty
+                        </a>
+                        <a href="#" class="hover:bg-gray-900 active:bg-gray-800 transition text-base font-medium block py-4 px-4 rounded-lg">
+                            Ayuda rápida
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Barra de navegación (solo desktop) -->
+<nav class="hidden md:block bg-black text-white border-t border-gray-800">
+    <div class="container mx-auto px-4">
+        <!-- Navegación para clientes -->
+        <div id="client-nav" class="flex items-center justify-center space-x-6 py-3">
+            <a href="#" class="nav-link flex items-center hover:text-gray-300 transition">
+                Fragancias
+                <i class="fas fa-chevron-down ml-1 text-xs"></i>
+            </a>
+            <a href="#" class="nav-link flex items-center hover:text-gray-300 transition">
+                Decants
+                <i class="fas fa-chevron-down ml-1 text-xs"></i>
+            </a>
+            <a href="#" class="nav-link flex items-center hover:text-gray-300 transition">
+                Decants x4 (20%off)
+                <i class="fas fa-chevron-down ml-1 text-xs"></i>
+            </a>
+            <a href="#" class="nav-link flex items-center hover:text-gray-300 transition">
+                Sprays (2x1)
+                <i class="fas fa-chevron-down ml-1 text-xs"></i>
+            </a>
+            <a href="#" class="nav-link flex items-center hover:text-gray-300 transition">
+                Marcas
+                <i class="fas fa-chevron-down ml-1 text-xs"></i>
+            </a>
+            <a href="#" class="nav-link flex items-center hover:text-gray-300 transition">
+                Beauty
+                <i class="fas fa-chevron-down ml-1 text-xs"></i>
+            </a>
+            <a href="#" class="nav-link flex items-center hover:text-gray-300 transition">
+                Ayuda rápida
+                <i class="fas fa-chevron-down ml-1 text-xs"></i>
+            </a>
+        </div>
+        
+    </div>
+</nav>
+
+<script>
+    // Toggle del menú móvil
+    document.addEventListener('DOMContentLoaded', function() {
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        if (mobileMenuToggle && mobileMenu) {
+            mobileMenuToggle.addEventListener('click', function() {
+                mobileMenu.classList.toggle('hidden');
+                // Cambiar ícono de hamburguesa a X
+                const icon = mobileMenuToggle.querySelector('i');
+                if (mobileMenu.classList.contains('hidden')) {
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                } else {
+                    icon.classList.remove('fa-bars');
+                    icon.classList.add('fa-times');
+                }
+            });
+        }
+    });
+</script>
+

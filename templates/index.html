@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALABAZTRUM - Perfumes de Navidad</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-white">
+    {% include 'partials/navbar.html' %}
+
+    <!-- Área principal (donde irá el carrusel) -->
+    <main class="min-h-screen bg-white">
+        <div class="container mx-auto px-4 py-8">
+            <!-- Aquí irá el carrusel de perfumes -->
+            <div class="text-center py-20">
+                <p class="text-gray-400">Área para carrusel de productos</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Sección inferior -->
+    <footer class="bg-white py-12">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-6xl font-bold text-gray-800 mb-2">ALABAZTRUM</h1>
+            <p class="text-xl text-gray-500">de navidad</p>
+        </div>
+    </footer>
+
+    <!-- Botón flotante de WhatsApp -->
+    <a 
+        href="https://wa.me/1234567890" 
+        target="_blank" 
+        class="whatsapp-float"
+        aria-label="Contactar por WhatsApp"
+    >
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <!-- Scripts Firebase y autenticación -->
+    <script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/navbar-auth.js') }}"></script>
+</body>
+</html>
+

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - ALABAZTRUM</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-50 admin-body">
+    {% include 'partials/navbar-admin.html' %}
+
+    <!-- Área principal -->
+    <main class="min-h-screen py-8">
+        <div class="container mx-auto px-4">
+            <div class="max-w-6xl mx-auto">
+                <!-- Header -->
+                <div class="mb-6">
+                    <p class="text-sm text-gray-500 mb-1">Dashboard</p>
+                    <h1 class="text-4xl font-bold text-gray-800 mb-2">Panel de Administración</h1>
+                    <p class="text-gray-600" id="welcome-message">Bienvenido, <span id="admin-name">Cargando...</span></p>
+                </div>
+
+                <!-- Mensaje de error/éxito -->
+                <div id="message" class="hidden mb-4 p-3 rounded-lg text-sm"></div>
+
+                <!-- Tarjetas de estadísticas -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <!-- Total Productos -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm mb-1">Total Productos</p>
+                                <p id="total-productos" class="text-4xl font-bold text-gray-800">0</p>
+                            </div>
+                            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-box text-blue-600 text-2xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Total Pedidos -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm mb-1">Total Pedidos</p>
+                                <p id="total-pedidos" class="text-4xl font-bold text-gray-800">0</p>
+                            </div>
+                            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-shopping-bag text-green-600 text-2xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Mensajes Pendientes -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm mb-1">Mensajes Pendientes</p>
+                                <p id="mensajes-pendientes" class="text-4xl font-bold text-gray-800">0</p>
+                            </div>
+                            <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-comment-dots text-purple-600 text-2xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Acciones Rápidas -->
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Acciones Rápidas</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Ver Productos -->
+                        <a href="/admin/products" class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition flex items-center cursor-pointer">
+                            <i class="fas fa-bars text-gray-600 text-xl mr-4"></i>
+                            <span class="text-gray-800 font-medium">Ver Productos</span>
+                        </a>
+                        
+                        <!-- Agregar Producto -->
+                        <a href="/admin/products/add" class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition flex items-center cursor-pointer">
+                            <i class="fas fa-plus text-gray-600 text-xl mr-4"></i>
+                            <span class="text-gray-800 font-medium">+ Agregar Producto</span>
+                        </a>
+                        
+                        <!-- Ver Pedidos -->
+                        <a href="/admin/orders" class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition flex items-center cursor-pointer">
+                            <i class="fas fa-shopping-bag text-gray-600 text-xl mr-4"></i>
+                            <span class="text-gray-800 font-medium">Ver Pedidos</span>
+                        </a>
+                        
+                        <!-- Ver Mensajes -->
+                        <a href="/admin/messages" class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition flex items-center cursor-pointer">
+                            <i class="fas fa-envelope text-gray-600 text-xl mr-4"></i>
+                            <span class="text-gray-800 font-medium">Ver Mensajes</span>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts Firebase y autenticación -->
+    <script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/navbar-admin.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+</body>
+</html>
+

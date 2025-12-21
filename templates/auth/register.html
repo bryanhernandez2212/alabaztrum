@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Cuenta - ALABAZTRUM</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-black min-h-screen flex items-center justify-center py-12 px-4 no-navbar">
+    <div class="login-card">
+        <!-- Logo y Título -->
+        <div class="text-center mb-8">
+            <div class="flex items-center justify-center mb-4">
+                <div class="logo-icon mr-3">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="12" y="4" width="8" height="20" rx="2" fill="white"/>
+                        <rect x="14" y="24" width="4" height="4" rx="1" fill="white"/>
+                        <line x1="16" y1="4" x2="16" y2="2" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="16" y1="28" x2="16" y2="30" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <span class="text-2xl font-bold text-white">ALABAZTRUM</span>
+            </div>
+            <h1 class="text-3xl font-bold text-white">Crear Cuenta</h1>
+        </div>
+
+        <!-- Mensaje de error/éxito -->
+        <div id="message" class="hidden mb-4 p-3 rounded-lg text-sm"></div>
+
+        <!-- Formulario -->
+        <form id="registerForm" onsubmit="handleRegister(event)">
+            <!-- Campo Nombre Completo -->
+            <div class="mb-6">
+                <label for="fullname" class="block text-white mb-2 text-sm font-medium">
+                    Nombre Completo
+                </label>
+                <input 
+                    type="text" 
+                    id="fullname" 
+                    name="fullname"
+                    placeholder="Ingresa tu nombre completo"
+                    class="login-input"
+                    required
+                >
+            </div>
+
+            <!-- Campo Correo Electrónico -->
+            <div class="mb-6">
+                <label for="email" class="block text-white mb-2 text-sm font-medium">
+                    Correo Electrónico
+                </label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email"
+                    placeholder="Ingresa tu correo electrónico"
+                    class="login-input"
+                    required
+                >
+            </div>
+
+            <!-- Campo Contraseña -->
+            <div class="mb-4">
+                <label for="password" class="block text-white mb-2 text-sm font-medium">
+                    Contraseña
+                </label>
+                <div class="relative">
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password"
+                        placeholder="Ingresa tu contraseña"
+                        class="login-input pr-10"
+                        required
+                    >
+                    <button 
+                        type="button" 
+                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition"
+                        onclick="togglePassword('password')"
+                    >
+                        <i class="far fa-eye" id="eye-icon-password"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Campo Confirmar Contraseña -->
+            <div class="mb-6">
+                <label for="confirm_password" class="block text-white mb-2 text-sm font-medium">
+                    Confirmar Contraseña
+                </label>
+                <div class="relative">
+                    <input 
+                        type="password" 
+                        id="confirm_password" 
+                        name="confirm_password"
+                        placeholder="Confirma tu contraseña"
+                        class="login-input pr-10"
+                        required
+                    >
+                    <button 
+                        type="button" 
+                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition"
+                        onclick="togglePassword('confirm_password')"
+                    >
+                        <i class="far fa-eye" id="eye-icon-confirm"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Campo Rol -->
+            <div class="mb-6">
+                <label for="role" class="block text-white mb-2 text-sm font-medium">
+                    Tipo de Cuenta
+                </label>
+                <select 
+                    id="role" 
+                    name="role"
+                    class="login-input"
+                    required
+                >
+                    <option value="cliente" selected>Cliente</option>
+                    <option value="administrador">Administrador</option>
+                </select>
+            </div>
+
+            <!-- Términos y Condiciones -->
+            <div class="mb-6">
+                <label class="flex items-start text-white text-sm">
+                    <input type="checkbox" name="terms" class="mr-2 mt-1 w-4 h-4 text-black bg-black border-white rounded focus:ring-white" required>
+                    <span>Acepto los <a href="#" class="font-bold hover:text-gray-300 transition underline">términos y condiciones</a> y la <a href="#" class="font-bold hover:text-gray-300 transition underline">política de privacidad</a></span>
+                </label>
+            </div>
+
+            <!-- Botón Registrarse -->
+            <button 
+                type="submit" 
+                class="w-full login-submit-button text-black py-3 rounded-lg font-semibold transition mb-6"
+            >
+                Registrarse
+            </button>
+
+            <!-- Separador -->
+            <div class="flex items-center justify-center mb-6">
+                <div class="flex-1 border-t border-white"></div>
+                <div class="px-4">
+                    <div class="w-2 h-2 bg-white rounded-full"></div>
+                </div>
+                <div class="flex-1 border-t border-white"></div>
+            </div>
+
+            <!-- Botón Google -->
+            <button 
+                type="button" 
+                onclick="handleGoogleRegister(event)"
+                class="w-full google-button text-white py-3 rounded-lg font-semibold transition flex items-center justify-center"
+            >
+                <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Registrarse con Google
+            </button>
+
+            <!-- Enlace Login -->
+            <div class="text-center mt-6">
+                <p class="text-white text-sm">
+                    ¿Ya tienes una cuenta? 
+                    <a href="{{ url_for('login') }}" class="font-bold hover:text-gray-300 transition">Inicia sesión aquí</a>
+                </p>
+            </div>
+        </form>
+    </div>
+
+    <!-- Scripts Firebase y autenticación -->
+    <script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    
+    <script>
+        // Verificar que Firebase esté inicializado
+        window.addEventListener('DOMContentLoaded', () => {
+            if (typeof firebase === 'undefined' || typeof auth === 'undefined') {
+                console.error('Firebase no está inicializado correctamente');
+                const messageDiv = document.getElementById('message');
+                messageDiv.className = 'mb-4 p-3 rounded-lg text-sm bg-red-500 text-white';
+                messageDiv.textContent = 'Error: Firebase no está configurado correctamente';
+                messageDiv.classList.remove('hidden');
+            }
+        });
+        function togglePassword(fieldId) {
+            const passwordInput = document.getElementById(fieldId);
+            const eyeIcon = document.getElementById('eye-icon-' + fieldId);
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.classList.remove('fa-eye');
+                eyeIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.classList.remove('fa-eye-slash');
+                eyeIcon.classList.add('fa-eye');
+            }
+        }
+
+        // Manejar registro con email y contraseña
+        async function handleRegister(event) {
+            event.preventDefault();
+            
+            // Verificar que las funciones estén disponibles
+            if (typeof registerUser === 'undefined') {
+                console.error('La función registerUser no está disponible');
+                const messageDiv = document.getElementById('message');
+                messageDiv.className = 'mb-4 p-3 rounded-lg text-sm bg-red-500 text-white';
+                messageDiv.textContent = 'Error: Las funciones de autenticación no están cargadas';
+                messageDiv.classList.remove('hidden');
+                return;
+            }
+            
+            const fullName = document.getElementById('fullname').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+            const role = document.getElementById('role').value;
+            const messageDiv = document.getElementById('message');
+            
+            // Validar que las contraseñas coincidan
+            if (password !== confirmPassword) {
+                messageDiv.className = 'mb-4 p-3 rounded-lg text-sm bg-red-500 text-white';
+                messageDiv.textContent = 'Las contraseñas no coinciden';
+                messageDiv.classList.remove('hidden');
+                return;
+            }
+            
+            // Validar que acepte términos
+            const termsCheckbox = document.querySelector('input[name="terms"]');
+            if (!termsCheckbox.checked) {
+                messageDiv.className = 'mb-4 p-3 rounded-lg text-sm bg-red-500 text-white';
+                messageDiv.textContent = 'Debes aceptar los términos y condiciones';
+                messageDiv.classList.remove('hidden');
+                return;
+            }
+            
+            // Mostrar loading
+            const submitButton = event.target.querySelector('button[type="submit"]');
+            const originalText = submitButton.textContent;
+            submitButton.disabled = true;
+            submitButton.textContent = 'Creando cuenta...';
+            
+            try {
+                console.log('Iniciando registro...');
+                const result = await registerUser(email, password, fullName, role);
+                console.log('Resultado del registro:', result);
+                
+                if (result && result.success) {
+                    messageDiv.className = 'mb-4 p-3 rounded-lg text-sm bg-green-500 text-white';
+                    messageDiv.textContent = '¡Cuenta creada exitosamente! Redirigiendo...';
+                    messageDiv.classList.remove('hidden');
+                    
+                    // Verificar rol del usuario y redirigir según corresponda
+                    try {
+                        const userRole = await getUserRole(result.user.uid);
+                        if (userRole === 'administrador') {
+                            // Redirigir a panel de administración
+                            setTimeout(() => {
+                                window.location.href = '/admin';
+                            }, 1500);
+                        } else {
+                            // Redirigir a la página principal para clientes
+                            setTimeout(() => {
+                                window.location.href = '/';
+                            }, 1500);
+                        }
+                    } catch (error) {
+                        console.error('Error al verificar rol:', error);
+                        // Si hay error, redirigir a página principal por defecto
+                        setTimeout(() => {
+                            window.location.href = '/';
+                        }, 1500);
+                    }
+                } else {
+                    const errorMsg = result && result.error ? result.error : 'Error desconocido al crear la cuenta';
+                    console.error('Error en registro:', errorMsg);
+                    messageDiv.className = 'mb-4 p-3 rounded-lg text-sm bg-red-500 text-white';
+                    messageDiv.textContent = errorMsg;
+                    messageDiv.classList.remove('hidden');
+                    submitButton.disabled = false;
+                    submitButton.textContent = originalText;
+                }
+            } catch (error) {
+                console.error('Error en handleRegister:', error);
+                messageDiv.className = 'mb-4 p-3 rounded-lg text-sm bg-red-500 text-white';
+                messageDiv.textContent = 'Error inesperado: ' + (error.message || 'Error desconocido');
+                messageDiv.classList.remove('hidden');
+                submitButton.disabled = false;
+                submitButton.textContent = originalText;
+            }
+        }
+
+        // Manejar registro con Google
+        async function handleGoogleRegister(event) {
+            if (event) {
+                event.preventDefault();
+            }
+            
+            const messageDiv = document.getElementById('message');
+            const googleButton = document.querySelector('button[onclick="handleGoogleRegister()"]');
+            const originalHTML = googleButton.innerHTML;
+            
+            googleButton.disabled = true;
+            googleButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Registrando...';
+            
+            try {
+                const result = await loginWithGoogle();
+                
+                if (result.success) {
+                    messageDiv.className = 'mb-4 p-3 rounded-lg text-sm bg-green-500 text-white';
+                    messageDiv.textContent = '¡Registro exitoso! Redirigiendo...';
+                    messageDiv.classList.remove('hidden');
+                    
+                    // Verificar rol del usuario y redirigir según corresponda
+                    try {
+                        const userRole = await getUserRole(result.user.uid);
+                        if (userRole === 'administrador') {
+                            // Redirigir a panel de administración
+                            setTimeout(() => {
+                                window.location.href = '/admin';
+                            }, 1500);
+                        } else {
+                            // Redirigir a la página principal para clientes
+                            setTimeout(() => {
+                                window.location.href = '/';
+                            }, 1500);
+                        }
+                    } catch (error) {
+                        console.error('Error al verificar rol:', error);
+                        // Si hay error, redirigir a página principal por defecto
+                        setTimeout(() => {
+                            window.location.href = '/';
+                        }, 1500);
+                    }
+                } else {
+                    messageDiv.className = 'mb-4 p-3 rounded-lg text-sm bg-red-500 text-white';
+                    messageDiv.textContent = result.error;
+                    messageDiv.classList.remove('hidden');
+                    googleButton.disabled = false;
+                    googleButton.innerHTML = originalHTML;
+                }
+            } catch (error) {
+                console.error('Error en handleGoogleRegister:', error);
+                messageDiv.className = 'mb-4 p-3 rounded-lg text-sm bg-red-500 text-white';
+                messageDiv.textContent = 'Error al registrarse con Google';
+                messageDiv.classList.remove('hidden');
+                googleButton.disabled = false;
+                googleButton.innerHTML = originalHTML;
+            }
+        }
+    </script>
+</body>
+</html>
+

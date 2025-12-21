@@ -1,0 +1,351 @@
+/* Estilos personalizados para ALABAZTRUM */
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Solo aplicar padding cuando hay navbar completo (cliente) */
+body:not(.no-navbar):not(.admin-body) {
+    padding-top: 120px; /* Espacio para el menú fijo (header + nav) */
+}
+
+/* Para páginas de admin (solo header, sin nav) */
+body.admin-body {
+    padding-top: 72px; /* Solo espacio para el header */
+}
+
+/* Asegurar que el navbar normal no se muestre en páginas de admin */
+body.admin-body nav {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+/* Asegurar que elementos del navbar normal no aparezcan en admin */
+body.admin-body #search-bar,
+body.admin-body #cart-icon,
+body.admin-body #client-nav,
+body.admin-body #admin-menu-header,
+body.admin-body #user-not-logged,
+body.admin-body #user-not-logged-menu,
+body.admin-body #user-logged,
+body.admin-body #user-logged-menu,
+body.admin-body #user-menu-container {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+/* Asegurar que solo el navbar-admin se muestre en páginas de admin */
+body.admin-body header:not([id]) {
+    /* Si hay un header sin id específico, podría ser del navbar normal */
+    display: none !important;
+}
+
+/* Header fijo (solo para navbar normal) */
+body:not(.admin-body) header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    width: 100%;
+    background-color: #000000;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Ocultar barra de búsqueda en móvil */
+@media (max-width: 767px) {
+    #search-bar {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+}
+
+/* Mostrar barra de búsqueda solo en desktop */
+@media (min-width: 768px) {
+    #search-bar {
+        display: flex !important;
+    }
+}
+
+/* Header fijo para admin */
+body.admin-body header#admin-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    width: 100%;
+    background-color: #000000;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Navegación fija (solo para navbar normal) */
+body:not(.admin-body) nav {
+    position: fixed;
+    top: 72px; /* Altura aproximada del header */
+    left: 0;
+    right: 0;
+    z-index: 999;
+    width: 100%;
+    background-color: #000000;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.logo-icon {
+    color: white;
+}
+
+/* Botón flotante de WhatsApp */
+.whatsapp-float {
+    position: fixed;
+    width: 60px;
+    height: 60px;
+    bottom: 30px;
+    right: 30px;
+    background-color: #25D366;
+    color: white;
+    border-radius: 50%;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.whatsapp-float:hover {
+    background-color: #20BA5A;
+    transform: scale(1.1);
+    box-shadow: 2px 2px 15px rgba(0, 0, 0, 0.4);
+}
+
+.whatsapp-float i {
+    font-size: 32px;
+    margin: 0;
+}
+
+/* Navegación */
+.nav-link {
+    font-size: 14px;
+    text-decoration: none;
+    color: white;
+}
+
+/* Estilo para los íconos del header */
+header .fa-comment-dots,
+header .fa-user,
+header .fa-shopping-cart {
+    font-size: 24px;
+}
+
+/* Badge del carrito */
+header .relative .absolute {
+    font-size: 11px;
+    line-height: 1;
+    padding: 0;
+}
+
+/* Menú desplegable de Iniciar sesión */
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 0.5rem;
+    background-color: #1f1f1f;
+    border-radius: 8px;
+    min-width: 200px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    padding: 0.5rem 0;
+}
+
+.group:hover .dropdown-menu:not(.hidden) {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    color: white;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background-color: #2a2a2a;
+}
+
+.dropdown-item i {
+    width: 20px;
+    text-align: center;
+}
+
+/* Estilos para Login */
+.login-card {
+    background-color: #000000;
+    border: 0.5px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 
+        0 10px 25px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.login-card:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 
+        0 15px 35px rgba(0, 0, 0, 0.6),
+        0 0 0 1px rgba(255, 255, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        0 0 20px rgba(255, 255, 255, 0.05);
+}
+
+.login-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background-color: #0a1929;
+    border: 1px solid rgba(30, 58, 95, 0.5);
+    border-radius: 8px;
+    color: white;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    box-shadow: 
+        inset 0 1px 2px rgba(0, 0, 0, 0.3),
+        0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.login-input::placeholder {
+    color: #9ca3af;
+}
+
+.login-input:focus {
+    outline: none;
+    border-color: rgba(37, 99, 235, 0.6);
+    background-color: #0f1b2e;
+    box-shadow: 
+        inset 0 1px 2px rgba(0, 0, 0, 0.3),
+        0 0 0 3px rgba(37, 99, 235, 0.1),
+        0 0 10px rgba(37, 99, 235, 0.2);
+    transform: translateY(-1px);
+}
+
+.login-input:focus::placeholder {
+    color: #6b7280;
+}
+
+/* Estilos para select (rol) */
+select.login-input {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    padding-right: 2.5rem;
+}
+
+select.login-input option {
+    background-color: #0a1929;
+    color: white;
+}
+
+/* Botón Iniciar Sesión */
+.login-submit-button {
+    background-color: white;
+    border: none;
+    box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.2),
+        0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.login-submit-button:hover {
+    background-color: #f3f4f6;
+    box-shadow: 
+        0 4px 8px rgba(0, 0, 0, 0.2),
+        0 6px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.login-submit-button:active {
+    transform: translateY(0);
+    box-shadow: 
+        0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Botón de Google */
+.google-button {
+    background-color: #0a1929;
+    border: 1px solid rgba(30, 58, 95, 0.5);
+    box-shadow: 
+        inset 0 1px 2px rgba(0, 0, 0, 0.3),
+        0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.google-button:hover {
+    background-color: #0f1b2e;
+    border-color: rgba(37, 99, 235, 0.6);
+    box-shadow: 
+        inset 0 1px 2px rgba(0, 0, 0, 0.3),
+        0 0 0 3px rgba(37, 99, 235, 0.1),
+        0 0 10px rgba(37, 99, 235, 0.2);
+    transform: translateY(-1px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    header .container {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    header .flex-1 {
+        width: 100%;
+        margin: 0;
+    }
+    
+    nav .flex {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .whatsapp-float {
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+        bottom: 20px;
+        right: 20px;
+    }
+    
+    .login-card {
+        padding: 2rem 1.5rem;
+    }
+}
+
