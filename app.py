@@ -4,13 +4,19 @@ import traceback
 import logging
 
 # Configurar logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
 # Log al iniciar
 logger.info("Flask app initialized")
+logger.info(f"Flask app name: {app.name}")
+logger.info(f"Flask template folder: {app.template_folder}")
+logger.info(f"Flask static folder: {app.static_folder}")
 
 # Manejo de errores
 @app.errorhandler(404)
@@ -24,7 +30,15 @@ def internal_error(error):
 # Ruta de salud para verificar que la app funciona
 @app.route('/health')
 def health():
-    return {'status': 'ok', 'message': 'Application is running'}, 200
+    try:
+        logger.info("Health check requested")
+        response = {'status': 'ok', 'message': 'Application is running'}
+        logger.info(f"Health check response: {response}")
+        return response, 200
+    except Exception as e:
+        logger.error(f"Error in health check: {str(e)}")
+        logger.error(traceback.format_exc())
+        return {'status': 'error', 'message': str(e)}, 500
 
 @app.route('/')
 def index():
