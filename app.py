@@ -1,6 +1,22 @@
 from flask import Flask, render_template
+import os
+import traceback
 
 app = Flask(__name__)
+
+# Manejo de errores
+@app.errorhandler(404)
+def not_found(error):
+    return {'error': 'Not found'}, 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    return {'error': 'Internal server error', 'traceback': traceback.format_exc()}, 500
+
+# Ruta de salud para verificar que la app funciona
+@app.route('/health')
+def health():
+    return {'status': 'ok', 'message': 'Application is running'}, 200
 
 @app.route('/')
 def index():
