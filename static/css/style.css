@@ -110,6 +110,32 @@ body:not(.admin-body) nav {
     color: white;
 }
 
+/* Efectos para el logo ALABAZTRUM */
+.logo-text {
+    background: linear-gradient(90deg, #ffffff 0%, #e5e7eb 50%, #ffffff 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 3s ease-in-out infinite;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.logo-text:hover {
+    animation: shimmer 1s ease-in-out infinite;
+    transform: scale(1.05);
+}
+
+@keyframes shimmer {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
 /* Botón flotante de WhatsApp */
 .whatsapp-float {
     position: fixed;
@@ -595,5 +621,41 @@ select.login-input option {
         grid-template-columns: 1fr !important;
         gap: 1.5rem !important;
     }
+}
+
+/* Estilos para submenús móviles */
+.mobile-submenu button {
+    transition: all 0.2s ease;
+}
+
+.mobile-submenu button:hover {
+    background-color: #1a1a1a;
+}
+
+.mobile-submenu #fragancias-mobile-icon,
+.mobile-submenu #decants-mobile-icon {
+    transition: transform 0.3s ease;
+}
+
+.mobile-submenu #fragancias-mobile-icon.rotate-180,
+.mobile-submenu #decants-mobile-icon.rotate-180 {
+    transform: rotate(180deg);
+}
+
+/* Animación suave para submenús móviles */
+#fragancias-mobile,
+#decants-mobile {
+    transition: all 0.3s ease;
+    display: block;
+}
+
+#fragancias-mobile.hidden,
+#decants-mobile.hidden {
+    display: none !important;
+}
+
+#fragancias-mobile:not(.hidden),
+#decants-mobile:not(.hidden) {
+    display: block !important;
 }
 

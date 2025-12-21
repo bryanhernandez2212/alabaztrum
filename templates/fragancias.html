@@ -25,7 +25,12 @@
                 </div>
                 <!-- Filtros de ordenamiento -->
                 <div class="flex items-center gap-2">
-                    <label class="text-xs text-gray-600 font-medium">Ordenar por:</label>
+                    <!-- Botón Filtros (solo móvil) -->
+                    <button id="mobile-filters-toggle" class="lg:hidden flex items-center gap-2 px-3 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-lg transition font-medium text-sm">
+                        <i class="fas fa-filter"></i>
+                        <span>Filtros</span>
+                    </button>
+                    <label class="hidden lg:block text-xs text-gray-600 font-medium">Ordenar por:</label>
                     <div class="relative">
                         <select id="sort-select" class="appearance-none px-4 py-2 pr-8 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 cursor-pointer hover:border-gray-400 transition-all shadow-sm">
                             <option value="relevance">Relevancia</option>
@@ -35,6 +40,67 @@
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                             <i class="fas fa-chevron-down text-gray-500 text-xs"></i>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel de filtros móvil (oculto por defecto) - Pantalla completa -->
+            <div id="mobile-filters-overlay" class="lg:hidden hidden fixed inset-0 bg-black bg-opacity-50 z-50" onclick="closeMobileFilters()"></div>
+            <div id="mobile-filters-panel" class="lg:hidden hidden fixed inset-0 bg-white z-50 overflow-y-auto">
+                <div class="min-h-screen p-4">
+                    <!-- Header fijo -->
+                    <div class="sticky top-0 bg-white border-b border-gray-200 pb-4 mb-4 -mx-4 px-4 pt-4">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-xl font-bold text-gray-900">Filtros</h2>
+                            <button id="mobile-filters-close" class="text-gray-500 hover:text-gray-700 p-2" onclick="closeMobileFilters()">
+                                <i class="fas fa-times text-2xl"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Filtro por Género -->
+                    <div class="mb-6">
+                        <h3 class="text-base font-semibold text-gray-900 mb-3">Género</h3>
+                        <div class="space-y-3">
+                            <label class="flex items-center cursor-pointer py-2">
+                                <input type="checkbox" name="gender-mobile" value="all" class="mr-3 w-5 h-5 rounded border-gray-300 text-gray-900 focus:ring-gray-900" checked>
+                                <span class="text-base text-gray-700">Todos</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer py-2">
+                                <input type="checkbox" name="gender-mobile" value="mujer" class="mr-3 w-5 h-5 rounded border-gray-300 text-gray-900 focus:ring-gray-900">
+                                <span class="text-base text-gray-700">Mujer</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer py-2">
+                                <input type="checkbox" name="gender-mobile" value="hombre" class="mr-3 w-5 h-5 rounded border-gray-300 text-gray-900 focus:ring-gray-900">
+                                <span class="text-base text-gray-700">Hombre</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Filtro por Marca -->
+                    <div class="mb-6">
+                        <h3 class="text-base font-semibold text-gray-900 mb-3">Marca</h3>
+                        <div id="brands-filter-mobile" class="space-y-3 max-h-64 overflow-y-auto">
+                            <div class="text-gray-400 text-sm">Cargando marcas...</div>
+                        </div>
+                    </div>
+
+                    <!-- Filtro por Tipo de Fragancia -->
+                    <div class="mb-6">
+                        <h3 class="text-base font-semibold text-gray-900 mb-3">Tipo de Fragancia</h3>
+                        <div id="fragrance-types-filter-mobile" class="space-y-3 max-h-64 overflow-y-auto">
+                            <div class="text-gray-400 text-sm">Cargando tipos...</div>
+                        </div>
+                    </div>
+
+                    <!-- Botones fijos al final -->
+                    <div class="sticky bottom-0 bg-white border-t border-gray-200 pt-4 pb-4 -mx-4 px-4 mt-6">
+                        <button id="clear-filters-mobile" class="w-full px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition font-medium text-base mb-3">
+                            Limpiar Filtros
+                        </button>
+                        <button onclick="closeMobileFilters()" class="w-full px-4 py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-lg transition font-medium text-base">
+                            Aplicar Filtros
+                        </button>
                     </div>
                 </div>
             </div>
@@ -90,7 +156,7 @@
                 <!-- Contenido principal -->
                 <div class="flex-1">
                     <!-- Grid de productos -->
-                    <div id="products-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    <div id="products-container" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
                 <!-- Los productos se cargarán aquí dinámicamente -->
                 <div class="col-span-full text-center py-12">
                     <div class="flex flex-col items-center">
@@ -196,30 +262,97 @@
                 typesContainer.innerHTML = '<div class="text-gray-400 text-sm">No hay tipos disponibles</div>';
             }
 
+            // Cargar marcas (móvil)
+            const brandsContainerMobile = document.getElementById('brands-filter-mobile');
+            if (brandsContainerMobile) {
+                if (allBrands.length > 0) {
+                    brandsContainerMobile.innerHTML = allBrands.map(brand => `
+                        <label class="flex items-center cursor-pointer py-2">
+                            <input type="checkbox" name="brand-mobile" value="${brand}" class="mr-3 w-5 h-5 rounded border-gray-300 text-gray-900 focus:ring-gray-900 filter-checkbox-mobile">
+                            <span class="text-base text-gray-700">${brand}</span>
+                        </label>
+                    `).join('');
+                } else {
+                    brandsContainerMobile.innerHTML = '<div class="text-gray-400 text-base">No hay marcas disponibles</div>';
+                }
+            }
+
+            // Cargar tipos de fragancia (móvil)
+            const typesContainerMobile = document.getElementById('fragrance-types-filter-mobile');
+            if (typesContainerMobile) {
+                if (allFragranceTypes.length > 0) {
+                    typesContainerMobile.innerHTML = allFragranceTypes.map(type => `
+                        <label class="flex items-center cursor-pointer py-2">
+                            <input type="checkbox" name="fragranceType-mobile" value="${type}" class="mr-3 w-5 h-5 rounded border-gray-300 text-gray-900 focus:ring-gray-900 filter-checkbox-mobile">
+                            <span class="text-base text-gray-700">${type}</span>
+                        </label>
+                    `).join('');
+                } else {
+                    typesContainerMobile.innerHTML = '<div class="text-gray-400 text-base">No hay tipos disponibles</div>';
+                }
+            }
+
             // Agregar event listeners a los checkboxes
-            document.querySelectorAll('.filter-checkbox').forEach(checkbox => {
-                checkbox.addEventListener('change', updateFilters);
+            document.querySelectorAll('.filter-checkbox, .filter-checkbox-mobile').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    syncCheckboxes(this);
+                    updateFilters();
+                });
             });
 
-            // Event listener para los checkboxes de género
-            document.querySelectorAll('input[name="gender"]').forEach(checkbox => {
+            // Event listener para los checkboxes de género (desktop y móvil)
+            document.querySelectorAll('input[name="gender"], input[name="gender-mobile"]').forEach(checkbox => {
                 checkbox.addEventListener('change', function() {
+                    const isMobile = this.name === 'gender-mobile';
+                    const otherName = isMobile ? 'gender' : 'gender-mobile';
+                    
                     if (this.value === 'all' && this.checked) {
                         // Si se selecciona "Todos", desmarcar los demás
-                        document.querySelectorAll('input[name="gender"]:not([value="all"])').forEach(cb => cb.checked = false);
+                        document.querySelectorAll(`input[name="${this.name}"]:not([value="all"])`).forEach(cb => cb.checked = false);
+                        document.querySelectorAll(`input[name="${otherName}"]:not([value="all"])`).forEach(cb => cb.checked = false);
+                        const allCheckbox = document.querySelector(`input[name="${otherName}"][value="all"]`);
+                        if (allCheckbox) allCheckbox.checked = true;
                     } else if (this.value !== 'all' && this.checked) {
                         // Si se selecciona un género específico, desmarcar "Todos"
-                        document.querySelector('input[name="gender"][value="all"]').checked = false;
+                        document.querySelector(`input[name="${this.name}"][value="all"]`).checked = false;
+                        const otherAllCheckbox = document.querySelector(`input[name="${otherName}"][value="all"]`);
+                        if (otherAllCheckbox) otherAllCheckbox.checked = false;
+                        // Sincronizar el checkbox del otro panel
+                        const otherCheckbox = document.querySelector(`input[name="${otherName}"][value="${this.value}"]`);
+                        if (otherCheckbox) otherCheckbox.checked = true;
                     }
                     updateFilters();
                 });
             });
         }
 
+        // Sincronizar checkboxes entre desktop y móvil
+        function syncCheckboxes(checkbox) {
+            const name = checkbox.name;
+            const value = checkbox.value;
+            const isChecked = checkbox.checked;
+            
+            // Si es un checkbox móvil, sincronizar con desktop
+            if (name.includes('-mobile')) {
+                const desktopName = name.replace('-mobile', '');
+                const desktopCheckbox = document.querySelector(`input[name="${desktopName}"][value="${value}"]`);
+                if (desktopCheckbox) {
+                    desktopCheckbox.checked = isChecked;
+                }
+            } else {
+                // Si es un checkbox desktop, sincronizar con móvil
+                const mobileName = name + '-mobile';
+                const mobileCheckbox = document.querySelector(`input[name="${mobileName}"][value="${value}"]`);
+                if (mobileCheckbox) {
+                    mobileCheckbox.checked = isChecked;
+                }
+            }
+        }
+
         // Actualizar filtros activos
         function updateFilters() {
-            // Género
-            const genderCheckboxes = document.querySelectorAll('input[name="gender"]:checked');
+            // Género (considerar tanto desktop como móvil)
+            const genderCheckboxes = document.querySelectorAll('input[name="gender"]:checked, input[name="gender-mobile"]:checked');
             activeFilters.gender = [];
             genderCheckboxes.forEach(cb => {
                 if (cb.value !== 'all') {
@@ -227,15 +360,15 @@
                 }
             });
 
-            // Marca
-            const brandCheckboxes = document.querySelectorAll('input[name="brand"]:checked');
+            // Marca (considerar tanto desktop como móvil)
+            const brandCheckboxes = document.querySelectorAll('input[name="brand"]:checked, input[name="brand-mobile"]:checked');
             activeFilters.brand = [];
             brandCheckboxes.forEach(cb => {
                 activeFilters.brand.push(cb.value);
             });
 
-            // Tipo de fragancia
-            const typeCheckboxes = document.querySelectorAll('input[name="fragranceType"]:checked');
+            // Tipo de fragancia (considerar tanto desktop como móvil)
+            const typeCheckboxes = document.querySelectorAll('input[name="fragranceType"]:checked, input[name="fragranceType-mobile"]:checked');
             activeFilters.fragranceType = [];
             typeCheckboxes.forEach(cb => {
                 activeFilters.fragranceType.push(cb.value);
@@ -321,11 +454,11 @@
                     : 'https://via.placeholder.com/300x300?text=No+Image';
                 
                 const genderBadge = product.gender === 'hombre' 
-                    ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Hombre</span>'
-                    : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-pink-100 text-pink-800">Mujer</span>';
+                    ? '<span class="inline-flex items-center px-1 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-medium bg-blue-100 text-blue-800">Hombre</span>'
+                    : '<span class="inline-flex items-center px-1 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-medium bg-pink-100 text-pink-800">Mujer</span>';
                 
                 const decantBadge = product.isDecant 
-                    ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Decant ${product.decantSize || ''}</span>`
+                    ? `<span class="inline-flex items-center px-1 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-medium bg-green-100 text-green-800">Decant ${product.decantSize || ''}</span>`
                     : '';
 
                 return `
@@ -333,18 +466,18 @@
                         <div class="aspect-square overflow-hidden bg-gray-100">
                             <img src="${imageUrl}" alt="${product.name || ''}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" onerror="this.src='https://via.placeholder.com/300x300?text=No+Image'">
                         </div>
-                        <div class="p-2.5">
-                            <div class="flex items-start justify-between mb-1">
-                                <h3 class="text-sm font-semibold text-gray-900 line-clamp-2">${product.name || 'Sin nombre'}</h3>
+                        <div class="p-1.5 sm:p-2.5">
+                            <div class="flex items-start justify-between mb-0.5 sm:mb-1">
+                                <h3 class="text-xs sm:text-sm font-semibold text-gray-900 line-clamp-2">${product.name || 'Sin nombre'}</h3>
                             </div>
-                            ${product.brand ? `<p class="text-xs text-gray-600 mb-1">${product.brand}</p>` : ''}
-                            <div class="flex items-center gap-1 mb-1.5">
+                            ${product.brand ? `<p class="text-[10px] sm:text-xs text-gray-600 mb-0.5 sm:mb-1">${product.brand}</p>` : ''}
+                            <div class="flex items-center gap-0.5 sm:gap-1 mb-1 sm:mb-1.5 flex-wrap">
                                 ${genderBadge}
                                 ${decantBadge}
                             </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-lg font-bold text-gray-900">$${product.price ? product.price.toFixed(2) : '0.00'}</span>
-                                <button class="bg-gray-900 hover:bg-gray-800 text-white px-2.5 py-1 rounded-lg transition font-medium text-xs">
+                            <div class="flex items-center justify-between gap-1">
+                                <span class="text-sm sm:text-lg font-bold text-gray-900">$${product.price ? product.price.toFixed(2) : '0.00'}</span>
+                                <button class="bg-gray-900 hover:bg-gray-800 text-white px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs transition font-medium">
                                     Ver más
                                 </button>
                             </div>
@@ -360,13 +493,44 @@
             displayProducts();
         });
 
-        // Limpiar filtros
+        // Función para abrir panel de filtros móvil
+        function openMobileFilters() {
+            const panel = document.getElementById('mobile-filters-panel');
+            const overlay = document.getElementById('mobile-filters-overlay');
+            panel.classList.remove('hidden');
+            overlay.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevenir scroll del body
+        }
+
+        // Función para cerrar panel de filtros móvil
+        function closeMobileFilters() {
+            const panel = document.getElementById('mobile-filters-panel');
+            const overlay = document.getElementById('mobile-filters-overlay');
+            panel.classList.add('hidden');
+            overlay.classList.add('hidden');
+            document.body.style.overflow = ''; // Restaurar scroll del body
+        }
+
+        // Toggle del panel de filtros móvil
+        document.getElementById('mobile-filters-toggle').addEventListener('click', openMobileFilters);
+
+        // Cerrar panel de filtros móvil
+        document.getElementById('mobile-filters-close').addEventListener('click', closeMobileFilters);
+
+        // Hacer funciones globales
+        window.openMobileFilters = openMobileFilters;
+        window.closeMobileFilters = closeMobileFilters;
+
+        // Limpiar filtros (desktop)
         document.getElementById('clear-filters').addEventListener('click', function() {
             // Desmarcar todos los checkboxes
-            document.querySelectorAll('.filter-checkbox').forEach(cb => cb.checked = false);
-            document.querySelectorAll('input[name="gender"]').forEach(cb => cb.checked = false);
+            document.querySelectorAll('.filter-checkbox, .filter-checkbox-mobile').forEach(cb => cb.checked = false);
+            document.querySelectorAll('input[name="gender"], input[name="gender-mobile"]').forEach(cb => cb.checked = false);
             // Marcar "Todos" en género
-            document.querySelector('input[name="gender"][value="all"]').checked = true;
+            const allGenderDesktop = document.querySelector('input[name="gender"][value="all"]');
+            const allGenderMobile = document.querySelector('input[name="gender-mobile"][value="all"]');
+            if (allGenderDesktop) allGenderDesktop.checked = true;
+            if (allGenderMobile) allGenderMobile.checked = true;
             
             // Limpiar filtros activos
             activeFilters = {
@@ -381,6 +545,34 @@
             
             displayProducts();
         });
+
+        // Limpiar filtros (móvil)
+        const clearFiltersMobile = document.getElementById('clear-filters-mobile');
+        if (clearFiltersMobile) {
+            clearFiltersMobile.addEventListener('click', function() {
+                // Desmarcar todos los checkboxes
+                document.querySelectorAll('.filter-checkbox, .filter-checkbox-mobile').forEach(cb => cb.checked = false);
+                document.querySelectorAll('input[name="gender"], input[name="gender-mobile"]').forEach(cb => cb.checked = false);
+                // Marcar "Todos" en género
+                const allGenderDesktop = document.querySelector('input[name="gender"][value="all"]');
+                const allGenderMobile = document.querySelector('input[name="gender-mobile"][value="all"]');
+                if (allGenderDesktop) allGenderDesktop.checked = true;
+                if (allGenderMobile) allGenderMobile.checked = true;
+                
+                // Limpiar filtros activos
+                activeFilters = {
+                    gender: [],
+                    brand: [],
+                    fragranceType: []
+                };
+                
+                // Resetear ordenamiento
+                document.getElementById('sort-select').value = 'relevance';
+                currentSort = 'relevance';
+                
+                displayProducts();
+            });
+        }
 
         // Aplicar filtros desde URL
         function applyFiltersFromURL() {

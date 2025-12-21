@@ -105,7 +105,7 @@
                 <!-- Contenido principal -->
                 <div class="flex-1">
                     <!-- Grid de productos -->
-                    <div id="products-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    <div id="products-container" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
                         <!-- Los productos se cargarán aquí dinámicamente -->
                         <div class="col-span-full text-center py-12">
                             <div class="flex flex-col items-center">
@@ -361,18 +361,18 @@
                         <div class="aspect-square overflow-hidden bg-gray-100">
                             <img src="${imageUrl}" alt="${product.name || ''}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" onerror="this.src='https://via.placeholder.com/300x300?text=No+Image'">
                         </div>
-                        <div class="p-2.5">
-                            <div class="flex items-start justify-between mb-1">
-                                <h3 class="text-sm font-semibold text-gray-900 line-clamp-2">${product.name || 'Sin nombre'}</h3>
+                        <div class="p-1.5 sm:p-2.5">
+                            <div class="flex items-start justify-between mb-0.5 sm:mb-1">
+                                <h3 class="text-xs sm:text-sm font-semibold text-gray-900 line-clamp-2">${product.name || 'Sin nombre'}</h3>
                             </div>
-                            ${product.brand ? `<p class="text-xs text-gray-600 mb-1">${product.brand}</p>` : ''}
-                            <div class="flex items-center gap-1 mb-1.5">
+                            ${product.brand ? `<p class="text-[10px] sm:text-xs text-gray-600 mb-0.5 sm:mb-1">${product.brand}</p>` : ''}
+                            <div class="flex items-center gap-0.5 sm:gap-1 mb-1 sm:mb-1.5 flex-wrap">
                                 ${genderBadge}
                                 ${sizeBadge}
                             </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-lg font-bold text-gray-900">$${product.price ? product.price.toFixed(2) : '0.00'}</span>
-                                <button class="bg-gray-900 hover:bg-gray-800 text-white px-2.5 py-1 rounded-lg transition font-medium text-xs">
+                            <div class="flex items-center justify-between gap-1">
+                                <span class="text-sm sm:text-lg font-bold text-gray-900">$${product.price ? product.price.toFixed(2) : '0.00'}</span>
+                                <button class="bg-gray-900 hover:bg-gray-800 text-white px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs transition font-medium">
                                     Ver más
                                 </button>
                             </div>
