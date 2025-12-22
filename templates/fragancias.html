@@ -19,7 +19,7 @@
     <main class="min-h-screen py-2 bg-gray-50">
         <div class="container mx-auto px-4">
             <!-- Header con ordenamiento -->
-            <div class="mb-2 flex items-center justify-between">
+            <div class="mb-4 flex items-center justify-between">
                 <div>
                     <h1 class="text-xl font-bold text-gray-900">Fragancias</h1>
                 </div>
@@ -105,10 +105,10 @@
                 </div>
             </div>
 
-            <div class="flex gap-3">
+            <div class="flex gap-3 items-start">
                 <!-- Barra lateral de filtros -->
                 <aside class="hidden lg:block w-52 flex-shrink-0">
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sticky top-32">
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sticky" style="top: 1rem;">
                         <h2 class="text-sm font-bold text-gray-900 mb-3">Filtros</h2>
                         
                         <!-- Filtro por Género -->
@@ -622,6 +622,7 @@
             });
         }
     </script>
+    {% include 'partials/footer.html' %}
 </body>
 </html>
 

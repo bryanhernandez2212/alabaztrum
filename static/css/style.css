@@ -57,8 +57,96 @@ html, body {
 
 /* Solo aplicar padding cuando hay navbar completo (cliente) */
 body:not(.no-navbar):not(.admin-body) {
-    padding-top: 120px; /* Espacio para el menú fijo (header + nav) */
+    padding-top: 140px; /* Espacio para el menú fijo (header + nav) + espacio adicional */
+    background-color: #f9fafb !important; /* Fondo gris para que coincida con el main y no se vea blanco */
 }
+
+/* En móvil, ajustar el padding-top para evitar líneas negras adicionales */
+@media (max-width: 767px) {
+    body:not(.no-navbar):not(.admin-body) {
+        padding-top: 148px; /* Un poco más de espacio en móvil */
+    }
+    
+    /* Asegurar que el main tenga fondo gris claro y no negro */
+    main {
+        background-color: #f9fafb !important;
+    }
+}
+
+/* Asegurar que el body tenga el mismo fondo que el main para evitar líneas blancas */
+body:not(.no-navbar):not(.admin-body) {
+    background-color: #f9fafb !important;
+}
+
+/* Estilos para breadcrumbs */
+.breadcrumbs-container {
+    position: relative !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    background-color: #f9fafb !important;
+    background: #f9fafb !important;
+    border-top: none !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+    margin: 0 !important;
+    margin-top: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    line-height: 1 !important;
+}
+
+/* Asegurar que el nav y el breadcrumb estén pegados sin espacios */
+body:not(.admin-body) nav {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+    border-bottom: none !important;
+}
+
+/* Eliminar cualquier borde superior del nav que pueda crear una línea */
+body:not(.admin-body) nav.border-t {
+    border-top: none !important;
+}
+
+.breadcrumbs-container {
+    margin-top: 0 !important;
+    padding-top: 0.5rem !important;
+    border-top: none !important;
+}
+
+/* Ya no hay breadcrumbs, no se necesita espacio adicional */
+
+/* Forzar que todos los elementos dentro del breadcrumb tengan fondo transparente */
+.breadcrumbs-container * {
+    background-color: transparent !important;
+    background: transparent !important;
+}
+
+.breadcrumbs-container nav,
+.breadcrumbs-container ol,
+.breadcrumbs-container li,
+.breadcrumbs-container a,
+.breadcrumbs-container span {
+    background-color: transparent !important;
+    background: transparent !important;
+}
+
+/* Asegurar que el contenedor del breadcrumb no herede estilos del nav */
+.breadcrumbs-container {
+    background: #f9fafb !important;
+    background-color: #f9fafb !important;
+}
+
+/* Asegurar que los breadcrumbs estén visibles y bien posicionados */
+body:not(.no-navbar):not(.admin-body) .breadcrumbs-container {
+    display: block;
+}
+
+body.admin-body .breadcrumbs-container {
+    top: 72px; /* Solo después del header de admin */
+}
+
+/* Padding-top ya está configurado arriba, no necesita ajuste adicional */
 
 /* Para páginas de admin (solo header, sin nav) */
 body.admin-body {
@@ -219,6 +307,22 @@ body:not(.admin-body) nav {
     background-color: #000000;
     overflow-x: hidden;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Asegurar que el breadcrumb esté exactamente después del nav sin espacios */
+.breadcrumbs-container {
+    top: 120px !important; /* Header (72px) + Nav (48px) - sin espacios */
+    margin-top: 0 !important;
+    padding-top: 0.5rem !important;
+}
+
+/* En móvil, reducir o eliminar el box-shadow para evitar líneas negras adicionales */
+@media (max-width: 767px) {
+    body:not(.admin-body) nav {
+        box-shadow: none;
+    }
 }
 
 .logo-icon {
@@ -316,14 +420,73 @@ header .relative .absolute {
     visibility: hidden;
     transform: translateY(-10px);
     transition: all 0.3s ease;
-    z-index: 1000;
+    z-index: 10000 !important;
     padding: 0.5rem 0;
 }
 
+/* Asegurar que el menú se muestre cuando no tiene la clase hidden y el grupo tiene hover */
+.dropdown-menu:not(.hidden) {
+    display: block;
+}
+
+/* Asegurar que el header y nav tengan z-index apropiado */
+header {
+    position: relative;
+    z-index: 100;
+}
+
+nav {
+    position: relative;
+    z-index: 99;
+}
+
+/* Asegurar que el contenedor del menú de usuario tenga z-index alto */
+#user-menu-container {
+    position: relative;
+    z-index: 10001 !important;
+}
+
 .group:hover .dropdown-menu:not(.hidden) {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translateY(0) !important;
+    display: block !important;
+}
+
+/* Asegurar que el menú de usuario se muestre al hacer hover */
+#user-menu-container.group:hover #user-not-logged-menu:not(.hidden),
+#user-menu-container.group:hover #user-logged-menu:not(.hidden) {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translateY(0) !important;
+    display: block !important;
+}
+
+/* Mostrar el menú de usuario cuando el contenedor tiene hover */
+#user-menu-container:hover #user-not-logged-menu:not(.hidden),
+#user-menu-container:hover #user-logged-menu:not(.hidden) {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translateY(0) !important;
+    display: block !important;
+}
+
+/* Asegurar que el menú no esté cortado por overflow */
+header {
+    overflow: visible !important;
+}
+
+nav {
+    overflow: visible !important;
+}
+
+#user-menu-container {
+    overflow: visible !important;
+}
+
+/* Asegurar que el dropdown-menu sea completamente visible */
+.dropdown-menu {
+    overflow: visible !important;
 }
 
 .dropdown-item {
@@ -372,15 +535,14 @@ header .relative .absolute {
     background: #5a5a5a;
 }
 
-/* Mantener el dropdown visible al hacer hover */
-nav .group:hover #fragrances-dropdown,
-nav .group:hover #decants-dropdown {
-    display: block !important;
+/* Estilos para los dropdowns */
+#fragrances-dropdown,
+#decants-dropdown {
+    transition: opacity 0.2s ease, visibility 0.2s ease;
 }
 
-/* Asegurar que el dropdown permanezca visible cuando el mouse está sobre él */
-#fragrances-dropdown:hover,
-#decants-dropdown:hover {
+#fragrances-dropdown:not(.hidden),
+#decants-dropdown:not(.hidden) {
     display: block !important;
 }
 
@@ -420,6 +582,62 @@ nav .group::after {
 
 #decants-dropdown > div::-webkit-scrollbar-thumb:hover {
     background: #5a5a5a;
+}
+
+/* Estilos para pestañas del perfil */
+.tab-button {
+    transition: all 0.2s ease;
+    background-color: transparent !important;
+}
+
+.tab-button.active {
+    border-bottom-color: #111827 !important;
+    color: #111827 !important;
+    background-color: transparent !important;
+}
+
+/* Asegurar que el contenedor de pestañas tenga fondo blanco - solo en página de perfil */
+/* Aplicar en todas las pantallas */
+body.profile-page .max-w-6xl > div:first-child {
+    background-color: white !important;
+}
+
+body.profile-page .max-w-6xl > div:first-child nav {
+    background-color: white !important;
+}
+
+body.profile-page .tab-button {
+    background-color: transparent !important;
+}
+
+body.profile-page .tab-button.active {
+    color: #111827 !important;
+}
+
+/* Estilos específicos para móvil */
+@media (max-width: 767px) {
+    body.profile-page .tab-button {
+        color: #374151 !important;
+    }
+    
+    body.profile-page .tab-button.active {
+        color: #111827 !important;
+    }
+}
+
+.tab-content {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Estilos para Login */

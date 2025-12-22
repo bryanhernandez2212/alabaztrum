@@ -13,17 +13,35 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
-<body class="bg-white">
+<body class="bg-white profile-page">
     {% include 'partials/navbar.html' %}
 
     <!-- Área principal -->
-    <main class="min-h-screen bg-gray-50 py-12">
+    <main class="min-h-screen bg-gray-50 py-6 md:py-12">
         <div class="container mx-auto px-4">
-            <div class="max-w-4xl mx-auto">
-                <h1 class="text-3xl font-bold text-gray-800 mb-8">Mi Perfil</h1>
-                
-                <div id="profile-content" class="bg-white rounded-lg shadow-md p-6">
-                    <div class="text-center">
+            <div class="max-w-6xl mx-auto">
+                <!-- Pestañas de navegación (fuera del cuadro) -->
+                <div class="bg-white rounded-lg shadow-md mb-4 md:mb-6" style="background-color: white !important;">
+                    <div class="border-b border-gray-200">
+                        <nav class="flex -mb-px" style="background-color: white !important;">
+                            <button onclick="showTab('info')" id="tab-info" class="tab-button active px-6 py-4 text-sm font-medium border-b-2 border-gray-900 text-gray-900">
+                                <i class="fas fa-user mr-2"></i>Información
+                            </button>
+                            <button onclick="showTab('orders')" id="tab-orders" class="tab-button px-6 py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                                <i class="fas fa-shopping-bag mr-2"></i>Mis Compras
+                            </button>
+                            <button onclick="showTab('edit')" id="tab-edit" class="tab-button px-6 py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                                <i class="fas fa-edit mr-2"></i>Editar Perfil
+                            </button>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Contenido de las pestañas -->
+                <!-- Pestaña: Información -->
+                <div id="tab-content-info" class="tab-content">
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="text-center mb-6">
                         <div class="w-24 h-24 bg-gray-300 rounded-full mx-auto mb-4 flex items-center justify-center">
                             <i class="far fa-user text-4xl text-gray-600"></i>
                         </div>
@@ -49,6 +67,123 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Pestaña: Mis Compras -->
+                <div id="tab-content-orders" class="tab-content hidden">
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-6">Mis Compras</h2>
+                    
+                    <!-- Loading state -->
+                    <div id="orders-loading" class="text-center py-12">
+                        <div class="flex flex-col items-center">
+                            <div class="bg-gray-100 rounded-full p-4 mb-3">
+                                <i class="fas fa-spinner fa-spin text-gray-400 text-2xl"></i>
+                            </div>
+                            <p class="text-gray-600 font-medium">Cargando compras...</p>
+                        </div>
+                    </div>
+
+                    <!-- Empty state -->
+                    <div id="orders-empty" class="hidden text-center py-12">
+                        <div class="flex flex-col items-center">
+                            <i class="fas fa-shopping-bag text-gray-300 text-6xl mb-4"></i>
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">No tienes compras aún</h3>
+                            <p class="text-gray-600 mb-6">Cuando realices una compra, aparecerá aquí</p>
+                            <a href="/fragancias" class="inline-block bg-gray-900 hover:bg-gray-800 text-white font-semibold py-3 px-6 rounded-lg transition">
+                                Ver Fragancias
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Orders list -->
+                    <div id="orders-list" class="hidden space-y-4">
+                        <!-- Las órdenes se cargarán aquí dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Pestaña: Editar Perfil -->
+                <div id="tab-content-edit" class="tab-content hidden">
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h2 class="text-2xl font-semibold text-gray-800 mb-6">Editar Perfil</h2>
+                        
+                        <form id="edit-profile-form" class="space-y-6">
+                            <div>
+                                <label for="edit-fullname" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Nombre completo <span class="text-red-500">*</span>
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="edit-fullname" 
+                                    name="fullname"
+                                    required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900"
+                                    placeholder="Tu nombre completo"
+                                >
+                            </div>
+
+                            <div>
+                                <label for="edit-email" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Correo electrónico <span class="text-red-500">*</span>
+                                </label>
+                                <input 
+                                    type="email" 
+                                    id="edit-email" 
+                                    name="email"
+                                    required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900"
+                                    placeholder="tu@email.com"
+                                >
+                            </div>
+
+                            <div>
+                                <label for="edit-phone" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Teléfono
+                                </label>
+                                <input 
+                                    type="tel" 
+                                    id="edit-phone" 
+                                    name="phone"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900"
+                                    placeholder="+52 123 456 7890"
+                                >
+                            </div>
+
+                            <div>
+                                <label for="edit-address" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Dirección
+                                </label>
+                                <textarea 
+                                    id="edit-address" 
+                                    name="address"
+                                    rows="3"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 resize-none"
+                                    placeholder="Tu dirección completa"
+                                ></textarea>
+                            </div>
+
+                            <!-- Mensaje de éxito/error -->
+                            <div id="edit-profile-message" class="hidden p-4 rounded-lg"></div>
+
+                            <!-- Botones -->
+                            <div class="flex items-center justify-end space-x-4 pt-4 border-t border-gray-200">
+                                <button 
+                                    type="button" 
+                                    onclick="showTab('info')"
+                                    class="px-6 py-3 text-gray-700 hover:text-gray-900 transition font-medium"
+                                >
+                                    Cancelar
+                                </button>
+                                <button 
+                                    type="submit" 
+                                    class="bg-gray-900 hover:bg-gray-800 text-white font-semibold py-3 px-6 rounded-lg transition"
+                                >
+                                    Guardar Cambios
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
@@ -59,9 +194,43 @@
     <script src="{{ url_for('static', filename='js/navbar-auth.js') }}"></script>
     
     <script>
+        let currentUser = null;
+        let userData = {};
+
+        // Función para cambiar de pestaña
+        function showTab(tabName) {
+            // Ocultar todos los contenidos
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // Remover clase active de todos los botones
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active', 'border-gray-900', 'text-gray-900');
+                button.classList.add('border-transparent', 'text-gray-500');
+            });
+            
+            // Mostrar el contenido seleccionado
+            document.getElementById(`tab-content-${tabName}`).classList.remove('hidden');
+            
+            // Activar el botón seleccionado
+            const activeButton = document.getElementById(`tab-${tabName}`);
+            activeButton.classList.add('active', 'border-gray-900', 'text-gray-900');
+            activeButton.classList.remove('border-transparent', 'text-gray-500');
+            
+            // Cargar datos específicos de la pestaña
+            if (tabName === 'orders') {
+                loadOrders();
+            } else if (tabName === 'edit') {
+                loadEditForm();
+            }
+        }
+
         // Cargar información del perfil
         auth.onAuthStateChanged(async (user) => {
             if (user) {
+                currentUser = user;
+                
                 // Mostrar información básica
                 document.getElementById('profile-name').textContent = user.displayName || 'Usuario';
                 document.getElementById('profile-email').textContent = user.email;
@@ -72,7 +241,7 @@
                 try {
                     const userDoc = await db.collection('users').doc(user.uid).get();
                     if (userDoc.exists) {
-                        const userData = userDoc.data();
+                        userData = userDoc.data();
                         if (userData.fullName) {
                             document.getElementById('profile-fullname').textContent = userData.fullName;
                             document.getElementById('profile-name').textContent = userData.fullName;
@@ -91,7 +260,194 @@
                 window.location.href = '/login';
             }
         });
+
+        // Cargar formulario de edición
+        function loadEditForm() {
+            if (!currentUser) return;
+            
+            document.getElementById('edit-fullname').value = currentUser.displayName || userData.fullName || '';
+            document.getElementById('edit-email').value = currentUser.email || '';
+            document.getElementById('edit-phone').value = userData.phone || '';
+            document.getElementById('edit-address').value = userData.address || '';
+        }
+
+        // Manejar envío del formulario de edición
+        document.getElementById('edit-profile-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!currentUser) {
+                alert('No hay usuario autenticado');
+                return;
+            }
+
+            const messageDiv = document.getElementById('edit-profile-message');
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            const originalText = submitButton.innerHTML;
+            
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Guardando...';
+
+            try {
+                const fullName = document.getElementById('edit-fullname').value.trim();
+                const email = document.getElementById('edit-email').value.trim();
+                const phone = document.getElementById('edit-phone').value.trim();
+                const address = document.getElementById('edit-address').value.trim();
+
+                // Actualizar displayName en Firebase Auth
+                await currentUser.updateProfile({
+                    displayName: fullName
+                });
+
+                // Actualizar email si cambió
+                if (email !== currentUser.email) {
+                    await currentUser.updateEmail(email);
+                }
+
+                // Actualizar información en Firestore
+                const updateData = {
+                    fullName: fullName,
+                    email: email,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                if (phone) updateData.phone = phone;
+                if (address) updateData.address = address;
+
+                await db.collection('users').doc(currentUser.uid).set(updateData, { merge: true });
+
+                // Actualizar datos locales
+                userData = { ...userData, ...updateData };
+
+                // Mostrar mensaje de éxito
+                messageDiv.className = 'p-4 rounded-lg bg-green-100 text-green-700 border border-green-200';
+                messageDiv.textContent = 'Perfil actualizado exitosamente';
+                messageDiv.classList.remove('hidden');
+
+                // Actualizar información en la pestaña de información
+                document.getElementById('profile-name').textContent = fullName;
+                document.getElementById('profile-fullname').textContent = fullName;
+                document.getElementById('profile-email').textContent = email;
+                document.getElementById('profile-email-detail').textContent = email;
+
+                setTimeout(() => {
+                    messageDiv.classList.add('hidden');
+                }, 3000);
+
+            } catch (error) {
+                console.error('Error al actualizar perfil:', error);
+                messageDiv.className = 'p-4 rounded-lg bg-red-100 text-red-700 border border-red-200';
+                messageDiv.textContent = 'Error al actualizar el perfil: ' + (error.message || 'Error desconocido');
+                messageDiv.classList.remove('hidden');
+            } finally {
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalText;
+            }
+        });
+
+        // Cargar órdenes del usuario
+        async function loadOrders() {
+            if (!currentUser) return;
+
+            try {
+                document.getElementById('orders-loading').classList.remove('hidden');
+                document.getElementById('orders-empty').classList.add('hidden');
+                document.getElementById('orders-list').classList.add('hidden');
+
+                // Buscar órdenes del usuario en Firestore
+                const ordersSnapshot = await db.collection('orders')
+                    .where('userId', '==', currentUser.uid)
+                    .orderBy('createdAt', 'desc')
+                    .get();
+
+                document.getElementById('orders-loading').classList.add('hidden');
+
+                if (ordersSnapshot.empty) {
+                    document.getElementById('orders-empty').classList.remove('hidden');
+                    return;
+                }
+
+                const ordersList = document.getElementById('orders-list');
+                ordersList.innerHTML = '';
+
+                ordersSnapshot.forEach((doc) => {
+                    const order = doc.data();
+                    const orderDate = order.createdAt?.toDate ? order.createdAt.toDate() : new Date();
+                    const formattedDate = orderDate.toLocaleDateString('es-ES', { 
+                        day: '2-digit', 
+                        month: '2-digit', 
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+
+                    const total = order.items?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0;
+                    const status = order.status || 'Pendiente';
+                    const statusColors = {
+                        'Pendiente': 'bg-yellow-100 text-yellow-800',
+                        'Procesando': 'bg-blue-100 text-blue-800',
+                        'Enviado': 'bg-purple-100 text-purple-800',
+                        'Entregado': 'bg-green-100 text-green-800',
+                        'Cancelado': 'bg-red-100 text-red-800'
+                    };
+
+                    const orderCard = document.createElement('div');
+                    orderCard.className = 'border border-gray-200 rounded-lg p-6 hover:shadow-md transition';
+                    orderCard.innerHTML = `
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-1">Pedido #${doc.id.substring(0, 8)}</h3>
+                                <p class="text-sm text-gray-600">${formattedDate}</p>
+                            </div>
+                            <div class="mt-2 md:mt-0">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusColors[status] || 'bg-gray-100 text-gray-800'}">
+                                    ${status}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="border-t border-gray-200 pt-4">
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-sm text-gray-600">${order.items?.length || 0} producto(s)</span>
+                                <span class="text-lg font-bold text-gray-900">$${total.toFixed(2)}</span>
+                            </div>
+                            <div class="space-y-2">
+                                ${(order.items || []).slice(0, 3).map(item => `
+                                    <div class="flex items-center gap-3 text-sm">
+                                        <img src="${item.image || 'https://via.placeholder.com/50'}" 
+                                             alt="${item.name}" 
+                                             class="w-12 h-12 object-cover rounded">
+                                        <div class="flex-grow">
+                                            <p class="font-medium text-gray-900">${item.name}</p>
+                                            <p class="text-gray-600">Cantidad: ${item.quantity}</p>
+                                        </div>
+                                        <p class="font-semibold text-gray-900">$${(item.price * item.quantity).toFixed(2)}</p>
+                                    </div>
+                                `).join('')}
+                                ${(order.items || []).length > 3 ? `<p class="text-sm text-gray-500 mt-2">+${(order.items || []).length - 3} producto(s) más</p>` : ''}
+                            </div>
+                        </div>
+                    `;
+                    ordersList.appendChild(orderCard);
+                });
+
+                document.getElementById('orders-list').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error al cargar órdenes:', error);
+                document.getElementById('orders-loading').classList.add('hidden');
+                document.getElementById('orders-empty').classList.remove('hidden');
+                document.getElementById('orders-empty').innerHTML = `
+                    <div class="flex flex-col items-center">
+                        <i class="fas fa-exclamation-triangle text-red-300 text-6xl mb-4"></i>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">Error al cargar compras</h3>
+                        <p class="text-gray-600">Por favor, intenta recargar la página</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Hacer función global
+        window.showTab = showTab;
     </script>
+    {% include 'partials/footer.html' %}
 </body>
 </html>
 

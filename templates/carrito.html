@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Carrito - ALABAZTRUM</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+</head>
+<body class="bg-gray-50">
+    {% include 'partials/navbar.html' %}
+
+    <main class="min-h-screen py-8">
+        <div class="container mx-auto px-4">
+            <h1 class="text-3xl font-bold text-gray-900 mb-8">Mi Carrito</h1>
+
+            <!-- Loading state -->
+            <div id="loading" class="text-center py-20">
+                <div class="flex flex-col items-center">
+                    <div class="bg-gray-100 rounded-full p-4 mb-3">
+                        <i class="fas fa-spinner fa-spin text-gray-400 text-2xl"></i>
+                    </div>
+                    <p class="text-gray-600 font-medium">Cargando carrito...</p>
+                </div>
+            </div>
+
+            <!-- Empty cart state -->
+            <div id="empty-cart" class="hidden text-center py-20">
+                <div class="flex flex-col items-center">
+                    <i class="fas fa-shopping-cart text-gray-300 text-6xl mb-4"></i>
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-2">Tu carrito está vacío</h2>
+                    <p class="text-gray-600 mb-6">Agrega productos para comenzar a comprar</p>
+                    <a href="/fragancias" class="inline-block bg-gray-900 hover:bg-gray-800 text-white font-semibold py-3 px-6 rounded-lg transition">
+                        Ver Fragancias
+                    </a>
+                </div>
+            </div>
+
+            <!-- Cart content -->
+            <div id="cart-content" class="hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Productos del carrito -->
+                    <div class="lg:col-span-2">
+                        <div id="cart-items" class="bg-white rounded-lg shadow-lg p-6 space-y-4">
+                            <!-- Los items se cargarán aquí -->
+                        </div>
+                    </div>
+
+                    <!-- Resumen del pedido -->
+                    <div class="lg:col-span-1">
+                        <div class="bg-white rounded-lg shadow-lg p-6 sticky top-4">
+                            <h2 class="text-xl font-semibold text-gray-900 mb-4">Resumen del Pedido</h2>
+                            
+                            <div class="space-y-3 mb-6">
+                                <div class="flex justify-between text-gray-600">
+                                    <span>Subtotal</span>
+                                    <span id="subtotal">$0.00</span>
+                                </div>
+                                <div class="flex justify-between text-gray-600">
+                                    <span>Envío</span>
+                                    <span class="text-green-600">Gratis</span>
+                                </div>
+                                <div class="border-t border-gray-200 pt-3 flex justify-between text-lg font-semibold text-gray-900">
+                                    <span>Total</span>
+                                    <span id="total">$0.00</span>
+                                </div>
+                            </div>
+
+                            <button id="checkout-btn" class="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold py-4 px-6 rounded-lg transition mb-4">
+                                Proceder al Pago
+                            </button>
+                            
+                            <button id="clear-cart-btn" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-6 rounded-lg transition">
+                                Vaciar Carrito
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/navbar-auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+    <script>
+        let currentUser = null;
+        let cartItems = [];
+
+        // Verificar autenticación
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.href = '/login';
+                return;
+            }
+
+            currentUser = user;
+            await loadCart();
+        });
+
+        // Cargar carrito
+        async function loadCart() {
+            try {
+                document.getElementById('loading').classList.remove('hidden');
+                document.getElementById('cart-content').classList.add('hidden');
+                document.getElementById('empty-cart').classList.add('hidden');
+
+                const items = await getCart(currentUser.uid);
+                cartItems = items;
+
+                if (items.length === 0) {
+                    document.getElementById('loading').classList.add('hidden');
+                    document.getElementById('empty-cart').classList.remove('hidden');
+                    return;
+                }
+
+                displayCartItems(items);
+                updateSummary(items);
+                
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('cart-content').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error loading cart:', error);
+                document.getElementById('loading').classList.add('hidden');
+                alert('Error al cargar el carrito');
+            }
+        }
+
+        // Mostrar items del carrito
+        function displayCartItems(items) {
+            const container = document.getElementById('cart-items');
+            
+            container.innerHTML = items.map(item => `
+                <div class="flex flex-col sm:flex-row gap-4 p-4 border border-gray-200 rounded-lg hover:shadow-md transition" data-product-id="${item.productId}">
+                    <!-- Imagen -->
+                    <div class="flex-shrink-0">
+                        <img src="${item.image || 'https://via.placeholder.com/150?text=No+Image'}" 
+                             alt="${item.name}" 
+                             class="w-24 h-24 object-cover rounded-lg">
+                    </div>
+                    
+                    <!-- Información -->
+                    <div class="flex-grow">
+                        <h3 class="font-semibold text-gray-900 mb-1">${item.name}</h3>
+                        <p class="text-sm text-gray-600 mb-2">${item.brand || ''}</p>
+                        <p class="text-lg font-bold text-gray-900">$${item.price ? item.price.toFixed(2) : '0.00'}</p>
+                    </div>
+                    
+                    <!-- Cantidad y acciones -->
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                        <!-- Controles de cantidad -->
+                        <div class="flex items-center border border-gray-300 rounded-lg">
+                            <button onclick="updateQuantity('${item.productId}', ${item.quantity - 1})" 
+                                    class="px-3 py-2 hover:bg-gray-100 transition ${item.quantity <= 1 ? 'opacity-50 cursor-not-allowed' : ''}"
+                                    ${item.quantity <= 1 ? 'disabled' : ''}
+                                    id="decrease-btn-${item.productId}">
+                                <i class="fas fa-minus text-sm"></i>
+                            </button>
+                            <span class="px-4 py-2 min-w-[3rem] text-center font-medium" id="quantity-${item.productId}">${item.quantity}</span>
+                            <button onclick="updateQuantity('${item.productId}', ${item.quantity + 1})" 
+                                    class="px-3 py-2 hover:bg-gray-100 transition"
+                                    id="increase-btn-${item.productId}">
+                                <i class="fas fa-plus text-sm"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Eliminar -->
+                        <button onclick="removeItem('${item.productId}')" 
+                                class="text-red-600 hover:text-red-800 transition p-2">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Actualizar cantidad (sin recargar toda la página)
+        async function updateQuantity(productId, newQuantity) {
+            if (newQuantity < 1) {
+                return;
+            }
+
+            try {
+                // Deshabilitar botones mientras se actualiza
+                const decreaseBtn = document.getElementById(`decrease-btn-${productId}`);
+                const increaseBtn = document.getElementById(`increase-btn-${productId}`);
+                const quantitySpan = document.getElementById(`quantity-${productId}`);
+                
+                if (decreaseBtn) decreaseBtn.disabled = true;
+                if (increaseBtn) increaseBtn.disabled = true;
+                if (quantitySpan) quantitySpan.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+                await updateCartItemQuantity(currentUser.uid, productId, newQuantity);
+                
+                // Actualizar la cantidad en el DOM
+                if (quantitySpan) quantitySpan.textContent = newQuantity;
+                
+                // Actualizar el estado de los botones
+                if (decreaseBtn) {
+                    if (newQuantity <= 1) {
+                        decreaseBtn.disabled = true;
+                        decreaseBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    } else {
+                        decreaseBtn.disabled = false;
+                        decreaseBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    }
+                }
+                if (increaseBtn) increaseBtn.disabled = false;
+
+                // Actualizar el carrito local y el resumen
+                const updatedItems = await getCart(currentUser.uid);
+                cartItems = updatedItems;
+                updateSummary(updatedItems);
+            } catch (error) {
+                console.error('Error updating quantity:', error);
+                alert('Error al actualizar la cantidad');
+                // Recargar el carrito en caso de error
+                await loadCart();
+            }
+        }
+
+        // Eliminar item (sin recargar toda la página)
+        async function removeItem(productId) {
+            if (!confirm('¿Estás seguro de que deseas eliminar este producto del carrito?')) {
+                return;
+            }
+
+            try {
+                // Encontrar el elemento del producto
+                const productElement = document.querySelector(`[data-product-id="${productId}"]`);
+                if (productElement) {
+                    // Animación de desvanecimiento
+                    productElement.style.opacity = '0.5';
+                    productElement.style.transition = 'opacity 0.3s';
+                }
+
+                await removeFromCart(currentUser.uid, productId);
+                
+                // Remover el elemento del DOM
+                if (productElement) {
+                    productElement.remove();
+                }
+
+                // Actualizar el carrito local y el resumen
+                const updatedItems = await getCart(currentUser.uid);
+                cartItems = updatedItems;
+                
+                // Si no hay más items, mostrar el estado vacío
+                if (updatedItems.length === 0) {
+                    document.getElementById('cart-content').classList.add('hidden');
+                    document.getElementById('empty-cart').classList.remove('hidden');
+                } else {
+                    updateSummary(updatedItems);
+                }
+            } catch (error) {
+                console.error('Error removing item:', error);
+                alert('Error al eliminar el producto');
+                // Recargar el carrito en caso de error
+                await loadCart();
+            }
+        }
+
+        // Actualizar resumen
+        function updateSummary(items) {
+            const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const total = subtotal; // Sin envío por ahora
+
+            document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
+            document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+        }
+
+        // Proceder al pago
+        document.getElementById('checkout-btn').addEventListener('click', function() {
+            if (cartItems.length === 0) {
+                alert('Tu carrito está vacío');
+                return;
+            }
+            // Por ahora solo mostrar un mensaje
+            alert('Funcionalidad de pago en desarrollo');
+        });
+
+        // Vaciar carrito
+        document.getElementById('clear-cart-btn').addEventListener('click', async function() {
+            if (!confirm('¿Estás seguro de que deseas vaciar todo el carrito?')) {
+                return;
+            }
+
+            try {
+                await clearCart(currentUser.uid);
+                await loadCart();
+            } catch (error) {
+                console.error('Error clearing cart:', error);
+                alert('Error al vaciar el carrito');
+            }
+        });
+    </script>
+    {% include 'partials/footer.html' %}
+</body>
+</html>
+

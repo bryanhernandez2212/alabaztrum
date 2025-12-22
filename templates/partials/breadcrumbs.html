@@ -1,18 +1,24 @@
 <!-- Breadcrumbs Component -->
-<nav class="text-sm text-gray-400" aria-label="Breadcrumb">
-    <ol class="flex items-center space-x-2 flex-wrap">
-        {% for item in breadcrumbs %}
-            {% if loop.last %}
-                <li>
-                    <span class="text-white font-medium">{{ item.label }}</span>
-                </li>
-            {% else %}
-                <li class="flex items-center">
-                    <a href="{{ item.url }}" class="hover:text-gray-300 transition-colors duration-200">{{ item.label }}</a>
-                    <i class="fas fa-chevron-right text-xs mx-2 text-gray-500"></i>
-                </li>
-            {% endif %}
-        {% endfor %}
-    </ol>
-</nav>
+{% if breadcrumbs %}
+<div class="breadcrumbs-container" style="background-color: #f3f4f6 !important; border-top: none !important; border-bottom: 1px solid #e5e7eb !important; margin-top: 0 !important;">
+    <div class="container mx-auto px-4">
+        <nav class="text-sm" aria-label="Breadcrumb" style="background-color: transparent !important;">
+            <ol class="flex items-center space-x-2 flex-wrap" style="background-color: transparent !important;">
+                {% for item in breadcrumbs %}
+                    {% if loop.last %}
+                        <li style="background-color: transparent !important;">
+                            <span class="text-gray-900 font-medium">{{ item.label }}</span>
+                        </li>
+                    {% else %}
+                        <li class="flex items-center" style="background-color: transparent !important;">
+                            <a href="{{ item.url }}" class="text-gray-600 hover:text-gray-900 transition-colors duration-200">{{ item.label }}</a>
+                            <i class="fas fa-chevron-right text-xs mx-2 text-gray-400"></i>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+            </ol>
+        </nav>
+    </div>
+</div>
+{% endif %}
 

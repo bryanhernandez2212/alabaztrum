@@ -77,13 +77,13 @@
                     </div>
                 </div>
                 <!-- Carrito (solo para clientes) -->
-                <div id="cart-icon" class="flex flex-col items-center cursor-pointer hover:text-gray-300 transition flex-shrink-0">
+                <a href="/carrito" id="cart-icon" class="flex flex-col items-center cursor-pointer hover:text-gray-300 transition flex-shrink-0">
                     <div class="relative">
                         <i class="fas fa-shopping-cart text-xl md:text-2xl mb-1"></i>
-                        <span class="absolute -top-1 -right-1 bg-white text-black rounded-full w-4 h-4 flex items-center justify-center text-[10px] font-bold">0</span>
+                        <span class="absolute -top-1 -right-1 bg-white text-black rounded-full w-4 h-4 flex items-center justify-center text-[10px] font-bold" style="display: none;">0</span>
                     </div>
                     <span class="text-xs hidden md:block">Mi carrito</span>
-                </div>
+                </a>
             </div>
         </div>
         
@@ -227,13 +227,13 @@
         <!-- Navegación para clientes -->
         <div id="client-nav" class="flex items-center justify-center space-x-6 py-3">
             <!-- Menú Fragancias con dropdown -->
-            <div class="relative group">
+            <div class="relative group" id="fragancias-group">
                 <a href="/fragancias" class="nav-link flex items-center hover:text-gray-300 transition cursor-pointer">
                 Fragancias
                 <i class="fas fa-chevron-down ml-1 text-xs"></i>
             </a>
                 <!-- Dropdown de Fragancias -->
-                <div id="fragrances-dropdown" class="absolute top-full left-1/2 transform -translate-x-1/2 pt-2 w-96 bg-transparent z-50 hidden group-hover:block">
+                <div id="fragrances-dropdown" class="absolute top-full left-1/2 transform -translate-x-1/2 w-96 bg-transparent z-50 hidden" style="margin-top: 0.5rem;">
                     <div class="bg-black border border-gray-800 rounded-lg shadow-xl py-4">
                         <div class="grid grid-cols-2 gap-0">
                             <!-- Columna Masculinas -->
@@ -257,13 +257,13 @@
                 </div>
             </div>
             <!-- Menú Decants con dropdown -->
-            <div class="relative group">
+            <div class="relative group" id="decants-group">
                 <a href="/decants" class="nav-link flex items-center hover:text-gray-300 transition cursor-pointer">
                 Decants
                 <i class="fas fa-chevron-down ml-1 text-xs"></i>
             </a>
                 <!-- Dropdown de Decants -->
-                <div id="decants-dropdown" class="absolute top-full left-1/2 transform -translate-x-1/2 pt-2 w-96 bg-transparent z-50 hidden group-hover:block">
+                <div id="decants-dropdown" class="absolute top-full left-1/2 transform -translate-x-1/2 w-96 bg-transparent z-50 hidden" style="margin-top: 0.5rem;">
                     <div class="bg-black border border-gray-800 rounded-lg shadow-xl py-4">
                         <div class="grid grid-cols-2 gap-0">
                             <!-- Columna Masculinas -->
@@ -294,10 +294,24 @@
                 Sprays (2x1)
                 <i class="fas fa-chevron-down ml-1 text-xs"></i>
             </a>
-            <a href="#" class="nav-link flex items-center hover:text-gray-300 transition">
+            <!-- Menú Marcas con dropdown -->
+            <div class="relative group" id="brands-group">
+                <a href="#" class="nav-link flex items-center hover:text-gray-300 transition cursor-pointer">
                 Marcas
                 <i class="fas fa-chevron-down ml-1 text-xs"></i>
             </a>
+                <!-- Dropdown de Marcas -->
+                <div id="brands-dropdown" class="absolute top-full left-1/2 transform -translate-x-1/2 w-80 bg-transparent z-50 hidden" style="margin-top: 0.5rem;">
+                    <div class="bg-black border border-gray-800 rounded-lg shadow-xl py-4">
+                        <div class="px-6">
+                            <div id="brands-list" class="space-y-2 max-h-96 overflow-y-auto">
+                                <!-- Las marcas se cargarán aquí dinámicamente -->
+                                <div class="text-gray-400 text-sm">Cargando...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <a href="#" class="nav-link flex items-center hover:text-gray-300 transition">
                 Beauty
                 <i class="fas fa-chevron-down ml-1 text-xs"></i>
@@ -414,7 +428,15 @@
     window.toggleMobileSubmenu = toggleMobileSubmenu;
 
     // Cargar tipos de fragancia para el dropdown
+    let fragranceTypesLoading = false;
+    let fragranceTypesLoaded = false;
     async function loadFragranceTypes() {
+        // Evitar ejecuciones múltiples simultáneas
+        if (fragranceTypesLoading) return;
+        
+        // Si ya se cargaron, no volver a cargar
+        if (fragranceTypesLoaded) return;
+        
         try {
             if (typeof db === 'undefined') {
                 // Esperar a que Firebase esté listo
@@ -422,28 +444,41 @@
                 return;
             }
 
+            fragranceTypesLoading = true;
             const typesSnapshot = await db.collection('fragranceTypes').orderBy('name').get();
             const masculinasContainer = document.getElementById('fragrances-masculinas');
             const femeninasContainer = document.getElementById('fragrances-femeninas');
             
+            // Solo modificar contenedores de Fragancias, no de Decants
+            if (!masculinasContainer || !femeninasContainer) {
+                fragranceTypesLoading = false;
+                return;
+            }
+            
             if (typesSnapshot.empty) {
-                if (masculinasContainer) masculinasContainer.innerHTML = '<div class="text-gray-400 text-sm">No hay tipos disponibles</div>';
-                if (femeninasContainer) femeninasContainer.innerHTML = '<div class="text-gray-400 text-sm">No hay tipos disponibles</div>';
+                masculinasContainer.innerHTML = '<div class="text-gray-400 text-sm">No hay tipos disponibles</div>';
+                femeninasContainer.innerHTML = '<div class="text-gray-400 text-sm">No hay tipos disponibles</div>';
                 const mobileMasculinas = document.getElementById('mobile-fragancias-masculinas');
                 const mobileFemeninas = document.getElementById('mobile-fragancias-femeninas');
                 if (mobileMasculinas) mobileMasculinas.innerHTML = '<div class="text-gray-400 text-xs px-4">No hay tipos disponibles</div>';
                 if (mobileFemeninas) mobileFemeninas.innerHTML = '<div class="text-gray-400 text-xs px-4">No hay tipos disponibles</div>';
+                fragranceTypesLoading = false;
+                fragranceTypesLoaded = true;
                 return;
             }
             
-            // Limpiar contenedores
-            if (masculinasContainer) masculinasContainer.innerHTML = '';
-            if (femeninasContainer) femeninasContainer.innerHTML = '';
+            // Limpiar contenedores SOLO de Fragancias ANTES de agregar contenido
+            // Usar requestAnimationFrame para asegurar que la limpieza ocurra antes de agregar
+            masculinasContainer.innerHTML = '';
+            femeninasContainer.innerHTML = '';
             
             const mobileMasculinasContainer = document.getElementById('mobile-fragancias-masculinas');
             const mobileFemeninasContainer = document.getElementById('mobile-fragancias-femeninas');
             if (mobileMasculinasContainer) mobileMasculinasContainer.innerHTML = '';
             if (mobileFemeninasContainer) mobileFemeninasContainer.innerHTML = '';
+            
+            // Pequeño delay para asegurar que la limpieza se complete
+            await new Promise(resolve => setTimeout(resolve, 10));
             
             // Mostrar todos los tipos en ambas columnas
             typesSnapshot.forEach((doc) => {
@@ -485,8 +520,11 @@
                 }
             });
             
+            fragranceTypesLoading = false;
+            fragranceTypesLoaded = true;
         } catch (error) {
             console.error('Error al cargar tipos de fragancia:', error);
+            fragranceTypesLoading = false;
             const masculinasContainer = document.getElementById('fragrances-masculinas');
             const femeninasContainer = document.getElementById('fragrances-femeninas');
             const mobileMasculinas = document.getElementById('mobile-fragancias-masculinas');
@@ -499,18 +537,29 @@
     }
 
     // Cargar tipos de fragancia para el dropdown de Decants
+    let decantTypesLoading = false;
+    let decantTypesLoaded = false;
     async function loadDecantTypes() {
+        // Evitar ejecuciones múltiples simultáneas
+        if (decantTypesLoading) return;
+        
+        // Si ya se cargaron, no volver a cargar
+        if (decantTypesLoaded) return;
+        
         try {
             if (typeof db === 'undefined') {
                 setTimeout(loadDecantTypes, 500);
                 return;
             }
 
+            decantTypesLoading = true;
             const typesSnapshot = await db.collection('fragranceTypes').orderBy('name').get();
             const masculinasContainer = document.getElementById('decants-masculinas');
             const femeninasContainer = document.getElementById('decants-femeninas');
             
+            // Solo modificar contenedores de Decants, no de Fragancias
             if (!masculinasContainer || !femeninasContainer) {
+                decantTypesLoading = false;
                 return; // Los elementos no existen en esta página
             }
             
@@ -521,9 +570,12 @@
                 const mobileFemeninas = document.getElementById('mobile-decants-femeninas');
                 if (mobileMasculinas) mobileMasculinas.innerHTML = '<div class="text-gray-400 text-xs px-4">No hay tipos disponibles</div>';
                 if (mobileFemeninas) mobileFemeninas.innerHTML = '<div class="text-gray-400 text-xs px-4">No hay tipos disponibles</div>';
+                decantTypesLoading = false;
+                decantTypesLoaded = true;
                 return;
             }
             
+            // Limpiar contenedores SOLO de Decants ANTES de agregar contenido
             masculinasContainer.innerHTML = '';
             femeninasContainer.innerHTML = '';
             
@@ -531,6 +583,9 @@
             const mobileFemeninasContainer = document.getElementById('mobile-decants-femeninas');
             if (mobileMasculinasContainer) mobileMasculinasContainer.innerHTML = '';
             if (mobileFemeninasContainer) mobileFemeninasContainer.innerHTML = '';
+            
+            // Pequeño delay para asegurar que la limpieza se complete
+            await new Promise(resolve => setTimeout(resolve, 10));
             
             typesSnapshot.forEach((doc) => {
                 const type = doc.data();
@@ -570,8 +625,11 @@
                 }
             });
             
+            decantTypesLoading = false;
+            decantTypesLoaded = true;
         } catch (error) {
             console.error('Error al cargar tipos de fragancia para decants:', error);
+            decantTypesLoading = false;
             const masculinasContainer = document.getElementById('decants-masculinas');
             const femeninasContainer = document.getElementById('decants-femeninas');
             if (masculinasContainer) masculinasContainer.innerHTML = '<div class="text-red-400 text-sm">Error al cargar</div>';
@@ -579,19 +637,223 @@
         }
     }
 
-    // Cargar tipos cuando el DOM esté listo y Firebase esté inicializado
-    if (typeof db !== 'undefined') {
-        loadFragranceTypes();
-        loadDecantTypes();
-    } else {
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(() => {
-                if (typeof db !== 'undefined') {
-                    loadFragranceTypes();
-                    loadDecantTypes();
+    // Cargar marcas para el dropdown
+    let brandsLoading = false;
+    let brandsLoaded = false;
+    async function loadBrands() {
+        // Evitar ejecuciones múltiples simultáneas
+        if (brandsLoading) return;
+        
+        // Si ya se cargaron, no volver a cargar
+        if (brandsLoaded) return;
+        
+        try {
+            if (typeof db === 'undefined') {
+                setTimeout(loadBrands, 500);
+                return;
+            }
+
+            brandsLoading = true;
+            const brandsSnapshot = await db.collection('brands').orderBy('name').get();
+            const brandsList = document.getElementById('brands-list');
+            
+            if (!brandsList) {
+                brandsLoading = false;
+                return;
+            }
+            
+            if (brandsSnapshot.empty) {
+                brandsList.innerHTML = '<div class="text-gray-400 text-sm">No hay marcas disponibles</div>';
+                brandsLoading = false;
+                brandsLoaded = true;
+                return;
+            }
+            
+            // Limpiar contenedor antes de agregar contenido
+            brandsList.innerHTML = '';
+            
+            // Pequeño delay para asegurar que la limpieza se complete
+            await new Promise(resolve => setTimeout(resolve, 10));
+            
+            brandsSnapshot.forEach((doc) => {
+                const brand = doc.data();
+                const brandName = brand.name;
+                
+                // Crear enlace para cada marca
+                const brandLink = document.createElement('a');
+                brandLink.href = `/fragancias?marca=${encodeURIComponent(brandName)}`;
+                brandLink.className = 'block text-gray-300 hover:text-white transition text-sm py-1';
+                brandLink.textContent = brandName;
+                
+                brandsList.appendChild(brandLink);
+            });
+            
+            brandsLoading = false;
+            brandsLoaded = true;
+        } catch (error) {
+            console.error('Error al cargar marcas:', error);
+            brandsLoading = false;
+            const brandsList = document.getElementById('brands-list');
+            if (brandsList) {
+                brandsList.innerHTML = '<div class="text-red-400 text-sm">Error al cargar</div>';
+            }
+        }
+    }
+
+    // Funciones para mostrar/ocultar dropdowns usando event listeners
+    function initDropdowns() {
+        const fraganciasGroup = document.getElementById('fragancias-group');
+        const decantsGroup = document.getElementById('decants-group');
+        const brandsGroup = document.getElementById('brands-group');
+        const fragrancesDropdown = document.getElementById('fragrances-dropdown');
+        const decantsDropdown = document.getElementById('decants-dropdown');
+        const brandsDropdown = document.getElementById('brands-dropdown');
+        
+        let fraganciasTimer = null;
+        let decantsTimer = null;
+        let brandsTimer = null;
+
+        // Fragancias dropdown
+        if (fraganciasGroup && fragrancesDropdown) {
+            fraganciasGroup.addEventListener('mouseenter', function() {
+                if (fraganciasTimer) {
+                    clearTimeout(fraganciasTimer);
+                    fraganciasTimer = null;
                 }
-            }, 1000);
-        });
+                // Ocultar otros dropdowns primero para evitar duplicación
+                if (decantsDropdown) decantsDropdown.classList.add('hidden');
+                if (brandsDropdown) brandsDropdown.classList.add('hidden');
+                // Cargar tipos solo cuando se muestra el dropdown
+                loadFragranceTypes();
+                fragrancesDropdown.classList.remove('hidden');
+            });
+
+            fraganciasGroup.addEventListener('mouseleave', function() {
+                fraganciasTimer = setTimeout(() => {
+                    if (!fraganciasGroup.matches(':hover') && !fragrancesDropdown.matches(':hover')) {
+                        fragrancesDropdown.classList.add('hidden');
+                    }
+                }, 200);
+            });
+
+            fragrancesDropdown.addEventListener('mouseenter', function() {
+                if (fraganciasTimer) {
+                    clearTimeout(fraganciasTimer);
+                    fraganciasTimer = null;
+                }
+            });
+
+            fragrancesDropdown.addEventListener('mouseleave', function() {
+                fraganciasTimer = setTimeout(() => {
+                    fragrancesDropdown.classList.add('hidden');
+                }, 200);
+            });
+        }
+
+        // Marcas dropdown
+        if (brandsGroup && brandsDropdown) {
+            brandsGroup.addEventListener('mouseenter', function() {
+                if (brandsTimer) {
+                    clearTimeout(brandsTimer);
+                    brandsTimer = null;
+                }
+                // Ocultar otros dropdowns primero
+                if (fragrancesDropdown) fragrancesDropdown.classList.add('hidden');
+                if (decantsDropdown) decantsDropdown.classList.add('hidden');
+                // Cargar marcas solo cuando se muestra el dropdown
+                loadBrands();
+                brandsDropdown.classList.remove('hidden');
+            });
+
+            brandsGroup.addEventListener('mouseleave', function() {
+                brandsTimer = setTimeout(() => {
+                    if (!brandsGroup.matches(':hover') && !brandsDropdown.matches(':hover')) {
+                        brandsDropdown.classList.add('hidden');
+                    }
+                }, 200);
+            });
+
+            brandsDropdown.addEventListener('mouseenter', function() {
+                if (brandsTimer) {
+                    clearTimeout(brandsTimer);
+                    brandsTimer = null;
+                }
+            });
+
+            brandsDropdown.addEventListener('mouseleave', function() {
+                brandsTimer = setTimeout(() => {
+                    brandsDropdown.classList.add('hidden');
+                }, 200);
+            });
+        }
+
+        // Decants dropdown
+        if (decantsGroup && decantsDropdown) {
+            decantsGroup.addEventListener('mouseenter', function() {
+                if (decantsTimer) {
+                    clearTimeout(decantsTimer);
+                    decantsTimer = null;
+                }
+                // Ocultar otros dropdowns primero para evitar duplicación
+                if (fragrancesDropdown) fragrancesDropdown.classList.add('hidden');
+                if (brandsDropdown) brandsDropdown.classList.add('hidden');
+                // Cargar tipos solo cuando se muestra el dropdown
+                loadDecantTypes();
+                decantsDropdown.classList.remove('hidden');
+            });
+
+            decantsGroup.addEventListener('mouseleave', function() {
+                decantsTimer = setTimeout(() => {
+                    if (!decantsGroup.matches(':hover') && !decantsDropdown.matches(':hover')) {
+                        decantsDropdown.classList.add('hidden');
+                    }
+                }, 200);
+            });
+
+            decantsDropdown.addEventListener('mouseenter', function() {
+                if (decantsTimer) {
+                    clearTimeout(decantsTimer);
+                    decantsTimer = null;
+                }
+            });
+
+            decantsDropdown.addEventListener('mouseleave', function() {
+                decantsTimer = setTimeout(() => {
+                    decantsDropdown.classList.add('hidden');
+                }, 200);
+            });
+        }
+    }
+
+    // Inicializar dropdowns cuando el DOM esté listo
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initDropdowns);
+    } else {
+        initDropdowns();
+    }
+
+    // Cargar tipos cuando el DOM esté listo y Firebase esté inicializado
+    // NO cargar automáticamente, solo cuando se necesite (al hacer hover)
+    // Esto evita que se carguen ambos al mismo tiempo
+
+    // Cargar script del carrito después de que Firebase esté disponible
+    function loadCartScript() {
+        if (typeof firebase !== 'undefined' && typeof db !== 'undefined') {
+            if (!document.querySelector('script[src*="cart.js"]')) {
+                const script = document.createElement('script');
+                script.src = "{{ url_for('static', filename='js/cart.js') }}";
+                document.body.appendChild(script);
+            }
+        } else {
+            setTimeout(loadCartScript, 100);
+        }
+    }
+    
+    // Intentar cargar el script del carrito
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadCartScript);
+    } else {
+        loadCartScript();
     }
 </script>
 

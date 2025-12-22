@@ -152,6 +152,7 @@
 
     <!-- Scripts Firebase y autenticación -->
     <script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cart.js') }}"></script>
     <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
     <script src="{{ url_for('static', filename='js/navbar-auth.js') }}"></script>
     
@@ -417,26 +418,6 @@
             }
         }
 
-        // Agregar al carrito
-        document.getElementById('add-to-cart-btn').addEventListener('click', async function() {
-            const auth = firebase.auth();
-            const user = auth.currentUser;
-            
-            if (!user) {
-                alert('Debes iniciar sesión para agregar productos al carrito');
-                window.location.href = '/login';
-                return;
-            }
-
-            try {
-                // Aquí implementarías la lógica para agregar al carrito
-                // Por ahora solo mostramos un mensaje
-                alert('Producto agregado al carrito');
-            } catch (error) {
-                console.error('Error adding to cart:', error);
-                alert('Error al agregar al carrito');
-            }
-        });
 
         // Comprar ahora
         document.getElementById('buy-now-btn').addEventListener('click', async function() {
@@ -469,8 +450,69 @@
         });
 
         // Inicializar
-        loadProduct();
+        // Esperar a que cart.js esté cargado antes de agregar el event listener
+        function initAddToCartButton() {
+            if (typeof addToCart === 'undefined') {
+                setTimeout(initAddToCartButton, 100);
+                return;
+            }
+
+            // Agregar al carrito
+            document.getElementById('add-to-cart-btn').addEventListener('click', async function() {
+                const auth = firebase.auth();
+                const user = auth.currentUser;
+                
+                if (!user) {
+                    alert('Debes iniciar sesión para agregar productos al carrito');
+                    window.location.href = '/login';
+                    return;
+                }
+
+                try {
+                    if (!currentProduct) {
+                        alert('Error: Producto no cargado. Por favor, recarga la página.');
+                        return;
+                    }
+
+                    const button = document.getElementById('add-to-cart-btn');
+                    const originalText = button.innerHTML;
+                    button.disabled = true;
+                    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Agregando...</span>';
+
+                    await addToCart(user.uid, productId, {
+                        name: currentProduct.name || 'Sin nombre',
+                        brand: currentProduct.brand || '',
+                        price: currentProduct.price || 0,
+                        images: currentProduct.images || []
+                    });
+
+                    button.innerHTML = '<i class="fas fa-check"></i> <span>Agregado</span>';
+                    setTimeout(() => {
+                        button.disabled = false;
+                        button.innerHTML = originalText;
+                    }, 1500);
+                } catch (error) {
+                    console.error('Error adding to cart:', error);
+                    alert('Error al agregar al carrito: ' + (error.message || 'Error desconocido'));
+                    const button = document.getElementById('add-to-cart-btn');
+                    button.disabled = false;
+                    button.innerHTML = '<i class="fas fa-shopping-cart"></i> <span>Agregar al Carrito</span>';
+                }
+            });
+        }
+
+        // Inicializar cuando el DOM esté listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                loadProduct();
+                initAddToCartButton();
+            });
+        } else {
+            loadProduct();
+            initAddToCartButton();
+        }
     </script>
+    {% include 'partials/footer.html' %}
 </body>
 </html>
 

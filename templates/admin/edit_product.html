@@ -187,6 +187,22 @@
                                         </div>
                                     </div>
 
+                                    <!-- Stock -->
+                                    <div>
+                                        <label for="productStock" class="block text-gray-900 font-semibold mb-2 text-sm">
+                                            Stock <span class="text-red-500">*</span>
+                                        </label>
+                                        <input 
+                                            type="number" 
+                                            id="productStock" 
+                                            name="productStock" 
+                                            min="0"
+                                            required
+                                            class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400 text-gray-900 placeholder-gray-500"
+                                            placeholder="0"
+                                        >
+                                    </div>
+
                                     <!-- Descripción -->
                                     <div>
                                         <label for="productDescription" class="block text-gray-900 font-semibold mb-2 text-sm">
@@ -283,6 +299,7 @@
                 // Llenar campos del formulario
                 document.getElementById('productName').value = product.name || '';
                 document.getElementById('productPrice').value = product.price || '';
+                document.getElementById('productStock').value = product.stock || 0;
                 document.getElementById('productDescription').value = product.description || '';
                 
                 // Género
@@ -500,6 +517,7 @@
             const productName = document.getElementById('productName').value.trim();
             const productBrand = document.getElementById('productBrand').value;
             const productPrice = parseFloat(document.getElementById('productPrice').value);
+            const productStock = parseInt(document.getElementById('productStock').value) || 0;
             const productDescription = document.getElementById('productDescription').value.trim();
             const gender = document.querySelector('input[name="gender"]:checked').value;
             const isDecant = document.getElementById('isDecant').value;
@@ -514,7 +532,7 @@
                 return;
             }
             
-            if (!productName || !productPrice || !productDescription || !gender || !fragranceType) {
+            if (!productName || !productPrice || productStock < 0 || !productDescription || !gender || !fragranceType) {
                 messageDiv.className = 'mb-6 p-4 rounded-lg text-sm bg-red-500 text-white';
                 messageDiv.textContent = 'Por favor completa todos los campos requeridos';
                 messageDiv.classList.remove('hidden');
@@ -556,6 +574,7 @@
                     name: productName,
                     brand: productBrand || '',
                     price: productPrice,
+                    stock: productStock,
                     description: productDescription,
                     gender: gender,
                     isDecant: isDecant === 'si',
