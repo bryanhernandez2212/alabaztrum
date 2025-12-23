@@ -475,8 +475,12 @@
     window.toggleMobileSubmenu = toggleMobileSubmenu;
 
     // Cargar tipos de fragancia para el dropdown
-    let fragranceTypesLoading = false;
-    let fragranceTypesLoaded = false;
+    if (typeof fragranceTypesLoading === 'undefined') {
+        var fragranceTypesLoading = false;
+    }
+    if (typeof fragranceTypesLoaded === 'undefined') {
+        var fragranceTypesLoaded = false;
+    }
     async function loadFragranceTypes() {
         // Evitar ejecuciones múltiples simultáneas
         if (fragranceTypesLoading) return;
@@ -584,8 +588,12 @@
     }
 
     // Cargar tipos de fragancia para el dropdown de Decants
-    let decantTypesLoading = false;
-    let decantTypesLoaded = false;
+    if (typeof decantTypesLoading === 'undefined') {
+        var decantTypesLoading = false;
+    }
+    if (typeof decantTypesLoaded === 'undefined') {
+        var decantTypesLoaded = false;
+    }
     async function loadDecantTypes() {
         // Evitar ejecuciones múltiples simultáneas
         if (decantTypesLoading) return;
@@ -685,8 +693,12 @@
     }
 
     // Cargar marcas para el dropdown
-    let brandsLoading = false;
-    let brandsLoaded = false;
+    if (typeof brandsLoading === 'undefined') {
+        var brandsLoading = false;
+    }
+    if (typeof brandsLoaded === 'undefined') {
+        var brandsLoaded = false;
+    }
     async function loadBrands() {
         // Evitar ejecuciones múltiples simultáneas
         if (brandsLoading) return;

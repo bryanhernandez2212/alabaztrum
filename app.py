@@ -167,6 +167,21 @@ def carrito():
     breadcrumbs = get_breadcrumbs([('Mi Carrito', '/carrito')])
     return render_template('carrito.html', breadcrumbs=breadcrumbs)
 
+@app.route('/checkout')
+def checkout():
+    breadcrumbs = get_breadcrumbs([('Mi Carrito', '/carrito'), ('Checkout', '/checkout')])
+    return render_template('checkout.html', breadcrumbs=breadcrumbs)
+
+@app.route('/orden-confirmada')
+def orden_confirmada():
+    breadcrumbs = get_breadcrumbs([('Orden Confirmada', '/orden-confirmada')])
+    return render_template('orden_confirmada.html', breadcrumbs=breadcrumbs)
+
+@app.route('/orden-detalle')
+def orden_detalle():
+    breadcrumbs = get_breadcrumbs([('Mis Compras', '/mis-compras'), ('Detalle de Orden', '/orden-detalle')])
+    return render_template('orden_detalle.html', breadcrumbs=breadcrumbs)
+
 @app.route('/ayuda/contacto')
 def ayuda_contacto():
     breadcrumbs = get_breadcrumbs([('Contacto', '/ayuda/contacto')])

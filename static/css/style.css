@@ -1,5 +1,28 @@
 /* Estilos personalizados para ALABAZTRUM */
 
+/* Estilos para checkout */
+.payment-method input[type="radio"]:checked + div {
+    border-color: #111827;
+    background-color: #f9fafb;
+}
+
+.payment-method:hover {
+    border-color: #6b7280;
+}
+
+/* Animación para el stepper */
+#step-1-indicator,
+#step-2-indicator {
+    transition: all 0.3s ease;
+}
+
+/* Estilos para inputs del checkout */
+#address-form input:focus,
+#address-form textarea:focus {
+    border-color: #111827;
+    box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.1);
+}
+
 html, body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     overflow-x: hidden !important;

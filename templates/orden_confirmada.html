@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orden Confirmada - ALABAZTRUM</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-50">
+    {% include 'partials/navbar.html' %}
+
+    <main class="min-h-screen py-12">
+        <div class="container mx-auto px-4 max-w-3xl">
+            <!-- Estado de carga -->
+            <div id="loading" class="text-center py-20">
+                <div class="flex flex-col items-center">
+                    <div class="bg-gray-100 rounded-full p-4 mb-3">
+                        <i class="fas fa-spinner fa-spin text-gray-400 text-2xl"></i>
+                    </div>
+                    <p class="text-gray-600 font-medium">Cargando información de la orden...</p>
+                </div>
+            </div>
+
+            <!-- Contenido de confirmación -->
+            <div id="confirmation-content" class="hidden">
+                <!-- Icono de éxito -->
+                <div class="text-center mb-8">
+                    <div class="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-4">
+                        <i class="fas fa-check text-4xl text-green-600"></i>
+                    </div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">¡Pedido Confirmado!</h1>
+                    <p class="text-gray-600">Gracias por tu compra. Hemos recibido tu pedido correctamente.</p>
+                </div>
+
+                <!-- Información de la orden -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Detalles de la Orden</h2>
+                    
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Número de Orden:</span>
+                            <span class="font-semibold text-gray-900" id="order-number"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Fecha:</span>
+                            <span class="font-semibold text-gray-900" id="order-date"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Total:</span>
+                            <span class="font-semibold text-gray-900 text-lg" id="order-total"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Estado:</span>
+                            <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium" id="order-status">Pendiente</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Productos -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Productos</h2>
+                    <div id="order-items-list" class="space-y-4">
+                        <!-- Los productos se cargarán aquí -->
+                    </div>
+                </div>
+
+                <!-- Dirección de envío -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Dirección de Envío</h2>
+                    <div id="shipping-address" class="text-gray-700">
+                        <!-- La dirección se cargará aquí -->
+                    </div>
+                </div>
+
+                <!-- Información de pago -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Método de Pago</h2>
+                    <div id="payment-method-info" class="text-gray-700">
+                        <!-- La información de pago se cargará aquí -->
+                    </div>
+                </div>
+
+                <!-- Instrucciones según método de pago -->
+                <div id="payment-instructions" class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+                    <!-- Las instrucciones se mostrarán aquí según el método de pago -->
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <a href="/mis-compras" class="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-semibold py-4 px-6 rounded-lg transition text-center">
+                        <i class="fas fa-shopping-bag mr-2"></i>
+                        Ver Mis Pedidos
+                    </a>
+                    <a href="/fragancias" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-4 px-6 rounded-lg transition text-center">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Seguir Comprando
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts Firebase y autenticación -->
+    <script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/auth-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/navbar-auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/navbar-persistent.js') }}"></script>
+    
+    <script>
+        if (typeof currentUser === 'undefined') {
+            var currentUser = null;
+        }
+        if (typeof orderData === 'undefined') {
+            var orderData = null;
+        }
+
+        // Obtener ID de orden de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('orderId');
+
+        if (!orderId) {
+            alert('No se encontró información de la orden');
+            window.location.href = '/mis-compras';
+        }
+
+        // Verificar autenticación y cargar orden
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.href = '/login';
+                return;
+            }
+
+            currentUser = user;
+            await loadOrder();
+        });
+
+        // Cargar información de la orden
+        async function loadOrder() {
+            try {
+                if (typeof db === 'undefined') {
+                    setTimeout(loadOrder, 500);
+                    return;
+                }
+
+                const orderDoc = await db.collection('orders').doc(orderId).get();
+                
+                if (!orderDoc.exists) {
+                    alert('Orden no encontrada');
+                    window.location.href = '/mis-compras';
+                    return;
+                }
+
+                orderData = {
+                    id: orderDoc.id,
+                    ...orderDoc.data()
+                };
+
+                // Verificar que la orden pertenece al usuario
+                if (orderData.userId !== currentUser.uid) {
+                    alert('No tienes permiso para ver esta orden');
+                    window.location.href = '/mis-compras';
+                    return;
+                }
+
+                displayOrderInfo();
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('confirmation-content').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error cargando orden:', error);
+                alert('Error al cargar la información de la orden');
+            }
+        }
+
+        // Mostrar información de la orden
+        function displayOrderInfo() {
+            // Número de orden
+            document.getElementById('order-number').textContent = `#${orderData.id.substring(0, 8).toUpperCase()}`;
+            
+            // Fecha
+            if (orderData.createdAt) {
+                const date = orderData.createdAt.toDate();
+                document.getElementById('order-date').textContent = date.toLocaleDateString('es-MX', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } else {
+                document.getElementById('order-date').textContent = 'Fecha no disponible';
+            }
+            
+            // Total
+            document.getElementById('order-total').textContent = `$${orderData.total.toFixed(2)}`;
+            
+            // Estado
+            const statusElement = document.getElementById('order-status');
+            const status = orderData.status || 'pending';
+            const statusText = {
+                'pending': 'Pendiente',
+                'processing': 'En Proceso',
+                'shipped': 'Enviado',
+                'delivered': 'Entregado',
+                'cancelled': 'Cancelado'
+            };
+            statusElement.textContent = statusText[status] || 'Pendiente';
+            
+            // Cambiar color según estado
+            statusElement.className = 'px-3 py-1 rounded-full text-sm font-medium ';
+            if (status === 'pending') {
+                statusElement.className += 'bg-yellow-100 text-yellow-800';
+            } else if (status === 'processing' || status === 'shipped') {
+                statusElement.className += 'bg-blue-100 text-blue-800';
+            } else if (status === 'delivered') {
+                statusElement.className += 'bg-green-100 text-green-800';
+            } else {
+                statusElement.className += 'bg-red-100 text-red-800';
+            }
+            
+            // Productos
+            const itemsContainer = document.getElementById('order-items-list');
+            itemsContainer.innerHTML = orderData.items.map(item => {
+                const imageUrl = item.images && item.images.length > 0 
+                    ? item.images[0] 
+                    : 'https://via.placeholder.com/100x100?text=Sin+Imagen';
+                
+                return `
+                    <div class="flex items-center gap-4 pb-4 border-b border-gray-200 last:border-0">
+                        <img 
+                            src="${imageUrl}" 
+                            alt="${item.name}"
+                            class="w-20 h-20 object-cover rounded"
+                            onerror="this.src='https://via.placeholder.com/100x100?text=Sin+Imagen'"
+                        >
+                        <div class="flex-1">
+                            <p class="font-medium text-gray-900">${item.name}</p>
+                            ${item.brand ? `<p class="text-sm text-gray-500">${item.brand}</p>` : ''}
+                            <p class="text-sm text-gray-600">Cantidad: ${item.quantity}</p>
+                        </div>
+                        <p class="font-semibold text-gray-900">$${(item.price * item.quantity).toFixed(2)}</p>
+                    </div>
+                `;
+            }).join('');
+            
+            // Dirección de envío
+            if (orderData.shippingAddress) {
+                const address = orderData.shippingAddress;
+                document.getElementById('shipping-address').innerHTML = `
+                    <p class="font-medium mb-2">${address.fullName}</p>
+                    <p>${address.street}</p>
+                    <p>${address.colonia}, ${address.city}, ${address.state}</p>
+                    <p>CP: ${address.postalCode}</p>
+                    <p>Tel: ${address.phone}</p>
+                    ${address.references ? `<p class="mt-2 text-sm italic text-gray-600">Referencias: ${address.references}</p>` : ''}
+                `;
+            }
+            
+            // Método de pago
+            const paymentMethod = orderData.paymentMethod || 'cash';
+            const paymentMethods = {
+                'cash': { name: 'Pago en Efectivo', icon: 'fa-money-bill-wave', color: 'text-green-600' },
+                'transfer': { name: 'Transferencia Bancaria', icon: 'fa-university', color: 'text-blue-600' },
+                'card': { name: 'Tarjeta de Crédito/Débito', icon: 'fa-credit-card', color: 'text-purple-600' }
+            };
+            
+            const method = paymentMethods[paymentMethod] || paymentMethods['cash'];
+            document.getElementById('payment-method-info').innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas ${method.icon} ${method.color} text-2xl mr-3"></i>
+                    <span class="font-medium">${method.name}</span>
+                </div>
+            `;
+            
+            // Instrucciones según método de pago
+            const instructionsContainer = document.getElementById('payment-instructions');
+            if (paymentMethod === 'transfer') {
+                instructionsContainer.innerHTML = `
+                    <div class="flex items-start">
+                        <i class="fas fa-info-circle text-blue-600 text-xl mr-3 mt-1"></i>
+                        <div>
+                            <h3 class="font-semibold text-blue-900 mb-2">Instrucciones para Transferencia</h3>
+                            <p class="text-blue-800 mb-3">Por favor, realiza la transferencia a la siguiente cuenta:</p>
+                            <div class="bg-white p-4 rounded border border-blue-200 mb-3">
+                                <p class="text-sm"><span class="font-medium">Banco:</span> BBVA</p>
+                                <p class="text-sm"><span class="font-medium">CLABE:</span> 012345678901234567</p>
+                                <p class="text-sm"><span class="font-medium">Cuenta:</span> 1234567890</p>
+                                <p class="text-sm"><span class="font-medium">Beneficiario:</span> ALABAZTRUM</p>
+                            </div>
+                            <p class="text-blue-800 text-sm">
+                                <i class="fas fa-whatsapp mr-1"></i>
+                                Envía el comprobante de transferencia a nuestro WhatsApp: 
+                                <a href="https://wa.me/9191936256" target="_blank" class="font-semibold underline">9191936256</a>
+                            </p>
+                        </div>
+                    </div>
+                `;
+            } else if (paymentMethod === 'cash') {
+                instructionsContainer.innerHTML = `
+                    <div class="flex items-start">
+                        <i class="fas fa-info-circle text-green-600 text-xl mr-3 mt-1"></i>
+                        <div>
+                            <h3 class="font-semibold text-green-900 mb-2">Pago en Efectivo</h3>
+                            <p class="text-green-800">El repartidor recibirá el pago en efectivo al momento de la entrega.</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                instructionsContainer.classList.add('hidden');
+            }
+        }
+    </script>
+    {% include 'partials/footer.html' %}
+</body>
+</html>
+

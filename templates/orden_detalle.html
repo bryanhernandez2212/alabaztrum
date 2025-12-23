@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de Orden - ALABAZTRUM</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-50">
+    {% include 'partials/navbar.html' %}
+
+    <main class="min-h-screen py-8">
+        <div class="container mx-auto px-4 max-w-4xl">
+            <!-- Botón volver -->
+            <a href="/mis-compras" class="inline-flex items-center text-gray-600 hover:text-gray-900 mb-6 transition">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Volver a Mis Compras
+            </a>
+
+            <!-- Estado de carga -->
+            <div id="loading" class="text-center py-20">
+                <div class="flex flex-col items-center">
+                    <div class="bg-gray-100 rounded-full p-4 mb-3">
+                        <i class="fas fa-spinner fa-spin text-gray-400 text-2xl"></i>
+                    </div>
+                    <p class="text-gray-600 font-medium">Cargando información de la orden...</p>
+                </div>
+            </div>
+
+            <!-- Contenido de la orden -->
+            <div id="order-content" class="hidden space-y-6">
+                <!-- Encabezado -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900 mb-2">Pedido #<span id="order-number"></span></h1>
+                            <p class="text-gray-600" id="order-date"></p>
+                        </div>
+                        <div class="mt-4 md:mt-0">
+                            <span id="order-status" class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Productos -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Productos</h2>
+                    <div id="order-items-list" class="space-y-4">
+                        <!-- Los productos se cargarán aquí -->
+                    </div>
+                    
+                    <div class="border-t border-gray-200 mt-6 pt-4">
+                        <div class="flex justify-between text-gray-600 mb-2">
+                            <span>Subtotal</span>
+                            <span id="order-subtotal">$0.00</span>
+                        </div>
+                        <div class="flex justify-between text-gray-600 mb-2" id="shipping-row">
+                            <span>Envío</span>
+                            <span id="shipping-cost" class="text-green-600">Gratis</span>
+                        </div>
+                        <div class="flex justify-between text-lg font-bold text-gray-900 pt-2 border-t border-gray-200">
+                            <span>Total</span>
+                            <span id="order-total">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dirección de envío -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Dirección de Envío</h2>
+                    <div id="shipping-address" class="text-gray-700">
+                        <!-- La dirección se cargará aquí -->
+                    </div>
+                </div>
+
+                <!-- Información de pago -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Método de Pago</h2>
+                    <div id="payment-method-info" class="text-gray-700">
+                        <!-- La información de pago se cargará aquí -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts Firebase y autenticación -->
+    <script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/auth-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/navbar-auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/navbar-persistent.js') }}"></script>
+    
+    <script>
+        if (typeof currentUser === 'undefined') {
+            var currentUser = null;
+        }
+        if (typeof orderData === 'undefined') {
+            var orderData = null;
+        }
+
+        // Obtener ID de orden de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('orderId');
+
+        if (!orderId) {
+            alert('No se encontró información de la orden');
+            window.location.href = '/mis-compras';
+        }
+
+        // Verificar autenticación y cargar orden
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.href = '/login';
+                return;
+            }
+
+            currentUser = user;
+            await loadOrder();
+        });
+
+        // Cargar información de la orden
+        async function loadOrder() {
+            try {
+                if (typeof db === 'undefined') {
+                    setTimeout(loadOrder, 500);
+                    return;
+                }
+
+                const orderDoc = await db.collection('orders').doc(orderId).get();
+                
+                if (!orderDoc.exists) {
+                    alert('Orden no encontrada');
+                    window.location.href = '/mis-compras';
+                    return;
+                }
+
+                orderData = {
+                    id: orderDoc.id,
+                    ...orderDoc.data()
+                };
+
+                // Verificar que la orden pertenece al usuario
+                if (orderData.userId !== currentUser.uid) {
+                    alert('No tienes permiso para ver esta orden');
+                    window.location.href = '/mis-compras';
+                    return;
+                }
+
+                displayOrderInfo();
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('order-content').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error cargando orden:', error);
+                alert('Error al cargar la información de la orden');
+            }
+        }
+
+        // Mostrar información de la orden
+        function displayOrderInfo() {
+            // Número de orden
+            document.getElementById('order-number').textContent = orderData.id.substring(0, 8).toUpperCase();
+            
+            // Fecha
+            if (orderData.createdAt) {
+                let date;
+                if (orderData.createdAt.toDate) {
+                    date = orderData.createdAt.toDate();
+                } else if (orderData.createdAt instanceof Date) {
+                    date = orderData.createdAt;
+                } else if (orderData.createdAt.seconds) {
+                    date = new Date(orderData.createdAt.seconds * 1000);
+                } else {
+                    date = new Date(orderData.createdAt);
+                }
+                
+                document.getElementById('order-date').textContent = date.toLocaleDateString('es-MX', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } else {
+                document.getElementById('order-date').textContent = 'Fecha no disponible';
+            }
+            
+            // Total
+            let subtotal = 0;
+            if (orderData.subtotal !== undefined && orderData.subtotal !== null) {
+                subtotal = parseFloat(orderData.subtotal) || 0;
+            } else if (orderData.items && orderData.items.length > 0) {
+                subtotal = orderData.items.reduce((sum, item) => {
+                    const price = parseFloat(item.price) || 0;
+                    const quantity = parseInt(item.quantity) || 1;
+                    return sum + (price * quantity);
+                }, 0);
+            }
+            
+            const shipping = parseFloat(orderData.shipping) || 0;
+            const total = parseFloat(orderData.total) || (subtotal + shipping);
+            
+            document.getElementById('order-subtotal').textContent = `$${subtotal.toFixed(2)}`;
+            
+            // Actualizar costo de envío
+            const shippingCostElement = document.getElementById('shipping-cost');
+            if (shipping > 0) {
+                shippingCostElement.textContent = `$${shipping.toFixed(2)}`;
+                shippingCostElement.classList.remove('text-green-600');
+                shippingCostElement.classList.add('text-gray-900');
+            } else {
+                shippingCostElement.textContent = 'Gratis';
+                shippingCostElement.classList.remove('text-gray-900');
+                shippingCostElement.classList.add('text-green-600');
+            }
+            
+            document.getElementById('order-total').textContent = `$${total.toFixed(2)}`;
+            
+            // Estado
+            const statusElement = document.getElementById('order-status');
+            const status = orderData.status || 'pending';
+            const statusMap = {
+                'pending': { text: 'Pendiente', class: 'bg-yellow-100 text-yellow-800' },
+                'processing': { text: 'En Proceso', class: 'bg-blue-100 text-blue-800' },
+                'shipped': { text: 'Enviado', class: 'bg-purple-100 text-purple-800' },
+                'delivered': { text: 'Entregado', class: 'bg-green-100 text-green-800' },
+                'cancelled': { text: 'Cancelado', class: 'bg-red-100 text-red-800' }
+            };
+            
+            const statusInfo = statusMap[status] || { text: status, class: 'bg-gray-100 text-gray-800' };
+            statusElement.textContent = statusInfo.text;
+            statusElement.className = `inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${statusInfo.class}`;
+            
+            // Productos
+            const itemsContainer = document.getElementById('order-items-list');
+            if (orderData.items && orderData.items.length > 0) {
+                itemsContainer.innerHTML = orderData.items.map(item => {
+                    // Manejar diferentes formatos de imagen
+                    let imageUrl = 'https://via.placeholder.com/100x100?text=Sin+Imagen';
+                    if (item.images && Array.isArray(item.images) && item.images.length > 0) {
+                        imageUrl = item.images[0];
+                    } else if (item.image) {
+                        imageUrl = item.image;
+                    }
+                    
+                    const itemPrice = parseFloat(item.price) || 0;
+                    const itemQuantity = parseInt(item.quantity) || 1;
+                    const itemTotal = itemPrice * itemQuantity;
+                    
+                    return `
+                        <div class="flex items-center gap-4 pb-4 border-b border-gray-200 last:border-0">
+                            <img 
+                                src="${imageUrl}" 
+                                alt="${item.name || 'Producto'}"
+                                class="w-20 h-20 object-cover rounded"
+                                onerror="this.src='https://via.placeholder.com/100x100?text=Sin+Imagen'"
+                            >
+                            <div class="flex-1">
+                                <p class="font-medium text-gray-900">${item.name || 'Producto sin nombre'}</p>
+                                ${item.brand ? `<p class="text-sm text-gray-500">${item.brand}</p>` : ''}
+                                <p class="text-sm text-gray-600">Cantidad: ${itemQuantity}</p>
+                                <p class="text-sm text-gray-500 mt-1">Precio unitario: $${itemPrice.toFixed(2)}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-semibold text-gray-900">$${itemTotal.toFixed(2)}</p>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                itemsContainer.innerHTML = '<p class="text-gray-600">No hay productos en esta orden.</p>';
+            }
+            
+            // Dirección de envío
+            if (orderData.shippingAddress) {
+                const address = orderData.shippingAddress;
+                let addressHTML = '';
+                
+                if (address.fullName) {
+                    addressHTML += `<p class="font-medium mb-2">${address.fullName}</p>`;
+                }
+                
+                if (address.street) {
+                    addressHTML += `<p>${address.street}</p>`;
+                }
+                
+                const locationParts = [];
+                if (address.colonia) locationParts.push(address.colonia);
+                if (address.city) locationParts.push(address.city);
+                if (address.state) locationParts.push(address.state);
+                
+                if (locationParts.length > 0) {
+                    addressHTML += `<p>${locationParts.join(', ')}</p>`;
+                }
+                
+                if (address.postalCode) {
+                    addressHTML += `<p>CP: ${address.postalCode}</p>`;
+                }
+                
+                if (address.phone) {
+                    addressHTML += `<p>Tel: ${address.phone}</p>`;
+                }
+                
+                if (address.references) {
+                    addressHTML += `<p class="mt-2 text-sm italic text-gray-600">Referencias: ${address.references}</p>`;
+                }
+                
+                if (addressHTML) {
+                    document.getElementById('shipping-address').innerHTML = addressHTML;
+                } else {
+                    document.getElementById('shipping-address').innerHTML = '<p class="text-gray-600">Dirección no disponible</p>';
+                }
+            } else {
+                document.getElementById('shipping-address').innerHTML = '<p class="text-gray-600">Dirección no disponible</p>';
+            }
+            
+            // Método de pago
+            const paymentMethod = orderData.paymentMethod || 'cash';
+            const paymentMethods = {
+                'cash': { name: 'Pago en Efectivo', icon: 'fa-money-bill-wave', color: 'text-green-600' },
+                'transfer': { name: 'Transferencia Bancaria', icon: 'fa-university', color: 'text-blue-600' },
+                'card': { name: 'Tarjeta de Crédito/Débito', icon: 'fa-credit-card', color: 'text-purple-600' }
+            };
+            
+            const method = paymentMethods[paymentMethod] || paymentMethods['cash'];
+            document.getElementById('payment-method-info').innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas ${method.icon} ${method.color} text-2xl mr-3"></i>
+                    <span class="font-medium">${method.name}</span>
+                </div>
+            `;
+        }
+    </script>
+    {% include 'partials/footer.html' %}
+</body>
+</html>
+

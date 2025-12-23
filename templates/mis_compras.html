@@ -59,9 +59,12 @@
     <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
     <script src="{{ url_for('static', filename='js/auth-manager.js') }}"></script>
     <script src="{{ url_for('static', filename='js/navbar-auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/navbar-persistent.js') }}"></script>
     
     <script>
-        let currentUser = null;
+        if (typeof currentUser === 'undefined') {
+            var currentUser = null;
+        }
 
         // Cargar órdenes del usuario
         async function loadOrders() {
@@ -124,13 +127,29 @@
                         minute: '2-digit'
                     });
 
-                    const total = order.items?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0;
-                    const status = order.status || 'Pendiente';
+                    const total = order.total || order.items?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0;
+                    const status = order.status || 'pending';
+                    
+                    // Mapear estados en inglés a español
+                    const statusMap = {
+                        'pending': 'Pendiente',
+                        'processing': 'Procesando',
+                        'shipped': 'Enviado',
+                        'delivered': 'Entregado',
+                        'cancelled': 'Cancelado'
+                    };
+                    
+                    const statusText = statusMap[status] || status;
                     const statusColors = {
+                        'pending': 'bg-yellow-100 text-yellow-800',
                         'Pendiente': 'bg-yellow-100 text-yellow-800',
+                        'processing': 'bg-blue-100 text-blue-800',
                         'Procesando': 'bg-blue-100 text-blue-800',
+                        'shipped': 'bg-purple-100 text-purple-800',
                         'Enviado': 'bg-purple-100 text-purple-800',
+                        'delivered': 'bg-green-100 text-green-800',
                         'Entregado': 'bg-green-100 text-green-800',
+                        'cancelled': 'bg-red-100 text-red-800',
                         'Cancelado': 'bg-red-100 text-red-800'
                     };
 
@@ -143,8 +162,8 @@
                                 <p class="text-sm text-gray-600">${formattedDate}</p>
                             </div>
                             <div class="mt-2 md:mt-0">
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusColors[status] || 'bg-gray-100 text-gray-800'}">
-                                    ${status}
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusColors[status] || statusColors[statusText] || 'bg-gray-100 text-gray-800'}">
+                                    ${statusText}
                                 </span>
                             </div>
                         </div>
@@ -154,19 +173,34 @@
                                 <span class="text-lg font-bold text-gray-900">$${total.toFixed(2)}</span>
                             </div>
                             <div class="space-y-2">
-                                ${(order.items || []).slice(0, 3).map(item => `
+                                ${(order.items || []).slice(0, 3).map(item => {
+                                    // Obtener imagen: puede ser item.image (string) o item.images (array)
+                                    const imageUrl = item.images && item.images.length > 0 
+                                        ? item.images[0] 
+                                        : (item.image || 'https://via.placeholder.com/50?text=Sin+Imagen');
+                                    
+                                    return `
                                     <div class="flex items-center gap-3 text-sm">
-                                        <img src="${item.image || 'https://via.placeholder.com/50'}" 
+                                        <img src="${imageUrl}" 
                                              alt="${item.name}" 
-                                             class="w-12 h-12 object-cover rounded">
+                                             class="w-12 h-12 object-cover rounded"
+                                             onerror="this.src='https://via.placeholder.com/50?text=Sin+Imagen'">
                                         <div class="flex-grow">
                                             <p class="font-medium text-gray-900">${item.name}</p>
+                                            ${item.brand ? `<p class="text-xs text-gray-500">${item.brand}</p>` : ''}
                                             <p class="text-gray-600">Cantidad: ${item.quantity}</p>
                                         </div>
                                         <p class="font-semibold text-gray-900">$${(item.price * item.quantity).toFixed(2)}</p>
                                     </div>
-                                `).join('')}
+                                    `;
+                                }).join('')}
                                 ${(order.items || []).length > 3 ? `<p class="text-sm text-gray-500 mt-2">+${(order.items || []).length - 3} producto(s) más</p>` : ''}
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-gray-200">
+                                <a href="/orden-detalle?orderId=${orderItem.id}" class="text-sm text-gray-900 hover:text-gray-700 font-medium inline-flex items-center">
+                                    Ver detalles completos
+                                    <i class="fas fa-arrow-right ml-2"></i>
+                                </a>
                             </div>
                         </div>
                     `;

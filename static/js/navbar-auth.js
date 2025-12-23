@@ -34,28 +34,80 @@ function updateNavbarFromAuthManager(state) {
     const userNameSpan = document.getElementById('user-name');
     
     if (state.isAuthenticated && state.user) {
+        console.log('Navbar: Mostrando elementos de autenticado');
+        console.log('Navbar: notLoggedDiv encontrado:', !!notLoggedDiv);
+        console.log('Navbar: loggedDiv encontrado:', !!loggedDiv);
+        console.log('Navbar: userNameSpan encontrado:', !!userNameSpan);
+        
         // Ocultar elementos de no autenticado
         if (notLoggedDiv) {
             notLoggedDiv.classList.add('hidden');
-            notLoggedDiv.style.visibility = 'hidden';
+            notLoggedDiv.style.setProperty('display', 'none', 'important');
+            notLoggedDiv.style.setProperty('visibility', 'hidden', 'important');
+            console.log('Navbar: Ocultado notLoggedDiv');
         }
-        if (notLoggedMenu) notLoggedMenu.classList.add('hidden');
+        if (notLoggedMenu) {
+            notLoggedMenu.classList.add('hidden');
+            notLoggedMenu.style.setProperty('display', 'none', 'important');
+        }
         
         // Mostrar elementos de autenticado
         if (loggedDiv) {
             loggedDiv.classList.remove('hidden');
-            loggedDiv.style.visibility = 'visible';
+            loggedDiv.style.setProperty('display', 'flex', 'important');
+            loggedDiv.style.setProperty('visibility', 'visible', 'important');
+            console.log('Navbar: Mostrado loggedDiv');
         }
-        if (loggedMenu) loggedMenu.classList.remove('hidden');
+        if (loggedMenu) {
+            loggedMenu.classList.remove('hidden');
+            loggedMenu.style.setProperty('display', 'block', 'important');
+        }
         
         // Actualizar nombre de usuario
         if (userNameSpan) {
-            const displayName = authManager.getDisplayName() || 'Mi cuenta';
+            let displayName = 'Mi cuenta';
+            
+            // Intentar obtener el nombre del estado
+            if (state.userData && state.userData.fullName) {
+                displayName = state.userData.fullName;
+            } else if (state.user && state.user.displayName) {
+                displayName = state.user.displayName;
+            } else if (state.user && state.user.email) {
+                displayName = state.user.email;
+            } else if (typeof authManager !== 'undefined') {
+                // Fallback: usar AuthManager si el estado no tiene el nombre
+                displayName = authManager.getDisplayName() || 'Mi cuenta';
+            }
+            
             const truncatedName = displayName.length > 15 
                 ? displayName.substring(0, 15) + '...' 
                 : displayName;
             userNameSpan.textContent = truncatedName;
+            
+            console.log('Navbar: Nombre actualizado a:', truncatedName);
+            console.log('Navbar: userNameSpan.textContent después:', userNameSpan.textContent);
+        } else {
+            console.error('Navbar: userNameSpan no encontrado!');
         }
+        
+        // Verificar que los elementos estén correctamente visibles después de un pequeño delay
+        setTimeout(() => {
+            if (loggedDiv) {
+                const isVisible = !loggedDiv.classList.contains('hidden') && 
+                                 loggedDiv.style.display !== 'none' && 
+                                 loggedDiv.offsetWidth > 0;
+                console.log('Navbar: Verificación final - loggedDiv visible:', isVisible);
+                console.log('Navbar: loggedDiv.classList:', loggedDiv.classList.toString());
+                console.log('Navbar: loggedDiv.style.display:', loggedDiv.style.display);
+                console.log('Navbar: loggedDiv.offsetWidth:', loggedDiv.offsetWidth);
+            }
+            if (notLoggedDiv) {
+                const isHidden = notLoggedDiv.classList.contains('hidden') || 
+                                notLoggedDiv.style.display === 'none' || 
+                                notLoggedDiv.offsetWidth === 0;
+                console.log('Navbar: Verificación final - notLoggedDiv oculto:', isHidden);
+            }
+        }, 100);
         
         // Actualizar menú móvil
         const mobileUserNotLogged = document.getElementById('mobile-user-not-logged');
@@ -70,16 +122,24 @@ function updateNavbarFromAuthManager(state) {
         // Ocultar elementos de autenticado
         if (loggedDiv) {
             loggedDiv.classList.add('hidden');
-            loggedDiv.style.visibility = 'hidden';
+            loggedDiv.style.setProperty('display', 'none', 'important');
+            loggedDiv.style.setProperty('visibility', 'hidden', 'important');
         }
-        if (loggedMenu) loggedMenu.classList.add('hidden');
+        if (loggedMenu) {
+            loggedMenu.classList.add('hidden');
+            loggedMenu.style.setProperty('display', 'none', 'important');
+        }
         
         // Mostrar elementos de no autenticado
         if (notLoggedDiv) {
             notLoggedDiv.classList.remove('hidden');
-            notLoggedDiv.style.visibility = 'visible';
+            notLoggedDiv.style.setProperty('display', 'flex', 'important');
+            notLoggedDiv.style.setProperty('visibility', 'visible', 'important');
         }
-        if (notLoggedMenu) notLoggedMenu.classList.remove('hidden');
+        if (notLoggedMenu) {
+            notLoggedMenu.classList.remove('hidden');
+            notLoggedMenu.style.setProperty('display', 'block', 'important');
+        }
         
         // Actualizar menú móvil
         const mobileUserNotLogged = document.getElementById('mobile-user-not-logged');
@@ -190,6 +250,57 @@ async function handleLogout(event) {
 }
 
 
+// Función para actualizar navbar desde cache inmediatamente (antes de que se renderice)
+function initNavbarFromCache() {
+    if (document.body.classList.contains('admin-body')) {
+        return;
+    }
+    
+    try {
+        // Cargar estado desde cache de AuthManager
+        const cached = sessionStorage.getItem('authManager_cache');
+        if (cached) {
+            const cacheData = JSON.parse(cached);
+            const maxAge = 60 * 60 * 1000; // 1 hora
+            
+            if (Date.now() - cacheData.timestamp < maxAge && cacheData.uid) {
+                // Hay un usuario cacheado, mostrar estado de autenticado inmediatamente
+                const notLoggedDiv = document.getElementById('user-not-logged');
+                const loggedDiv = document.getElementById('user-logged');
+                const userNameSpan = document.getElementById('user-name');
+                
+                if (notLoggedDiv && loggedDiv) {
+                    // Ocultar no autenticado
+                    notLoggedDiv.classList.add('hidden');
+                    notLoggedDiv.style.setProperty('display', 'none', 'important');
+                    
+                    // Mostrar autenticado
+                    loggedDiv.classList.remove('hidden');
+                    loggedDiv.style.setProperty('display', 'flex', 'important');
+                    
+                    // Actualizar nombre desde cache
+                    if (userNameSpan && cacheData.userData && cacheData.userData.fullName) {
+                        const displayName = cacheData.userData.fullName;
+                        const truncatedName = displayName.length > 15 
+                            ? displayName.substring(0, 15) + '...' 
+                            : displayName;
+                        userNameSpan.textContent = truncatedName;
+                    } else if (userNameSpan && cacheData.displayName) {
+                        const truncatedName = cacheData.displayName.length > 15 
+                            ? cacheData.displayName.substring(0, 15) + '...' 
+                            : cacheData.displayName;
+                        userNameSpan.textContent = truncatedName;
+                    }
+                    
+                    console.log('Navbar: Inicializado desde cache - Usuario:', cacheData.email);
+                }
+            }
+        }
+    } catch (error) {
+        console.warn('Error cargando navbar desde cache:', error);
+    }
+}
+
 // Inicializar navbar usando AuthManager
 function initNavbarWithAuthManager() {
     if (document.body.classList.contains('admin-body')) {
@@ -220,12 +331,24 @@ function initNavbarWithAuthManager() {
     }
 }
 
-// Inicializar cuando el DOM esté listo
+// Inicializar navbar desde cache INMEDIATAMENTE (antes de que se renderice)
+// Esto evita el "flash" de "Iniciar sesión" cuando se navega entre páginas
 if (!document.body.classList.contains('admin-body')) {
+    // Ejecutar inmediatamente si el DOM ya está listo
+    if (document.readyState !== 'loading') {
+        initNavbarFromCache();
+    }
+    
+    // También ejecutar cuando el DOM esté listo (por si acaso)
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initNavbarWithAuthManager);
+        document.addEventListener('DOMContentLoaded', () => {
+            initNavbarFromCache();
+            // Luego inicializar con AuthManager para suscripciones
+            setTimeout(initNavbarWithAuthManager, 50);
+        });
     } else {
-        initNavbarWithAuthManager();
+        // DOM ya está listo, inicializar AuthManager después de un pequeño delay
+        setTimeout(initNavbarWithAuthManager, 50);
     }
 }
 
