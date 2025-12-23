@@ -42,6 +42,9 @@
                             <thead>
                                 <tr class="border-b border-gray-200">
                                     <th class="px-4 py-3 text-left text-xs font-normal text-gray-600">
+                                        IMAGEN
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-normal text-gray-600">
                                         NOMBRE
                                     </th>
                                     <th class="px-4 py-3 text-right text-xs font-normal text-gray-600">
@@ -80,7 +83,7 @@
                 if (brandsSnapshot.empty) {
                     brandsList.innerHTML = `
                         <tr>
-                            <td colspan="2" class="px-6 py-16 text-center">
+                            <td colspan="3" class="px-6 py-16 text-center">
                                 <div class="flex flex-col items-center">
                                     <i class="fas fa-inbox text-gray-300 text-3xl mb-3"></i>
                                     <p class="text-gray-500 mb-2 text-sm">No hay marcas registradas</p>
@@ -97,16 +100,33 @@
                 brandsList.innerHTML = '';
                 brandsSnapshot.forEach((doc) => {
                     const brand = doc.data();
+                    const imageDisplay = brand.imageUrl 
+                        ? `<img src="${brand.imageUrl}" alt="${brand.name}" class="w-16 h-16 object-contain rounded border border-gray-200" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                           <div class="w-16 h-16 bg-gray-100 rounded border border-gray-200 flex items-center justify-center" style="display: none;">
+                               <i class="fas fa-image text-gray-400"></i>
+                           </div>`
+                        : `<div class="w-16 h-16 bg-gray-100 rounded border border-gray-200 flex items-center justify-center">
+                               <i class="fas fa-image text-gray-400"></i>
+                           </div>`;
+                    
                     const row = document.createElement('tr');
                     row.className = 'hover:bg-gray-50 transition';
                     row.innerHTML = `
                         <td class="px-4 py-3">
+                            ${imageDisplay}
+                        </td>
+                        <td class="px-4 py-3">
                             <div class="text-sm text-gray-900">${brand.name}</div>
                         </td>
                         <td class="px-4 py-3 text-right">
-                            <button onclick="deleteBrand('${doc.id}')" class="text-gray-400 hover:text-gray-600 transition cursor-pointer">
-                                <i class="fas fa-trash text-xs"></i>
-                            </button>
+                            <div class="flex items-center justify-end gap-3">
+                                <a href="/admin/brands/edit/${doc.id}" class="text-gray-400 hover:text-gray-600 transition cursor-pointer" title="Editar marca">
+                                    <i class="fas fa-edit text-xs"></i>
+                                </a>
+                                <button onclick="deleteBrand('${doc.id}')" class="text-gray-400 hover:text-gray-600 transition cursor-pointer" title="Eliminar marca">
+                                    <i class="fas fa-trash text-xs"></i>
+                                </button>
+                            </div>
                         </td>
                     `;
                     brandsList.appendChild(row);
@@ -116,7 +136,7 @@
                 const brandsList = document.getElementById('brandsList');
                 brandsList.innerHTML = `
                     <tr>
-                        <td colspan="2" class="px-6 py-12 text-center">
+                        <td colspan="3" class="px-6 py-12 text-center">
                         <div class="flex flex-col items-center">
                             <i class="fas fa-exclamation-triangle text-red-400 text-2xl mb-2"></i>
                             <p class="text-red-500 text-sm">Error al cargar las marcas</p>

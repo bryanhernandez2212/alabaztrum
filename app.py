@@ -112,6 +112,11 @@ def admin_brands_add():
     breadcrumbs = get_breadcrumbs([('Administración', '/admin'), ('Marcas', '/admin/brands'), ('Agregar Marca', '/admin/brands/add')])
     return render_template('admin/brands_add.html', breadcrumbs=breadcrumbs)
 
+@app.route('/admin/brands/edit/<brand_id>')
+def admin_brands_edit(brand_id):
+    breadcrumbs = get_breadcrumbs([('Administración', '/admin'), ('Marcas', '/admin/brands'), ('Editar Marca', f'/admin/brands/edit/{brand_id}')])
+    return render_template('admin/brands_edit.html', brand_id=brand_id, breadcrumbs=breadcrumbs)
+
 @app.route('/admin/fragrance-types')
 def admin_fragrance_types():
     breadcrumbs = get_breadcrumbs([('Administración', '/admin'), ('Tipos de Fragancia', '/admin/fragrance-types')])

@@ -91,6 +91,26 @@
             </div>
         </section>
 
+        <!-- Sección de Marcas Destacadas -->
+        <section class="py-20 bg-gray-50">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-12 fade-in">
+                    <h2 class="text-4xl md:text-5xl font-light text-gray-900 mb-4 elegant-title">
+                        Marcas Destacadas
+                    </h2>
+                    <p class="text-sm md:text-base text-gray-500 font-light italic max-w-md mx-auto">
+                        Las mejores marcas de perfumería en un solo lugar
+                    </p>
+                </div>
+                <div id="featured-brands" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 max-w-6xl mx-auto">
+                    <div class="col-span-full text-center py-12">
+                        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+                        <p class="text-gray-600 mt-4">Cargando marcas...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Sección de Características -->
         <section class="py-20 bg-white border-t border-gray-100">
             <div class="container mx-auto px-4">
@@ -125,6 +145,7 @@
                 </div>
             </div>
         </section>
+
     </main>
 
     {% include 'partials/footer.html' %}
@@ -157,7 +178,7 @@
                 // Cargar todos los productos (solo fragancias, no decants)
                 const productsSnapshot = await db.collection('products')
                     .where('isDecant', '==', false)
-                    .limit(20)
+                    .limit(30)
                     .get();
                 
                 const products = [];
@@ -175,6 +196,9 @@
                 // Mostrar productos recomendados (siguientes 8 o mezclados)
                 const recommended = products.length > 8 ? products.slice(8, 16) : products.slice(0, 8);
                 displayProducts(recommended, 'recommended-products');
+                
+                // Cargar marcas destacadas desde la colección de marcas
+                loadFeaturedBrands();
                 
             } catch (error) {
                 console.error('Error cargando productos:', error);
@@ -241,6 +265,70 @@
                     </div>
                 `;
             }).join('');
+        }
+
+        async function loadFeaturedBrands() {
+            const container = document.getElementById('featured-brands');
+            if (!container) return;
+            
+            try {
+                if (typeof db === 'undefined') {
+                    setTimeout(loadFeaturedBrands, 500);
+                    return;
+                }
+                
+                // Cargar marcas desde la colección de marcas
+                const brandsSnapshot = await db.collection('brands').orderBy('name').limit(12).get();
+                
+                if (brandsSnapshot.empty) {
+                    container.innerHTML = `
+                        <div class="col-span-full text-center py-12">
+                            <p class="text-gray-600">No hay marcas disponibles en este momento.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const brands = [];
+                brandsSnapshot.forEach((doc) => {
+                    const brand = doc.data();
+                    brands.push({
+                        id: doc.id,
+                        name: brand.name,
+                        imageUrl: brand.imageUrl || null
+                    });
+                });
+                
+                container.innerHTML = brands.map((brand, index) => {
+                    const imageDisplay = brand.imageUrl 
+                        ? `<div class="w-full h-full rounded-full overflow-hidden flex items-center justify-center bg-white absolute inset-0">
+                               <img src="${brand.imageUrl}" alt="${brand.name}" class="max-w-full max-h-full w-auto h-auto object-contain" style="padding: 20%;" onerror="this.style.display='none'; this.parentElement.querySelector('.brand-placeholder').style.display='flex';">
+                               <div class="brand-placeholder w-full h-full bg-gray-100 rounded-full flex items-center justify-center absolute inset-0" style="display: none;">
+                                   <i class="fas fa-image text-gray-400 text-2xl"></i>
+                               </div>
+                           </div>`
+                        : `<div class="w-full h-full bg-gray-100 rounded-full flex items-center justify-center absolute inset-0">
+                               <i class="fas fa-image text-gray-400 text-2xl"></i>
+                           </div>`;
+                    
+                    return `
+                        <div class="brand-card fade-in" style="animation-delay: ${index * 0.05}s;">
+                            <a href="/fragancias?marca=${encodeURIComponent(brand.name)}" class="block" title="${brand.name}">
+                                <div class="bg-white rounded-full shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-110 border border-gray-100 hover:border-gray-300 relative" style="width: 100%; padding-bottom: 100%;">
+                                    ${imageDisplay}
+                                </div>
+                            </a>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error cargando marcas:', error);
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-12">
+                        <p class="text-gray-600">Error al cargar marcas. Por favor, intenta más tarde.</p>
+                    </div>
+                `;
+            }
         }
 
         // Cargar productos cuando Firebase esté listo
