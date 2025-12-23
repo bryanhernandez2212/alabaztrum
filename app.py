@@ -142,6 +142,11 @@ def carrito():
     breadcrumbs = get_breadcrumbs([('Mi Carrito', '/carrito')])
     return render_template('carrito.html', breadcrumbs=breadcrumbs)
 
+@app.route('/ayuda')
+def ayuda():
+    breadcrumbs = get_breadcrumbs([('Ayuda', '/ayuda')])
+    return render_template('ayuda.html', breadcrumbs=breadcrumbs)
+
 if __name__ == '__main__':
     import os
     # Para desarrollo local, usa el puerto 5001 si 5000 está ocupado

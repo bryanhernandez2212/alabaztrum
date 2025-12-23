@@ -38,10 +38,10 @@
             <!-- Iconos derecho -->
             <div class="flex items-center space-x-3 md:space-x-6 flex-shrink-0">
                 <!-- Ayuda (solo desktop) -->
-                <div class="hidden md:flex flex-col items-center cursor-pointer hover:text-gray-300 transition">
+                <a href="/ayuda" class="hidden md:flex flex-col items-center hover:text-gray-300 transition">
                     <i class="fas fa-comment-dots text-2xl mb-1"></i>
                     <span class="text-xs">Ayuda</span>
-                </div>
+                </a>
                 <!-- Menú de usuario (solo desktop) -->
                 <div class="hidden md:block relative group" id="user-menu-container">
                     <!-- Versión no autenticado (por defecto) -->
@@ -205,7 +205,7 @@
                         <a href="#" class="block text-white hover:bg-gray-900 transition text-base font-medium py-3">
                             Beauty
                         </a>
-                        <a href="#" class="block text-white hover:bg-gray-900 transition text-base font-medium py-3">
+                        <a href="/ayuda" class="block text-white hover:bg-gray-900 transition text-base font-medium py-3">
                             Ayuda rápida
                         </a>
                     </div>
@@ -316,9 +316,8 @@
                 Beauty
                 <i class="fas fa-chevron-down ml-1 text-xs"></i>
             </a>
-            <a href="#" class="nav-link flex items-center hover:text-gray-300 transition">
+            <a href="/ayuda" class="nav-link flex items-center hover:text-gray-300 transition">
                 Ayuda rápida
-                <i class="fas fa-chevron-down ml-1 text-xs"></i>
             </a>
         </div>
         
