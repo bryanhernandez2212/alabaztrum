@@ -28,19 +28,23 @@
                 <div class="relative w-full">
                     <input 
                         type="text" 
+                        id="search-input-desktop"
                         placeholder="¿Qué estás buscando?" 
                         class="w-full px-4 py-2 bg-white text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-300 placeholder-gray-500"
+                        onkeypress="handleSearchKeyPress(event, 'desktop')"
                     >
-                    <i class="fas fa-search absolute right-3 top-3 text-gray-500"></i>
+                    <button onclick="performSearch('desktop')" class="absolute right-3 top-3 text-gray-500 hover:text-gray-900 transition">
+                        <i class="fas fa-search"></i>
+                    </button>
                 </div>
             </div>
             
             <!-- Iconos derecho -->
             <div class="flex items-center space-x-3 md:space-x-6 flex-shrink-0">
-                <!-- Ayuda (solo desktop) -->
-                <a href="/ayuda" class="hidden md:flex flex-col items-center hover:text-gray-300 transition">
-                    <i class="fas fa-comment-dots text-2xl mb-1"></i>
-                    <span class="text-xs">Ayuda</span>
+                <!-- Favoritos (solo desktop) -->
+                <a href="/favoritos" class="hidden md:flex flex-col items-center cursor-pointer hover:text-gray-300 transition">
+                    <i class="fas fa-heart text-2xl mb-1"></i>
+                    <span class="text-xs">Favoritos</span>
                 </a>
                 <!-- Menú de usuario (solo desktop) -->
                 <div class="hidden md:block relative group" id="user-menu-container">
@@ -69,6 +73,14 @@
                         <a href="{{ url_for('profile') }}" class="dropdown-item" id="profile-link">
                             <i class="fas fa-user-circle mr-2"></i>
                             Mi perfil
+                        </a>
+                        <a href="/mis-compras" class="dropdown-item">
+                            <i class="fas fa-shopping-bag mr-2"></i>
+                            Mis Compras
+                        </a>
+                        <a href="/favoritos" class="dropdown-item">
+                            <i class="fas fa-heart mr-2"></i>
+                            Favoritos
                         </a>
                         <a href="#" class="dropdown-item" onclick="handleLogout(event)">
                             <i class="fas fa-sign-out-alt mr-2"></i>
@@ -99,10 +111,14 @@
                     <div class="relative">
                         <input 
                             type="text" 
+                            id="search-input-mobile"
                             placeholder="¿Qué estás buscando?" 
                             class="w-full px-4 py-3 bg-white text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-300 placeholder-gray-500"
+                            onkeypress="handleSearchKeyPress(event, 'mobile')"
                         >
-                        <i class="fas fa-search absolute right-3 top-3.5 text-gray-500"></i>
+                        <button onclick="performSearch('mobile')" class="absolute right-3 top-3.5 text-gray-500 hover:text-gray-900 transition">
+                            <i class="fas fa-search"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -125,6 +141,12 @@
                     <div id="mobile-user-logged" class="hidden space-y-0">
                         <a href="{{ url_for('profile') }}" class="block text-white hover:bg-gray-900 transition text-base font-medium py-3">
                             Mi perfil
+                        </a>
+                        <a href="/mis-compras" class="block text-white hover:bg-gray-900 transition text-base font-medium py-3">
+                            Mis Compras
+                        </a>
+                        <a href="/favoritos" class="block text-white hover:bg-gray-900 transition text-base font-medium py-3">
+                            Favoritos
                         </a>
                         <a href="#" onclick="handleLogout(event)" class="block text-white hover:bg-gray-900 transition text-base font-medium py-3">
                             Cerrar sesión
@@ -205,8 +227,10 @@
                         <a href="#" class="block text-white hover:bg-gray-900 transition text-base font-medium py-3">
                             Beauty
                         </a>
-                        <a href="/ayuda" class="block text-white hover:bg-gray-900 transition text-base font-medium py-3">
-                            Ayuda rápida
+                        <!-- Favoritos -->
+                        <a href="/favoritos" class="block text-white hover:bg-gray-900 transition text-base font-medium py-3">
+                            <i class="fas fa-heart mr-2"></i>
+                            Favoritos
                         </a>
                     </div>
                 </div>
@@ -316,9 +340,26 @@
                 Beauty
                 <i class="fas fa-chevron-down ml-1 text-xs"></i>
             </a>
-            <a href="/ayuda" class="nav-link flex items-center hover:text-gray-300 transition">
-                Ayuda rápida
+            <!-- Menú Ayuda con dropdown -->
+            <div class="relative group" id="ayuda-nav-group">
+                <a href="#" class="nav-link flex items-center hover:text-gray-300 transition cursor-pointer">
+                    Ayuda
+                <i class="fas fa-chevron-down ml-1 text-xs"></i>
             </a>
+                <!-- Dropdown de Ayuda -->
+                <div id="ayuda-nav-dropdown" class="absolute top-full left-1/2 transform -translate-x-1/2 w-48 bg-transparent z-50 hidden" style="margin-top: 0.5rem;">
+                    <div class="bg-black border border-gray-800 rounded-lg shadow-xl py-2">
+                        <a href="/ayuda/contacto" class="block px-4 py-2 text-white hover:bg-gray-800 transition text-sm">
+                            <i class="fas fa-envelope mr-2"></i>
+                            Contacto
+                        </a>
+                        <a href="/ayuda/info" class="block px-4 py-2 text-white hover:bg-gray-800 transition text-sm">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            Ayuda
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
         
     </div>
@@ -416,6 +457,13 @@
             if (isHidden) {
                 submenu.classList.remove('hidden');
                 icon.classList.add('rotate-180');
+                
+                // Cargar datos cuando se abre el submenú
+                if (submenuId === 'fragancias-mobile') {
+                    loadFragranceTypes();
+                } else if (submenuId === 'decants-mobile') {
+                    loadDecantTypes();
+                }
             } else {
                 submenu.classList.add('hidden');
                 icon.classList.remove('rotate-180');
@@ -701,16 +749,19 @@
 
     // Funciones para mostrar/ocultar dropdowns usando event listeners
     function initDropdowns() {
+        const ayudaNavGroup = document.getElementById('ayuda-nav-group');
         const fraganciasGroup = document.getElementById('fragancias-group');
         const decantsGroup = document.getElementById('decants-group');
         const brandsGroup = document.getElementById('brands-group');
         const fragrancesDropdown = document.getElementById('fragrances-dropdown');
         const decantsDropdown = document.getElementById('decants-dropdown');
         const brandsDropdown = document.getElementById('brands-dropdown');
+        const ayudaNavDropdown = document.getElementById('ayuda-nav-dropdown');
         
         let fraganciasTimer = null;
         let decantsTimer = null;
         let brandsTimer = null;
+        let ayudaNavTimer = null;
 
         // Fragancias dropdown
         if (fraganciasGroup && fragrancesDropdown) {
@@ -822,7 +873,76 @@
                 }, 200);
             });
         }
+
+        // Ayuda dropdown (nav desktop)
+        if (ayudaNavGroup && ayudaNavDropdown) {
+            ayudaNavGroup.addEventListener('mouseenter', function() {
+                if (ayudaNavTimer) {
+                    clearTimeout(ayudaNavTimer);
+                    ayudaNavTimer = null;
+                }
+                // Ocultar otros dropdowns primero
+                if (fragrancesDropdown) fragrancesDropdown.classList.add('hidden');
+                if (decantsDropdown) decantsDropdown.classList.add('hidden');
+                if (brandsDropdown) brandsDropdown.classList.add('hidden');
+                ayudaNavDropdown.classList.remove('hidden');
+            });
+
+            ayudaNavGroup.addEventListener('mouseleave', function() {
+                ayudaNavTimer = setTimeout(() => {
+                    if (!ayudaNavGroup.matches(':hover') && !ayudaNavDropdown.matches(':hover')) {
+                        ayudaNavDropdown.classList.add('hidden');
+                    }
+                }, 200);
+            });
+
+            ayudaNavDropdown.addEventListener('mouseenter', function() {
+                if (ayudaNavTimer) {
+                    clearTimeout(ayudaNavTimer);
+                    ayudaNavTimer = null;
+                }
+            });
+
+            ayudaNavDropdown.addEventListener('mouseleave', function() {
+                ayudaNavTimer = setTimeout(() => {
+                    ayudaNavDropdown.classList.add('hidden');
+                }, 200);
+            });
+        }
+
     }
+
+    // Funciones de búsqueda
+    function handleSearchKeyPress(event, type) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            performSearch(type);
+        }
+    }
+
+    function performSearch(type) {
+        const searchInput = type === 'desktop' 
+            ? document.getElementById('search-input-desktop')
+            : document.getElementById('search-input-mobile');
+        
+        const query = searchInput.value.trim();
+        
+        if (query.length === 0) {
+            return;
+        }
+        
+        // Redirigir a la página de resultados de búsqueda
+        window.location.href = `/buscar?q=${encodeURIComponent(query)}`;
+        
+        // Cerrar menú móvil si está abierto
+        if (type === 'mobile') {
+            closeMobileMenu();
+        }
+    }
+
+    // Hacer funciones globales
+    window.handleSearchKeyPress = handleSearchKeyPress;
+    window.performSearch = performSearch;
 
     // Inicializar dropdowns cuando el DOM esté listo
     if (document.readyState === 'loading') {

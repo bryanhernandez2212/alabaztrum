@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Información - ALABAZTRUM</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-white">
+    {% include 'partials/navbar.html' %}
+
+    <main class="min-h-screen py-12 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="max-w-4xl mx-auto">
+                <!-- Header -->
+                <div class="text-center mb-12 fade-in">
+                    <h1 class="text-4xl md:text-5xl font-light text-gray-900 mb-4 elegant-title">
+                        Información
+                    </h1>
+                    <p class="text-base md:text-lg text-gray-500 font-light">
+                        Conoce más sobre ALABAZTRUM y cómo realizar tus pedidos.
+                    </p>
+                </div>
+
+                <!-- Contenido: Información -->
+                <div class="bg-white rounded-lg shadow-md p-8 md:p-12">
+                    <!-- Sobre la Empresa -->
+                    <div class="mb-10">
+                        <h2 class="text-3xl font-light text-gray-900 mb-6 elegant-title">
+                            Sobre ALABAZTRUM
+                        </h2>
+                        <div class="prose max-w-none">
+                            <p class="text-gray-700 leading-relaxed mb-4">
+                                ALABAZTRUM es tu tienda especializada en perfumes y fragancias de las mejores marcas del mundo. 
+                                Nos dedicamos a ofrecerte una experiencia única de compra, con productos auténticos y un servicio 
+                                excepcional.
+                            </p>
+                            <p class="text-gray-700 leading-relaxed mb-4">
+                                Nuestra misión es acercarte las fragancias más exclusivas y populares, tanto en presentaciones 
+                                completas como en decants, para que puedas descubrir y disfrutar de los aromas que mejor te 
+                                representan.
+                            </p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                                <div class="p-6 bg-gray-50 rounded-lg">
+                                    <div class="flex items-center mb-3">
+                                        <i class="fas fa-check-circle text-gray-900 text-xl mr-3"></i>
+                                        <h3 class="font-semibold text-gray-900">Productos Auténticos</h3>
+                                    </div>
+                                    <p class="text-gray-600 text-sm">
+                                        Garantizamos la autenticidad de todos nuestros productos. Trabajamos directamente con 
+                                        distribuidores autorizados.
+                                    </p>
+                                </div>
+                                <div class="p-6 bg-gray-50 rounded-lg">
+                                    <div class="flex items-center mb-3">
+                                        <i class="fas fa-shipping-fast text-gray-900 text-xl mr-3"></i>
+                                        <h3 class="font-semibold text-gray-900">Envío Rápido</h3>
+                                    </div>
+                                    <p class="text-gray-600 text-sm">
+                                        Procesamos y enviamos tus pedidos de manera rápida y segura, con empaque cuidadoso 
+                                        para proteger tus productos.
+                                    </p>
+                                </div>
+                                <div class="p-6 bg-gray-50 rounded-lg">
+                                    <div class="flex items-center mb-3">
+                                        <i class="fas fa-headset text-gray-900 text-xl mr-3"></i>
+                                        <h3 class="font-semibold text-gray-900">Atención Personalizada</h3>
+                                    </div>
+                                    <p class="text-gray-600 text-sm">
+                                        Nuestro equipo está siempre disponible para ayudarte a encontrar la fragancia perfecta 
+                                        para ti o para regalar.
+                                    </p>
+                                </div>
+                                <div class="p-6 bg-gray-50 rounded-lg">
+                                    <div class="flex items-center mb-3">
+                                        <i class="fas fa-shield-alt text-gray-900 text-xl mr-3"></i>
+                                        <h3 class="font-semibold text-gray-900">Compra Segura</h3>
+                                    </div>
+                                    <p class="text-gray-600 text-sm">
+                                        Tu información está protegida. Utilizamos sistemas seguros de pago y protección de datos.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cómo Pedir un Producto -->
+                    <div class="mb-10">
+                        <h2 class="text-3xl font-light text-gray-900 mb-6 elegant-title">
+                            ¿Cómo Pedir un Producto?
+                        </h2>
+                        <div class="space-y-6">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 w-10 h-10 bg-gray-900 text-white rounded-full flex items-center justify-center font-semibold mr-4">
+                                    1
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-gray-900 mb-2">Explora Nuestro Catálogo</h3>
+                                    <p class="text-gray-600 leading-relaxed">
+                                        Navega por nuestras secciones de <strong>Fragancias</strong> o <strong>Decants</strong> 
+                                        y filtra por género, tipo de fragancia o marca. Puedes ver los detalles de cada producto 
+                                        haciendo clic en él.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 w-10 h-10 bg-gray-900 text-white rounded-full flex items-center justify-center font-semibold mr-4">
+                                    2
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-gray-900 mb-2">Selecciona tu Producto</h3>
+                                    <p class="text-gray-600 leading-relaxed">
+                                        Una vez que encuentres el perfume o decant que te interesa, revisa la descripción, 
+                                        las notas olfativas y el precio. Si estás satisfecho, haz clic en 
+                                        <strong>"Agregar al Carrito"</strong>.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 w-10 h-10 bg-gray-900 text-white rounded-full flex items-center justify-center font-semibold mr-4">
+                                    3
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-gray-900 mb-2">Revisa tu Carrito</h3>
+                                    <p class="text-gray-600 leading-relaxed">
+                                        Accede a tu carrito de compras desde el ícono en el menú. Aquí puedes revisar los 
+                                        productos seleccionados, ajustar cantidades o eliminar items antes de proceder.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 w-10 h-10 bg-gray-900 text-white rounded-full flex items-center justify-center font-semibold mr-4">
+                                    4
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-gray-900 mb-2">Inicia Sesión o Regístrate</h3>
+                                    <p class="text-gray-600 leading-relaxed">
+                                        Para completar tu compra, necesitas tener una cuenta. Si ya tienes una, inicia sesión. 
+                                        Si es tu primera vez, regístrate de forma rápida y sencilla.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 w-10 h-10 bg-gray-900 text-white rounded-full flex items-center justify-center font-semibold mr-4">
+                                    5
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-gray-900 mb-2">Completa tu Pedido</h3>
+                                    <p class="text-gray-600 leading-relaxed">
+                                        Proporciona la información de envío y pago. Una vez confirmado, recibirás un correo 
+                                        de confirmación con los detalles de tu pedido y seguimiento.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Preguntas Frecuentes -->
+                    <div>
+                        <h2 class="text-3xl font-light text-gray-900 mb-6 elegant-title">
+                            Preguntas Frecuentes
+                        </h2>
+                        <div class="space-y-4">
+                            <div class="border-b border-gray-200 pb-4">
+                                <h3 class="font-semibold text-gray-900 mb-2">
+                                    <i class="fas fa-question-circle text-gray-600 mr-2"></i>
+                                    ¿Qué es un decant?
+                                </h3>
+                                <p class="text-gray-600 text-sm leading-relaxed">
+                                    Un decant es una muestra de perfume en una presentación más pequeña (generalmente entre 2ml y 10ml), 
+                                    ideal para probar una fragancia antes de comprar la botella completa o para tener varias opciones 
+                                    sin invertir tanto.
+                                </p>
+                            </div>
+                            <div class="border-b border-gray-200 pb-4">
+                                <h3 class="font-semibold text-gray-900 mb-2">
+                                    <i class="fas fa-question-circle text-gray-600 mr-2"></i>
+                                    ¿Cuánto tarda el envío?
+                                </h3>
+                                <p class="text-gray-600 text-sm leading-relaxed">
+                                    Los tiempos de envío varían según tu ubicación. Generalmente, los pedidos se procesan en 1-2 días 
+                                    hábiles y el envío tarda entre 3-7 días hábiles dependiendo de la zona.
+                                </p>
+                            </div>
+                            <div class="border-b border-gray-200 pb-4">
+                                <h3 class="font-semibold text-gray-900 mb-2">
+                                    <i class="fas fa-question-circle text-gray-600 mr-2"></i>
+                                    ¿Aceptan devoluciones?
+                                </h3>
+                                <p class="text-gray-600 text-sm leading-relaxed">
+                                    Sí, aceptamos devoluciones dentro de los primeros 7 días después de recibir el producto, siempre 
+                                    que esté en su empaque original y sin usar. Contáctanos para más detalles.
+                                </p>
+                            </div>
+                            <div class="pb-4">
+                                <h3 class="font-semibold text-gray-900 mb-2">
+                                    <i class="fas fa-question-circle text-gray-600 mr-2"></i>
+                                    ¿Cómo puedo contactarlos?
+                                </h3>
+                                <p class="text-gray-600 text-sm leading-relaxed">
+                                    Puedes contactarnos a través del <a href="/ayuda/contacto" class="text-gray-900 hover:underline font-medium">formulario de contacto</a>, por WhatsApp al 9191936256, 
+                                    por email a jordygosza@gmail.com, o a través de nuestras redes sociales. Estamos disponibles 
+                                    de lunes a viernes de 9:00 a 18:00 horas.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    {% include 'partials/footer.html' %}
+
+    <!-- Scripts Firebase y autenticación -->
+    <script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/auth-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/navbar-auth.js') }}"></script>
+</body>
+</html>
+

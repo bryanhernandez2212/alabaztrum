@@ -23,8 +23,13 @@ let auth, db, storage;
 try {
     auth = firebase.auth();
     db = firebase.firestore();
-    storage = firebase.storage();
-    console.log('Servicios de Firebase inicializados');
+    // Storage es opcional - solo se inicializa si el SDK está disponible
+    if (typeof firebase.storage === 'function') {
+        storage = firebase.storage();
+        console.log('Servicios de Firebase inicializados (incluyendo Storage)');
+    } else {
+        console.log('Servicios de Firebase inicializados (Storage no disponible)');
+    }
 } catch (error) {
     console.error('Error al inicializar servicios de Firebase:', error);
 }

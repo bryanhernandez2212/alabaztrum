@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ayuda y Contacto - ALABAZTRUM</title>
+    <title>Contacto - ALABAZTRUM</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -18,11 +18,11 @@
 
     <main class="min-h-screen py-12 bg-gray-50">
         <div class="container mx-auto px-4">
-            <div class="max-w-3xl mx-auto">
+            <div class="max-w-4xl mx-auto">
                 <!-- Header -->
                 <div class="text-center mb-12 fade-in">
                     <h1 class="text-4xl md:text-5xl font-light text-gray-900 mb-4 elegant-title">
-                        ¿Necesitas Ayuda?
+                        Contacto
                     </h1>
                     <p class="text-base md:text-lg text-gray-500 font-light">
                         Estamos aquí para ayudarte. Envíanos tu consulta y te responderemos pronto.
@@ -130,34 +130,34 @@
                         <!-- Mensaje de éxito/error -->
                         <div id="form-message" class="hidden mt-4 p-4 rounded-lg"></div>
                     </form>
-                </div>
 
-                <!-- Información de contacto adicional -->
-                <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="text-center p-6 bg-white rounded-lg shadow-md">
-                        <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-envelope text-gray-700 text-xl"></i>
+                    <!-- Información de contacto adicional -->
+                    <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="text-center p-6 bg-gray-50 rounded-lg">
+                            <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-envelope text-gray-700 text-xl"></i>
+                            </div>
+                            <h3 class="font-semibold text-gray-900 mb-2">Email</h3>
+                            <a href="mailto:jordygosza@gmail.com" class="text-gray-600 hover:text-gray-900 transition">
+                                jordygosza@gmail.com
+                            </a>
                         </div>
-                        <h3 class="font-semibold text-gray-900 mb-2">Email</h3>
-                        <a href="mailto:jordygosza@gmail.com" class="text-gray-600 hover:text-gray-900 transition">
-                            jordygosza@gmail.com
-                        </a>
-                    </div>
-                    <div class="text-center p-6 bg-white rounded-lg shadow-md">
-                        <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="fab fa-whatsapp text-gray-700 text-xl"></i>
+                        <div class="text-center p-6 bg-gray-50 rounded-lg">
+                            <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fab fa-whatsapp text-gray-700 text-xl"></i>
+                            </div>
+                            <h3 class="font-semibold text-gray-900 mb-2">WhatsApp</h3>
+                            <a href="https://wa.me/9191936256" target="_blank" rel="noopener" class="text-gray-600 hover:text-gray-900 transition">
+                                9191936256
+                            </a>
                         </div>
-                        <h3 class="font-semibold text-gray-900 mb-2">WhatsApp</h3>
-                        <a href="https://wa.me/9191936256" target="_blank" rel="noopener" class="text-gray-600 hover:text-gray-900 transition">
-                            9191936256
-                        </a>
-                    </div>
-                    <div class="text-center p-6 bg-white rounded-lg shadow-md">
-                        <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-clock text-gray-700 text-xl"></i>
+                        <div class="text-center p-6 bg-gray-50 rounded-lg">
+                            <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-clock text-gray-700 text-xl"></i>
+                            </div>
+                            <h3 class="font-semibold text-gray-900 mb-2">Horario</h3>
+                            <p class="text-gray-600">Lun - Vie: 9:00 - 18:00</p>
                         </div>
-                        <h3 class="font-semibold text-gray-900 mb-2">Horario</h3>
-                        <p class="text-gray-600">Lun - Vie: 9:00 - 18:00</p>
                     </div>
                 </div>
             </div>
@@ -169,6 +169,7 @@
     <!-- Scripts Firebase y autenticación -->
     <script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
     <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/auth-manager.js') }}"></script>
     <script src="{{ url_for('static', filename='js/navbar-auth.js') }}"></script>
     
     <script>

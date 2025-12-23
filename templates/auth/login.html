@@ -131,6 +131,7 @@
     <!-- Scripts Firebase y autenticación -->
     <script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
     <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/auth-manager.js') }}"></script>
     
     <script>
         // Verificar que Firebase esté inicializado
@@ -195,6 +196,11 @@
                     messageDiv.textContent = '¡Inicio de sesión exitoso! Redirigiendo...';
                     messageDiv.classList.remove('hidden');
                     
+                    // Actualizar AuthManager con el usuario
+                    if (typeof authManager !== 'undefined') {
+                        await authManager.setUser(result.user);
+                    }
+                    
                     // Verificar rol del usuario y redirigir según corresponda
                     try {
                         const userRole = await getUserRole(result.user.uid);
@@ -212,9 +218,9 @@
                     } catch (error) {
                         console.error('Error al verificar rol:', error);
                         // Si hay error, redirigir a página principal por defecto
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 1500);
+                        setTimeout(() => {
+                            window.location.href = '/';
+                        }, 1500);
                     }
                 } else {
                     const errorMsg = result && result.error ? result.error : 'Error desconocido al iniciar sesión';
@@ -256,6 +262,11 @@
                     messageDiv.textContent = '¡Inicio de sesión exitoso! Redirigiendo...';
                     messageDiv.classList.remove('hidden');
                     
+                    // Actualizar AuthManager con el usuario
+                    if (typeof authManager !== 'undefined') {
+                        await authManager.setUser(result.user);
+                    }
+                    
                     // Verificar rol del usuario y redirigir según corresponda
                     try {
                         const userRole = await getUserRole(result.user.uid);
@@ -273,9 +284,9 @@
                     } catch (error) {
                         console.error('Error al verificar rol:', error);
                         // Si hay error, redirigir a página principal por defecto
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 1500);
+                        setTimeout(() => {
+                            window.location.href = '/';
+                        }, 1500);
                     }
                 } else {
                     messageDiv.className = 'mb-4 p-3 rounded-lg text-sm bg-red-500 text-white';

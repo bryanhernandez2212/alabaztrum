@@ -707,6 +707,33 @@ body.profile-page .tab-button.active {
     animation: fadeIn 0.3s ease;
 }
 
+.tab-content:not(.hidden) {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    height: auto !important;
+    min-height: 200px !important;
+    position: relative !important;
+    overflow: visible !important;
+}
+
+#tab-content-edit:not(.hidden),
+#tab-content-edit[style*="display: block"],
+div#tab-content-edit.tab-content {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    height: auto !important;
+    min-height: 200px !important;
+    position: relative !important;
+    overflow: visible !important;
+    width: 100% !important;
+}
+
+#tab-content-edit.hidden {
+    display: none !important;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;

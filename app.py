@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect
 import os
 import traceback
 import logging
@@ -72,6 +72,16 @@ def profile():
     breadcrumbs = get_breadcrumbs([('Mi Perfil', '/profile')])
     return render_template('profile.html', breadcrumbs=breadcrumbs)
 
+@app.route('/mis-compras')
+def mis_compras():
+    breadcrumbs = get_breadcrumbs([('Mis Compras', '/mis-compras')])
+    return render_template('mis_compras.html', breadcrumbs=breadcrumbs)
+
+@app.route('/favoritos')
+def favoritos():
+    breadcrumbs = get_breadcrumbs([('Favoritos', '/favoritos')])
+    return render_template('favoritos.html', breadcrumbs=breadcrumbs)
+
 @app.route('/admin')
 def admin():
     breadcrumbs = get_breadcrumbs([('Administración', '/admin')])
@@ -91,6 +101,16 @@ def admin_orders():
 def admin_messages():
     breadcrumbs = get_breadcrumbs([('Administración', '/admin'), ('Mensajes', '/admin/messages')])
     return render_template('admin/messages.html', breadcrumbs=breadcrumbs)
+
+@app.route('/admin/comments')
+def admin_comments():
+    breadcrumbs = get_breadcrumbs([('Administración', '/admin'), ('Comentarios', '/admin/comments')])
+    return render_template('admin/comments.html', breadcrumbs=breadcrumbs)
+
+@app.route('/admin/site-reviews')
+def admin_site_reviews():
+    breadcrumbs = get_breadcrumbs([('Administración', '/admin'), ('Reseñas del Sitio', '/admin/site-reviews')])
+    return render_template('admin/site_reviews.html', breadcrumbs=breadcrumbs)
 
 @app.route('/admin/products/add')
 def admin_add_product():
@@ -147,10 +167,25 @@ def carrito():
     breadcrumbs = get_breadcrumbs([('Mi Carrito', '/carrito')])
     return render_template('carrito.html', breadcrumbs=breadcrumbs)
 
+@app.route('/ayuda/contacto')
+def ayuda_contacto():
+    breadcrumbs = get_breadcrumbs([('Contacto', '/ayuda/contacto')])
+    return render_template('ayuda.html', breadcrumbs=breadcrumbs)
+
+@app.route('/ayuda/info')
+def ayuda_info():
+    breadcrumbs = get_breadcrumbs([('Información', '/ayuda/info')])
+    return render_template('ayuda_info.html', breadcrumbs=breadcrumbs)
+
+# Ruta legacy para mantener compatibilidad
 @app.route('/ayuda')
 def ayuda():
-    breadcrumbs = get_breadcrumbs([('Ayuda', '/ayuda')])
-    return render_template('ayuda.html', breadcrumbs=breadcrumbs)
+    return redirect('/ayuda/contacto')
+
+@app.route('/buscar')
+def buscar():
+    breadcrumbs = get_breadcrumbs([('Búsqueda', '/buscar')])
+    return render_template('buscar.html', breadcrumbs=breadcrumbs)
 
 if __name__ == '__main__':
     import os

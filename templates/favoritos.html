@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Favoritos - ALABAZTRUM</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-50">
+    {% include 'partials/navbar.html' %}
+
+    <main class="min-h-screen py-8">
+        <div class="container mx-auto px-4">
+            <h1 class="text-3xl font-bold text-gray-900 mb-8">Mis Favoritos</h1>
+
+            <!-- Loading state -->
+            <div id="loading" class="text-center py-20">
+                <div class="flex flex-col items-center">
+                    <div class="bg-gray-100 rounded-full p-4 mb-3">
+                        <i class="fas fa-spinner fa-spin text-gray-400 text-2xl"></i>
+                    </div>
+                    <p class="text-gray-600 font-medium">Cargando favoritos...</p>
+                </div>
+            </div>
+
+            <!-- Empty state -->
+            <div id="empty-state" class="hidden text-center py-20">
+                <div class="flex flex-col items-center">
+                    <div class="bg-gray-100 rounded-full p-4 mb-3">
+                        <i class="fas fa-heart text-gray-400 text-4xl"></i>
+                    </div>
+                    <p class="text-gray-600 font-medium text-xl mb-2">No tienes favoritos aún</p>
+                    <p class="text-gray-500 mb-6">Explora nuestros productos y agrega tus favoritos haciendo clic en el corazón.</p>
+                    <a href="/fragancias" class="bg-gray-900 hover:bg-gray-800 text-white font-semibold py-3 px-6 rounded-lg transition inline-block">
+                        Explorar Productos
+                    </a>
+                </div>
+            </div>
+
+            <!-- Products grid -->
+            <div id="products-container" class="hidden grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                <!-- Los productos se cargarán aquí -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts Firebase y autenticación -->
+    <script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/auth-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/navbar-auth.js') }}"></script>
+    
+    <script>
+        // Cargar favoritos
+        async function loadFavorites() {
+            try {
+                if (typeof db === 'undefined') {
+                    setTimeout(loadFavorites, 500);
+                    return;
+                }
+
+                // Verificar autenticación
+                auth.onAuthStateChanged(async (user) => {
+                    if (!user) {
+                        document.getElementById('loading').classList.add('hidden');
+                        alert('Por favor, inicia sesión para ver tus favoritos.');
+                        window.location.href = '/login';
+                        return;
+                    }
+
+                    try {
+                        // Obtener favoritos del usuario
+                        const favoritesSnapshot = await db.collection('favorites')
+                            .where('userId', '==', user.uid)
+                            .get();
+
+                        if (favoritesSnapshot.empty) {
+                            document.getElementById('loading').classList.add('hidden');
+                            document.getElementById('empty-state').classList.remove('hidden');
+                            return;
+                        }
+
+                        const favoriteProductIds = [];
+                        favoritesSnapshot.forEach((doc) => {
+                            favoriteProductIds.push(doc.data().productId);
+                        });
+
+                        // Obtener información de los productos
+                        const products = [];
+                        for (const productId of favoriteProductIds) {
+                            try {
+                                const productDoc = await db.collection('products').doc(productId).get();
+                                if (productDoc.exists) {
+                                    products.push({
+                                        id: productDoc.id,
+                                        ...productDoc.data()
+                                    });
+                                }
+                            } catch (error) {
+                                console.error(`Error cargando producto ${productId}:`, error);
+                            }
+                        }
+
+                        if (products.length === 0) {
+                            document.getElementById('loading').classList.add('hidden');
+                            document.getElementById('empty-state').classList.remove('hidden');
+                            return;
+                        }
+
+                        // Mostrar productos
+                        displayProducts(products);
+                        document.getElementById('loading').classList.add('hidden');
+                        document.getElementById('products-container').classList.remove('hidden');
+                    } catch (error) {
+                        console.error('Error cargando favoritos:', error);
+                        document.getElementById('loading').classList.add('hidden');
+                        document.getElementById('empty-state').classList.remove('hidden');
+                    }
+                });
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('empty-state').classList.remove('hidden');
+            }
+        }
+
+        // Mostrar productos
+        function displayProducts(products) {
+            const container = document.getElementById('products-container');
+            
+            container.innerHTML = products.map((product) => {
+                const imageUrl = product.images && product.images.length > 0 
+                    ? product.images[0] 
+                    : 'https://via.placeholder.com/300x300?text=Sin+Imagen';
+                
+                const price = product.price ? `$${parseFloat(product.price).toFixed(2)}` : 'Precio no disponible';
+                const stock = product.stock !== undefined ? parseInt(product.stock) : 0;
+                const stockClass = stock === 0 ? 'bg-red-100 text-red-800' : stock < 10 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800';
+                const stockText = stock === 0 ? 'Agotado' : stock < 10 ? `Últimas ${stock}` : 'Disponible';
+
+                return `
+                    <div class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 relative">
+                        <div class="relative overflow-hidden" style="padding-top: 100%;">
+                            <a href="/producto/${product.id}" class="block group">
+                                <img 
+                                    src="${imageUrl}" 
+                                    alt="${product.name || 'Producto'}"
+                                    class="absolute top-0 left-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                    onerror="this.src='https://via.placeholder.com/300x300?text=Sin+Imagen'"
+                                >
+                            </a>
+                            ${stock === 0 ? '<div class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold z-20">AGOTADO</div>' : ''}
+                            <button 
+                                onclick="toggleFavorite('${product.id}', event)" 
+                                class="absolute top-2 ${stock === 0 ? 'left-2' : 'right-2'} bg-white rounded-full p-2 shadow-md hover:shadow-lg transition-all z-10 favorite-btn"
+                                data-product-id="${product.id}"
+                                title="Quitar de favoritos"
+                            >
+                                <i class="fas fa-heart text-red-500"></i>
+                            </button>
+                        </div>
+                        <div class="p-4">
+                            <a href="/producto/${product.id}" class="block group">
+                                <p class="text-sm text-gray-500 mb-1">${product.brand || 'Sin marca'}</p>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-gray-700">
+                                    ${product.name || 'Sin nombre'}
+                                </h3>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xl font-bold text-gray-900">${price}</span>
+                                    <span class="text-xs px-2 py-1 rounded ${stockClass}">${stockText}</span>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Toggle favorito
+        async function toggleFavorite(productId, event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            try {
+                if (typeof auth === 'undefined' || typeof db === 'undefined') {
+                    alert('Por favor, inicia sesión para gestionar favoritos.');
+                    return;
+                }
+
+                const user = auth.currentUser;
+                if (!user) {
+                    alert('Por favor, inicia sesión para gestionar favoritos.');
+                    window.location.href = '/login';
+                    return;
+                }
+
+                const userId = user.uid;
+                
+                // Verificar si ya está en favoritos
+                const favoritesSnapshot = await db.collection('favorites')
+                    .where('userId', '==', userId)
+                    .where('productId', '==', productId)
+                    .get();
+
+                if (!favoritesSnapshot.empty) {
+                    // Eliminar de favoritos
+                    const favoriteDoc = favoritesSnapshot.docs[0];
+                    await db.collection('favorites').doc(favoriteDoc.id).delete();
+                    
+                    // Recargar la página para actualizar la lista
+                    loadFavorites();
+                }
+            } catch (error) {
+                console.error('Error al manejar favorito:', error);
+                alert('Error al actualizar favoritos. Por favor, intenta de nuevo.');
+            }
+        }
+
+        // Inicializar
+        if (typeof db !== 'undefined') {
+            loadFavorites();
+        } else {
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(() => {
+                    if (typeof db !== 'undefined') {
+                        loadFavorites();
+                    }
+                }, 1000);
+            });
+        }
+    </script>
+    {% include 'partials/footer.html' %}
+</body>
+</html>
+

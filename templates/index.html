@@ -146,6 +146,32 @@
             </div>
         </section>
 
+        <!-- Sección de Reseñas -->
+        <section class="py-20 bg-white">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-16 fade-in">
+                    <h2 class="text-4xl md:text-5xl font-light text-gray-900 mb-4 elegant-title">
+                        Lo Que Dicen Nuestros Clientes
+                    </h2>
+                    <p class="text-sm md:text-base text-gray-500 font-light italic max-w-md mx-auto">
+                        Experiencias reales de quienes confían en nosotros
+                    </p>
+                </div>
+                <div id="reviews-container" class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                    <div class="col-span-full text-center py-12">
+                        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+                        <p class="text-gray-600 mt-4">Cargando reseñas...</p>
+                    </div>
+                </div>
+                <div class="text-center mt-8">
+                    <a href="/profile" onclick="event.preventDefault(); if(typeof showTab === 'function') { window.location.href='/profile'; setTimeout(() => showTab('reviews'), 500); } else { window.location.href='/profile'; }" class="inline-block text-gray-600 hover:text-gray-900 transition">
+                        <i class="fas fa-star mr-2"></i>
+                        Deja tu reseña
+                    </a>
+                </div>
+            </div>
+        </section>
+
     </main>
 
     {% include 'partials/footer.html' %}
@@ -164,6 +190,7 @@
     <!-- Scripts Firebase y autenticación -->
     <script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
     <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/auth-manager.js') }}"></script>
     <script src="{{ url_for('static', filename='js/navbar-auth.js') }}"></script>
     
     <script>
@@ -199,6 +226,9 @@
                 
                 // Cargar marcas destacadas desde la colección de marcas
                 loadFeaturedBrands();
+                
+                // Cargar reseñas del sitio
+                loadSiteReviews();
                 
             } catch (error) {
                 console.error('Error cargando productos:', error);
@@ -239,18 +269,28 @@
 
                 return `
                     <div class="product-card fade-in" style="animation-delay: ${index * 0.1}s;">
-                        <a href="/producto/${product.id}" class="block group">
-                            <div class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
-                                <div class="relative overflow-hidden" style="padding-top: 100%;">
+                        <div class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 relative">
+                            <div class="relative overflow-hidden" style="padding-top: 100%;">
+                                <a href="/producto/${product.id}" class="block group">
                                     <img 
                                         src="${imageUrl}" 
                                         alt="${product.name || 'Producto'}"
                                         class="absolute top-0 left-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                                         onerror="this.src='https://via.placeholder.com/300x300?text=Sin+Imagen'"
                                     >
-                                    ${stock === 0 ? '<div class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold">AGOTADO</div>' : ''}
-                                </div>
-                                <div class="p-4">
+                                </a>
+                                ${stock === 0 ? '<div class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold z-20">AGOTADO</div>' : ''}
+                                <button 
+                                    onclick="toggleFavorite('${product.id}', event)" 
+                                    class="absolute top-2 ${stock === 0 ? 'left-2' : 'right-2'} bg-white rounded-full p-2 shadow-md hover:shadow-lg transition-all z-10 favorite-btn"
+                                    data-product-id="${product.id}"
+                                    title="Agregar a favoritos"
+                                >
+                                    <i class="fas fa-heart text-gray-400"></i>
+                                </button>
+                            </div>
+                            <div class="p-4">
+                                <a href="/producto/${product.id}" class="block group">
                                     <p class="text-sm text-gray-500 mb-1">${product.brand || 'Sin marca'}</p>
                                     <h3 class="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-gray-700">
                                         ${product.name || 'Sin nombre'}
@@ -259,12 +299,108 @@
                                         <span class="text-xl font-bold text-gray-900">${price}</span>
                                         <span class="text-xs px-2 py-1 rounded ${stockClass}">${stockText}</span>
                                     </div>
-                                </div>
+                                </a>
                             </div>
-                        </a>
+                        </div>
                     </div>
                 `;
             }).join('');
+            
+            // Verificar favoritos después de renderizar
+            checkFavorites(products.map(p => p.id));
+        }
+
+        // Cargar reseñas del sitio
+        async function loadSiteReviews() {
+            try {
+                if (typeof db === 'undefined') {
+                    setTimeout(loadSiteReviews, 500);
+                    return;
+                }
+
+                const reviewsSnapshot = await db.collection('siteReviews')
+                    .where('approved', '==', true)
+                    .limit(6)
+                    .get();
+
+                const reviewsContainer = document.getElementById('reviews-container');
+                
+                if (reviewsSnapshot.empty) {
+                    reviewsContainer.innerHTML = `
+                        <div class="col-span-full text-center py-12 text-gray-500">
+                            <i class="fas fa-comments text-3xl mb-3"></i>
+                            <p>Aún no hay reseñas publicadas.</p>
+                            <p class="text-sm mt-2">Sé el primero en dejar tu opinión.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let reviews = [];
+                reviewsSnapshot.forEach((doc) => {
+                    reviews.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+
+                // Ordenar por fecha más reciente
+                reviews.sort((a, b) => {
+                    const dateA = a.createdAt?.toDate?.() || new Date(0);
+                    const dateB = b.createdAt?.toDate?.() || new Date(0);
+                    return dateB - dateA;
+                });
+
+                reviewsContainer.innerHTML = reviews.map(review => {
+                    const date = review.createdAt?.toDate?.() || new Date();
+                    const formattedDate = date.toLocaleDateString('es-ES', { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                    });
+
+                    // Generar estrellas
+                    let stars = '';
+                    for (let i = 1; i <= 5; i++) {
+                        if (i <= review.rating) {
+                            stars += '<i class="fas fa-star text-yellow-400"></i>';
+                        } else {
+                            stars += '<i class="far fa-star text-gray-300"></i>';
+                        }
+                    }
+
+                    return `
+                        <div class="bg-white p-8 rounded-lg shadow-md fade-in">
+                            <div class="flex items-center mb-4">
+                                <div class="flex text-yellow-400">
+                                    ${stars}
+                                </div>
+                            </div>
+                            <h3 class="font-semibold text-gray-900 mb-3">${review.title || 'Reseña'}</h3>
+                            <p class="text-gray-600 font-light mb-6 italic leading-relaxed">
+                                "${review.review || ''}"
+                            </p>
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mr-4">
+                                    <i class="fas fa-user text-gray-600"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-900">${review.userName || 'Usuario'}</p>
+                                    <p class="text-sm text-gray-500">${formattedDate}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading site reviews:', error);
+                document.getElementById('reviews-container').innerHTML = `
+                    <div class="col-span-full text-center py-12 text-red-500">
+                        <i class="fas fa-exclamation-triangle text-3xl mb-3"></i>
+                        <p>Error al cargar las reseñas</p>
+                    </div>
+                `;
+            }
         }
 
         async function loadFeaturedBrands() {
@@ -328,6 +464,99 @@
                         <p class="text-gray-600">Error al cargar marcas. Por favor, intenta más tarde.</p>
                     </div>
                 `;
+            }
+        }
+
+        // Verificar favoritos y actualizar botones
+        async function checkFavorites(productIds) {
+            try {
+                if (typeof auth === 'undefined' || typeof db === 'undefined' || !auth.currentUser) {
+                    return;
+                }
+
+                const userId = auth.currentUser.uid;
+                const favoritesSnapshot = await db.collection('favorites')
+                    .where('userId', '==', userId)
+                    .where('productId', 'in', productIds)
+                    .get();
+
+                const favoriteProductIds = new Set();
+                favoritesSnapshot.forEach((doc) => {
+                    favoriteProductIds.add(doc.data().productId);
+                });
+
+                // Actualizar botones de favoritos
+                productIds.forEach((productId) => {
+                    const button = document.querySelector(`.favorite-btn[data-product-id="${productId}"]`);
+                    if (button) {
+                        const icon = button.querySelector('i');
+                        if (favoriteProductIds.has(productId)) {
+                            icon.classList.remove('text-gray-400');
+                            icon.classList.add('text-red-500');
+                            button.setAttribute('title', 'Quitar de favoritos');
+                        } else {
+                            icon.classList.remove('text-red-500');
+                            icon.classList.add('text-gray-400');
+                            button.setAttribute('title', 'Agregar a favoritos');
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error verificando favoritos:', error);
+            }
+        }
+
+        // Toggle favorito
+        async function toggleFavorite(productId, event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            try {
+                if (typeof auth === 'undefined' || typeof db === 'undefined') {
+                    alert('Por favor, inicia sesión para agregar productos a favoritos.');
+                    return;
+                }
+
+                const user = auth.currentUser;
+                if (!user) {
+                    alert('Por favor, inicia sesión para agregar productos a favoritos.');
+                    window.location.href = '/login';
+                    return;
+                }
+
+                const userId = user.uid;
+                const button = event.currentTarget;
+                const icon = button.querySelector('i');
+                
+                // Verificar si ya está en favoritos
+                const favoritesSnapshot = await db.collection('favorites')
+                    .where('userId', '==', userId)
+                    .where('productId', '==', productId)
+                    .get();
+
+                if (!favoritesSnapshot.empty) {
+                    // Eliminar de favoritos
+                    const favoriteDoc = favoritesSnapshot.docs[0];
+                    await db.collection('favorites').doc(favoriteDoc.id).delete();
+                    
+                    icon.classList.remove('text-red-500');
+                    icon.classList.add('text-gray-400');
+                    button.setAttribute('title', 'Agregar a favoritos');
+                } else {
+                    // Agregar a favoritos
+                    await db.collection('favorites').add({
+                        userId: userId,
+                        productId: productId,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    icon.classList.remove('text-gray-400');
+                    icon.classList.add('text-red-500');
+                    button.setAttribute('title', 'Quitar de favoritos');
+                }
+            } catch (error) {
+                console.error('Error al manejar favorito:', error);
+                alert('Error al actualizar favoritos. Por favor, intenta de nuevo.');
             }
         }
 
