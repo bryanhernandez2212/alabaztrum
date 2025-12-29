@@ -220,6 +220,13 @@
                 allFragranceTypes = Array.from(typesSet).sort();
 
                 loadFilters();
+                
+                // Aplicar filtros desde URL después de cargar los filtros
+                // Usar setTimeout para asegurar que los checkboxes estén en el DOM
+                setTimeout(() => {
+                    applyFiltersFromURL();
+                    displayProducts();
+                }, 50);
             } catch (error) {
                 console.error('Error al cargar productos:', error);
                 document.getElementById('products-container').innerHTML = `
@@ -399,6 +406,7 @@
             }
 
             // Filtrar productos
+            console.log('Filtrando productos. Total:', allProducts.length, 'Filtros activos:', activeFilters);
             let filteredProducts = allProducts.filter(product => {
                 // Filtro por género
                 if (activeFilters.gender.length > 0) {
@@ -423,6 +431,7 @@
 
                 return true;
             });
+            console.log('Productos filtrados:', filteredProducts.length);
 
             // Ordenar productos
             if (currentSort === 'price-asc') {
@@ -581,6 +590,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             const tipo = urlParams.get('tipo');
             const genero = urlParams.get('genero');
+            const marca = urlParams.get('marca');
             
             if (genero) {
                 // Desmarcar "Todos" y marcar el género correspondiente
@@ -593,32 +603,76 @@
                     genderCheckbox.checked = true;
                     activeFilters.gender = [genero];
                 }
+                // Sincronizar con móvil
+                const allCheckboxMobile = document.querySelector('input[name="gender-mobile"][value="all"]');
+                if (allCheckboxMobile) {
+                    allCheckboxMobile.checked = false;
+                }
+                const genderCheckboxMobile = document.querySelector(`input[name="gender-mobile"][value="${genero}"]`);
+                if (genderCheckboxMobile) {
+                    genderCheckboxMobile.checked = true;
+                }
             }
             
             if (tipo) {
                 // Marcar el tipo de fragancia correspondiente
-                const typeCheckbox = document.querySelector(`input[name="fragranceType"][value="${decodeURIComponent(tipo)}"]`);
+                const decodedTipo = decodeURIComponent(tipo);
+                const typeCheckbox = document.querySelector(`input[name="fragranceType"][value="${decodedTipo}"]`);
                 if (typeCheckbox) {
                     typeCheckbox.checked = true;
-                    activeFilters.fragranceType = [decodeURIComponent(tipo)];
+                    activeFilters.fragranceType = [decodedTipo];
+                }
+                // Sincronizar con móvil
+                const typeCheckboxMobile = document.querySelector(`input[name="fragranceType-mobile"][value="${decodedTipo}"]`);
+                if (typeCheckboxMobile) {
+                    typeCheckboxMobile.checked = true;
+                }
+            }
+            
+            if (marca) {
+                // Aplicar el filtro de marca directamente, independientemente de si el checkbox existe
+                const decodedMarca = decodeURIComponent(marca);
+                activeFilters.brand = [decodedMarca];
+                console.log('Filtro de marca aplicado:', decodedMarca, 'Filtros activos:', activeFilters);
+                
+                // Intentar encontrar y marcar el checkbox de marca (puede que aún no esté cargado)
+                const brandCheckbox = document.querySelector(`input[name="brand"][value="${decodedMarca}"]`);
+                if (brandCheckbox) {
+                    brandCheckbox.checked = true;
+                }
+                // Sincronizar con móvil
+                const brandCheckboxMobile = document.querySelector(`input[name="brand-mobile"][value="${decodedMarca}"]`);
+                if (brandCheckboxMobile) {
+                    brandCheckboxMobile.checked = true;
+                }
+                
+                // Si no se encontró el checkbox, intentar de nuevo después de un pequeño delay
+                // (por si los filtros aún se están cargando)
+                if (!brandCheckbox && !brandCheckboxMobile) {
+                    setTimeout(() => {
+                        const retryBrandCheckbox = document.querySelector(`input[name="brand"][value="${decodedMarca}"]`);
+                        const retryBrandCheckboxMobile = document.querySelector(`input[name="brand-mobile"][value="${decodedMarca}"]`);
+                        if (retryBrandCheckbox) {
+                            retryBrandCheckbox.checked = true;
+                        }
+                        if (retryBrandCheckboxMobile) {
+                            retryBrandCheckboxMobile.checked = true;
+                        }
+                    }, 200);
                 }
             }
         }
 
         // Cargar productos al iniciar
         if (typeof db !== 'undefined') {
-            loadProducts().then(() => {
-                applyFiltersFromURL();
-                displayProducts();
-            });
+            loadProducts();
+            // displayProducts() se llama dentro de loadProducts() después de aplicar filtros desde URL
         } else {
             document.addEventListener('DOMContentLoaded', function() {
                 setTimeout(() => {
                     if (typeof db !== 'undefined') {
-                        loadProducts().then(() => {
-                            applyFiltersFromURL();
-                            displayProducts();
-                        });
+                        loadProducts();
+                        // displayProducts() se llama dentro de loadProducts() después de aplicar filtros desde URL
                     }
                 }, 1000);
             });

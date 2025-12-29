@@ -175,22 +175,22 @@ def checkout():
 @app.route('/orden-confirmada')
 def orden_confirmada():
     breadcrumbs = get_breadcrumbs([('Orden Confirmada', '/orden-confirmada')])
-    return render_template('orden_confirmada.html', breadcrumbs=breadcrumbs)
+    return render_template('orders/orden_confirmada.html', breadcrumbs=breadcrumbs)
 
 @app.route('/orden-detalle')
 def orden_detalle():
     breadcrumbs = get_breadcrumbs([('Mis Compras', '/mis-compras'), ('Detalle de Orden', '/orden-detalle')])
-    return render_template('orden_detalle.html', breadcrumbs=breadcrumbs)
+    return render_template('orders/orden_detalle.html', breadcrumbs=breadcrumbs)
 
 @app.route('/ayuda/contacto')
 def ayuda_contacto():
     breadcrumbs = get_breadcrumbs([('Contacto', '/ayuda/contacto')])
-    return render_template('ayuda.html', breadcrumbs=breadcrumbs)
+    return render_template('help/ayuda.html', breadcrumbs=breadcrumbs)
 
 @app.route('/ayuda/info')
 def ayuda_info():
     breadcrumbs = get_breadcrumbs([('Información', '/ayuda/info')])
-    return render_template('ayuda_info.html', breadcrumbs=breadcrumbs)
+    return render_template('help/ayuda_info.html', breadcrumbs=breadcrumbs)
 
 # Ruta legacy para mantener compatibilidad
 @app.route('/ayuda')
