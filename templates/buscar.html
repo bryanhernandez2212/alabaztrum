@@ -199,12 +199,12 @@
                 }
 
                 return `
-                    <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onclick="window.location.href='/producto/${product.id}'">
-                        <div class="aspect-square bg-gray-100 overflow-hidden">
-                            <img src="${imageUrl}" alt="${product.name || ''}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
+                    <a href="/producto/${product.id}" class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer flex flex-col h-full block">
+                        <div class="w-full overflow-hidden flex-shrink-0" style="height: 250px; background: linear-gradient(to bottom, #f9fafb, #f3f4f6);">
+                            <img src="${imageUrl}" alt="${product.name || ''}" class="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-300">
                         </div>
-                        <div class="p-4">
-                            <p class="text-xs text-gray-500 mb-1">${product.brand || ''}</p>
+                        <div class="p-4 flex flex-col flex-grow" style="min-height: 120px;">
+                            <p class="text-xs text-gray-500 mb-1 line-clamp-1">${product.brand || ''}</p>
                             <h3 class="font-semibold text-gray-900 mb-2 line-clamp-2">${product.name || 'Sin nombre'}</h3>
                             ${ratingCount > 0 ? `
                                 <div class="flex items-center gap-2 mb-2">
@@ -212,9 +212,9 @@
                                     <span class="text-xs text-gray-500">(${ratingCount})</span>
                                 </div>
                             ` : ''}
-                            <p class="text-lg font-bold text-gray-900">$${product.price ? product.price.toFixed(2) : '0.00'}</p>
+                            <p class="text-lg font-bold text-gray-900 mt-auto">$${product.price ? product.price.toFixed(2) : '0.00'}</p>
                         </div>
-                    </div>
+                    </a>
                 `;
             }).join('');
         }

@@ -80,7 +80,7 @@ def mis_compras():
 @app.route('/favoritos')
 def favoritos():
     breadcrumbs = get_breadcrumbs([('Favoritos', '/favoritos')])
-    return render_template('favoritos.html', breadcrumbs=breadcrumbs)
+    return render_template('perfume/favoritos.html', breadcrumbs=breadcrumbs)
 
 @app.route('/admin')
 def admin():

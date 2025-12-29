@@ -270,19 +270,17 @@
 
                 return `
                     <div class="product-card fade-in" style="animation-delay: ${index * 0.1}s;">
-                        <div class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 relative">
-                            <div class="relative overflow-hidden" style="padding-top: 100%;">
-                                <a href="/producto/${product.id}" class="block group">
-                                    <img 
-                                        src="${imageUrl}" 
-                                        alt="${product.name || 'Producto'}"
-                                        class="absolute top-0 left-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                                        onerror="this.src='https://via.placeholder.com/300x300?text=Sin+Imagen'"
-                                    >
-                                </a>
+                        <a href="/producto/${product.id}" class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 relative flex flex-col h-full block">
+                            <div class="w-full overflow-hidden flex-shrink-0 relative" style="height: 300px; background: linear-gradient(to bottom, #f9fafb, #f3f4f6);">
+                                <img 
+                                    src="${imageUrl}" 
+                                    alt="${product.name || 'Producto'}"
+                                    class="w-full h-full object-cover object-center hover:scale-110 transition-transform duration-300"
+                                    onerror="this.src='https://via.placeholder.com/300x300?text=Sin+Imagen'"
+                                >
                                 ${stock === 0 ? '<div class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold z-20">AGOTADO</div>' : ''}
                                 <button 
-                                    onclick="toggleFavorite('${product.id}', event)" 
+                                    onclick="event.preventDefault(); event.stopPropagation(); toggleFavorite('${product.id}', event);" 
                                     class="absolute top-2 ${stock === 0 ? 'left-2' : 'right-2'} bg-white rounded-full p-2 shadow-md hover:shadow-lg transition-all z-10 favorite-btn"
                                     data-product-id="${product.id}"
                                     title="Agregar a favoritos"
@@ -290,19 +288,17 @@
                                     <i class="fas fa-heart text-gray-400"></i>
                                 </button>
                             </div>
-                            <div class="p-4">
-                                <a href="/producto/${product.id}" class="block group">
-                                    <p class="text-sm text-gray-500 mb-1">${product.brand || 'Sin marca'}</p>
-                                    <h3 class="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-gray-700">
-                                        ${product.name || 'Sin nombre'}
-                                    </h3>
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-xl font-bold text-gray-900">${price}</span>
-                                        <span class="text-xs px-2 py-1 rounded ${stockClass}">${stockText}</span>
-                                    </div>
-                                </a>
+                            <div class="p-4 flex flex-col flex-grow" style="min-height: 140px;">
+                                <p class="text-sm text-gray-500 mb-1 line-clamp-1">${product.brand || 'Sin marca'}</p>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 hover:text-gray-700 flex-1">
+                                    ${product.name || 'Sin nombre'}
+                                </h3>
+                                <div class="flex items-center justify-between mt-auto">
+                                    <span class="text-xl font-bold text-gray-900">${price}</span>
+                                    <span class="text-xs px-2 py-1 rounded ${stockClass}">${stockText}</span>
+                                </div>
                             </div>
-                        </div>
+                        </a>
                     </div>
                 `;
             }).join('');
