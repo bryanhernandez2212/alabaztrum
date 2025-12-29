@@ -150,17 +150,17 @@ def admin_fragrance_types_add():
 @app.route('/fragancias')
 def fragancias():
     breadcrumbs = get_breadcrumbs([('Fragancias', '/fragancias')])
-    return render_template('fragancias.html', breadcrumbs=breadcrumbs)
+    return render_template('perfume/fragancias.html', breadcrumbs=breadcrumbs)
 
 @app.route('/decants')
 def decants():
     breadcrumbs = get_breadcrumbs([('Decants', '/decants')])
-    return render_template('decants.html', breadcrumbs=breadcrumbs)
+    return render_template('perfume/decants.html', breadcrumbs=breadcrumbs)
 
 @app.route('/producto/<product_id>')
 def producto_detalle(product_id):
     breadcrumbs = get_breadcrumbs([('Fragancias', '/fragancias'), ('Detalle del Producto', f'/producto/{product_id}')])
-    return render_template('producto_detalle.html', product_id=product_id, breadcrumbs=breadcrumbs)
+    return render_template('perfume/producto_detalle.html', product_id=product_id, breadcrumbs=breadcrumbs)
 
 @app.route('/carrito')
 def carrito():
@@ -204,8 +204,6 @@ def buscar():
 
 if __name__ == '__main__':
     import os
-    # Para desarrollo local, usa el puerto 5001 si 5000 está ocupado
-    # En Railway, usará la variable de entorno PORT
     port = int(os.environ.get('PORT', 5001))
     app.run(host='127.0.0.1', port=port, debug=True)
 
