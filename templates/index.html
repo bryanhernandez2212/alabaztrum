@@ -270,32 +270,32 @@
 
                 return `
                     <div class="product-card fade-in" style="animation-delay: ${index * 0.1}s;">
-                        <a href="/producto/${product.id}" class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 relative flex flex-col h-full block">
-                            <div class="w-full overflow-hidden flex-shrink-0 relative" style="height: 300px; background: linear-gradient(to bottom, #f9fafb, #f3f4f6);">
+                        <a href="/producto/${product.id}" class="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg hover:border-gray-200 transition-all duration-300 transform hover:-translate-y-1 relative flex flex-col h-full block group">
+                            <div class="w-full overflow-hidden flex-shrink-0 relative" style="height: 300px; background: linear-gradient(to bottom, #fafafa, #f5f5f5);">
                                 <img 
                                     src="${imageUrl}" 
                                     alt="${product.name || 'Producto'}"
-                                    class="w-full h-full object-cover object-center hover:scale-110 transition-transform duration-300"
+                                    class="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-500 ease-out"
                                     onerror="this.src='https://via.placeholder.com/300x300?text=Sin+Imagen'"
                                 >
-                                ${stock === 0 ? '<div class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold z-20">AGOTADO</div>' : ''}
+                                ${stock === 0 ? '<div class="absolute top-3 right-3 bg-red-500 text-white px-2.5 py-1 rounded-md text-xs font-semibold z-20 shadow-lg">AGOTADO</div>' : ''}
                                 <button 
                                     onclick="event.preventDefault(); event.stopPropagation(); toggleFavorite('${product.id}', event);" 
-                                    class="absolute top-2 ${stock === 0 ? 'left-2' : 'right-2'} bg-white rounded-full p-2 shadow-md hover:shadow-lg transition-all z-10 favorite-btn"
+                                    class="absolute top-3 ${stock === 0 ? 'left-3' : 'right-3'} bg-white rounded-full p-2.5 shadow-md hover:shadow-lg hover:bg-gray-50 transition-all z-10 favorite-btn"
                                     data-product-id="${product.id}"
                                     title="Agregar a favoritos"
                                 >
                                     <i class="fas fa-heart text-gray-400"></i>
                                 </button>
                             </div>
-                            <div class="p-4 flex flex-col flex-grow" style="min-height: 140px;">
-                                <p class="text-sm text-gray-500 mb-1 line-clamp-1">${product.brand || 'Sin marca'}</p>
-                                <h3 class="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 hover:text-gray-700 flex-1">
+                            <div class="p-5 flex flex-col flex-grow" style="min-height: 150px;">
+                                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 line-clamp-1">${product.brand || 'Sin marca'}</p>
+                                <h3 class="text-base font-semibold text-gray-900 mb-3 line-clamp-2 leading-snug group-hover:text-gray-700 transition-colors flex-1">
                                     ${product.name || 'Sin nombre'}
                                 </h3>
-                                <div class="flex items-center justify-between mt-auto">
+                                <div class="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
                                     <span class="text-xl font-bold text-gray-900">${price}</span>
-                                    <span class="text-xs px-2 py-1 rounded ${stockClass}">${stockText}</span>
+                                    <span class="text-xs px-2.5 py-1 rounded-full ${stockClass} font-medium">${stockText}</span>
                                 </div>
                             </div>
                         </a>

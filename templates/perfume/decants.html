@@ -16,7 +16,7 @@
 <body class="bg-white">
     {% include 'partials/navbar.html' %}
 
-    <main class="min-h-screen py-2 bg-gray-50">
+    <main class="min-h-screen py-2 bg-gray-50" style="min-height: 100vh; overflow-x: hidden;">
         <div class="container mx-auto px-4">
             <!-- Header con ordenamiento -->
             <div class="mb-2 flex items-center justify-between">
@@ -351,29 +351,27 @@
                     : 'https://via.placeholder.com/300x300?text=No+Image';
                 
                 const genderBadge = product.gender === 'hombre' 
-                    ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Hombre</span>'
-                    : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-pink-100 text-pink-800">Mujer</span>';
+                    ? '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">Hombre</span>'
+                    : '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-pink-50 text-pink-700 border border-pink-100">Mujer</span>';
                 
                 const sizeBadge = product.decantSize 
-                    ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">${product.decantSize}</span>`
+                    ? `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">${product.decantSize}</span>`
                     : '';
 
                 return `
-                    <a href="/producto/${product.id}" class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200 cursor-pointer flex flex-col h-full block">
-                        <div class="w-full overflow-hidden flex-shrink-0" style="height: 250px; background: linear-gradient(to bottom, #f9fafb, #f3f4f6);">
-                            <img src="${imageUrl}" alt="${product.name || ''}" class="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-300" onerror="this.src='https://via.placeholder.com/300x300?text=No+Image'">
+                    <a href="/producto/${product.id}" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg hover:border-gray-200 transition-all duration-300 cursor-pointer flex flex-col h-full block group">
+                        <div class="w-full overflow-hidden flex-shrink-0 relative" style="height: 250px; background: linear-gradient(to bottom, #fafafa, #f5f5f5);">
+                            <img src="${imageUrl}" alt="${product.name || ''}" class="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-500 ease-out" onerror="this.src='https://via.placeholder.com/300x300?text=No+Image'">
                         </div>
-                        <div class="p-1.5 sm:p-2.5 flex flex-col flex-grow" style="min-height: 120px;">
-                            <div class="flex items-start justify-between mb-0.5 sm:mb-1">
-                                <h3 class="text-xs sm:text-sm font-semibold text-gray-900 line-clamp-2 flex-1">${product.name || 'Sin nombre'}</h3>
-                            </div>
-                            ${product.brand ? `<p class="text-[10px] sm:text-xs text-gray-600 mb-0.5 sm:mb-1 line-clamp-1">${product.brand}</p>` : ''}
-                            <div class="flex items-center gap-0.5 sm:gap-1 mb-1 sm:mb-1.5 flex-wrap">
+                        <div class="p-4 sm:p-5 flex flex-col flex-grow" style="min-height: 130px;">
+                            ${product.brand ? `<p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5 line-clamp-1">${product.brand}</p>` : ''}
+                            <h3 class="text-sm sm:text-base font-semibold text-gray-900 mb-2 line-clamp-2 leading-snug group-hover:text-gray-700 transition-colors">${product.name || 'Sin nombre'}</h3>
+                            <div class="flex items-center gap-1.5 sm:gap-2 mb-3 flex-wrap">
                                 ${genderBadge}
                                 ${sizeBadge}
                             </div>
-                            <div class="flex items-center justify-between gap-1 mt-auto">
-                                <span class="text-sm sm:text-lg font-bold text-gray-900">$${product.price ? product.price.toFixed(2) : '0.00'}</span>
+                            <div class="flex items-center justify-between mt-auto pt-3 border-t border-gray-100">
+                                <span class="text-base sm:text-xl font-bold text-gray-900">$${product.price ? product.price.toFixed(2) : '0.00'}</span>
                             </div>
                         </div>
                     </a>
@@ -442,24 +440,65 @@
             }
         }
 
+        // Limpiar y resetear el estado de la página
+        function resetPageState() {
+            // Scroll inmediato al inicio (sin animación)
+            window.scrollTo(0, 0);
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+            
+            // Asegurar que el body esté en la posición correcta
+            document.body.style.overflow = 'auto';
+            document.documentElement.style.overflow = 'auto';
+        }
+
+        // Resetear inmediatamente cuando se carga el script
+        resetPageState();
+
         // Cargar productos al iniciar
-        if (typeof db !== 'undefined') {
-            loadProducts().then(() => {
-                applyFiltersFromURL();
-                displayProducts();
-            });
-        } else {
-            document.addEventListener('DOMContentLoaded', function() {
+        function initializePage() {
+            resetPageState();
+            
+            if (typeof db !== 'undefined') {
+                setTimeout(() => {
+                    loadProducts().then(() => {
+                        applyFiltersFromURL();
+                        displayProducts();
+                    });
+                }, 100);
+            } else {
                 setTimeout(() => {
                     if (typeof db !== 'undefined') {
                         loadProducts().then(() => {
                             applyFiltersFromURL();
                             displayProducts();
                         });
+                    } else {
+                        setTimeout(initializePage, 500);
                     }
-                }, 1000);
-            });
+                }, 500);
+            }
         }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                resetPageState();
+                setTimeout(initializePage, 50);
+            });
+        } else {
+            resetPageState();
+            setTimeout(initializePage, 50);
+        }
+        
+        // Resetear cuando la página se carga completamente
+        window.addEventListener('load', function() {
+            resetPageState();
+        });
+        
+        // Resetear antes de que la página se descargue (cuando navegas)
+        window.addEventListener('beforeunload', function() {
+            resetPageState();
+        });
     </script>
     {% include 'partials/footer.html' %}
 </body>

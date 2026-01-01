@@ -17,8 +17,8 @@
 <body class="bg-white">
     {% include 'partials/navbar.html' %}
 
-    <main class="min-h-screen py-8 bg-gray-50">
-        <div class="container mx-auto px-4">
+    <main class="min-h-screen py-8 bg-gray-50" style="min-height: 100vh; overflow-x: hidden;">
+        <div class="container mx-auto px-4" style="width: 100%; max-width: 1280px; margin: 0 auto; position: relative;">
             <!-- Loading state -->
             <div id="loading" class="text-center py-20">
                 <div class="flex flex-col items-center">
@@ -30,9 +30,9 @@
             </div>
 
             <!-- Product detail container -->
-            <div id="product-detail" class="hidden">
-                <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 lg:p-8">
+            <div id="product-detail" style="display: none; width: 100%; min-height: 600px; position: relative;">
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden" style="width: 100%; box-sizing: border-box; min-height: 600px;">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 lg:p-8" style="width: 100%;">
                         <!-- Imágenes del producto -->
                         <div class="space-y-4">
                             <!-- Imagen principal -->
@@ -182,17 +182,33 @@
         // Cargar producto
         async function loadProduct() {
             try {
+                // Esperar a que Firebase esté completamente inicializado
+                let retries = 0;
+                const maxRetries = 10;
+                
+                while (typeof db === 'undefined' && retries < maxRetries) {
+                    await new Promise((resolve) => setTimeout(resolve, 500));
+                    retries++;
+                }
+                
                 if (typeof db === 'undefined') {
-                    return new Promise((resolve) => {
-                        setTimeout(() => {
-                            loadProduct().then(resolve);
-                        }, 500);
-                    });
+                    console.error('Firebase no está disponible después de múltiples intentos');
+                    document.getElementById('loading').classList.add('hidden');
+                    document.getElementById('error-state').classList.remove('hidden');
+                    return;
+                }
+
+                if (!productId) {
+                    console.error('No se proporcionó un ID de producto');
+                    document.getElementById('loading').classList.add('hidden');
+                    document.getElementById('error-state').classList.remove('hidden');
+                    return;
                 }
 
                 const productDoc = await db.collection('products').doc(productId).get();
                 
                 if (!productDoc.exists) {
+                    console.error('Producto no encontrado:', productId);
                     document.getElementById('loading').classList.add('hidden');
                     document.getElementById('error-state').classList.remove('hidden');
                     return;
@@ -209,7 +225,10 @@
             } catch (error) {
                 console.error('Error loading product:', error);
                 document.getElementById('loading').classList.add('hidden');
-                document.getElementById('error-state').classList.remove('hidden');
+                const errorState = document.getElementById('error-state');
+                if (errorState) {
+                    errorState.classList.remove('hidden');
+                }
             }
         }
 
@@ -276,63 +295,170 @@
 
         // Mostrar producto
         function displayProduct() {
-            const product = currentProduct;
-            
-            // Información básica
-            document.getElementById('product-name').textContent = product.name || 'Sin nombre';
-            document.getElementById('product-brand').textContent = product.brand || '';
-            document.getElementById('product-brand-detail').textContent = product.brand || 'N/A';
-            document.getElementById('product-price').textContent = `$${product.price ? product.price.toFixed(2) : '0.00'}`;
-            document.getElementById('product-description').textContent = product.description || 'Sin descripción disponible.';
-            document.getElementById('fragrance-type').textContent = product.fragranceType || 'N/A';
-            
-            // Cargar calificación promedio
-            loadProductRating();
+            try {
+                if (!currentProduct) {
+                    console.error('No hay producto para mostrar');
+                    document.getElementById('loading').classList.add('hidden');
+                    document.getElementById('error-state').classList.remove('hidden');
+                    return;
+                }
 
-            // Badges
-            const genderBadge = document.getElementById('gender-badge');
-            if (product.gender === 'hombre') {
-                genderBadge.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800';
-                genderBadge.textContent = 'Hombre';
-            } else if (product.gender === 'mujer') {
-                genderBadge.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-pink-100 text-pink-800';
-                genderBadge.textContent = 'Mujer';
-            } else {
-                genderBadge.style.display = 'none';
-            }
-
-            const decantBadge = document.getElementById('decant-badge');
-            if (product.isDecant) {
-                decantBadge.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800';
-                decantBadge.textContent = `Decant ${product.decantSize || ''}`;
-            } else {
-                decantBadge.style.display = 'none';
-            }
-
-            // Imágenes
-            const images = product.images || [];
-            const mainImage = document.getElementById('main-image');
-            const gallery = document.getElementById('image-gallery');
-
-            if (images.length > 0) {
-                mainImage.src = images[0];
-                mainImage.alt = product.name || 'Producto';
+                const product = currentProduct;
                 
-                gallery.innerHTML = images.map((img, index) => `
-                    <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer border-2 ${index === 0 ? 'border-gray-900' : 'border-transparent'}" onclick="changeMainImage('${img}', ${index})">
-                        <img src="${img}" alt="${product.name || ''}" class="w-full h-full object-cover">
-                    </div>
-                `).join('');
-            } else {
-                mainImage.src = 'https://via.placeholder.com/600x600?text=No+Image';
-                gallery.innerHTML = '';
-            }
+                // Información básica
+                const productNameEl = document.getElementById('product-name');
+                const productBrandEl = document.getElementById('product-brand');
+                const productBrandDetailEl = document.getElementById('product-brand-detail');
+                const productPriceEl = document.getElementById('product-price');
+                const productDescriptionEl = document.getElementById('product-description');
+                const fragranceTypeEl = document.getElementById('fragrance-type');
+                
+                if (productNameEl) productNameEl.textContent = product.name || 'Sin nombre';
+                if (productBrandEl) productBrandEl.textContent = product.brand || '';
+                if (productBrandDetailEl) productBrandDetailEl.textContent = product.brand || 'N/A';
+                if (productPriceEl) productPriceEl.textContent = `$${product.price ? product.price.toFixed(2) : '0.00'}`;
+                if (productDescriptionEl) productDescriptionEl.textContent = product.description || 'Sin descripción disponible.';
+                if (fragranceTypeEl) fragranceTypeEl.textContent = product.fragranceType || 'N/A';
+                
+                // Cargar calificación promedio
+                loadProductRating();
 
-            document.getElementById('loading').classList.add('hidden');
-            document.getElementById('product-detail').classList.remove('hidden');
-            
-            // Inicializar formulario de comentarios después de mostrar el producto
-            initCommentForm();
+                // Badges
+                const genderBadge = document.getElementById('gender-badge');
+                if (genderBadge) {
+                    if (product.gender === 'hombre') {
+                        genderBadge.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800';
+                        genderBadge.textContent = 'Hombre';
+                        genderBadge.style.display = 'inline-flex';
+                    } else if (product.gender === 'mujer') {
+                        genderBadge.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-pink-100 text-pink-800';
+                        genderBadge.textContent = 'Mujer';
+                        genderBadge.style.display = 'inline-flex';
+                    } else {
+                        genderBadge.style.display = 'none';
+                    }
+                }
+
+                const decantBadge = document.getElementById('decant-badge');
+                if (decantBadge) {
+                    if (product.isDecant) {
+                        decantBadge.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800';
+                        decantBadge.textContent = `Decant ${product.decantSize || ''}`;
+                        decantBadge.style.display = 'inline-flex';
+                    } else {
+                        decantBadge.style.display = 'none';
+                    }
+                }
+
+                // Imágenes
+                const images = product.images || [];
+                const mainImage = document.getElementById('main-image');
+                const gallery = document.getElementById('image-gallery');
+
+                if (mainImage) {
+                    if (images.length > 0) {
+                        // Cargar imagen y esperar a que se cargue antes de mostrar
+                        const img = new Image();
+                        img.onload = function() {
+                            mainImage.src = images[0];
+                            mainImage.alt = product.name || 'Producto';
+                            // Forzar reflow después de cargar la imagen
+                            void mainImage.offsetHeight;
+                        };
+                        img.onerror = function() {
+                            mainImage.src = 'https://via.placeholder.com/600x600?text=No+Image';
+                            mainImage.alt = 'Sin imagen';
+                            void mainImage.offsetHeight;
+                        };
+                        img.src = images[0];
+                    } else {
+                        mainImage.src = 'https://via.placeholder.com/600x600?text=No+Image';
+                        mainImage.alt = 'Sin imagen';
+                    }
+                }
+
+                if (gallery) {
+                    if (images.length > 0) {
+                        gallery.innerHTML = images.map((img, index) => `
+                            <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer border-2 ${index === 0 ? 'border-gray-900' : 'border-transparent'}" onclick="changeMainImage('${img}', ${index})">
+                                <img src="${img}" alt="${product.name || ''}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150x150?text=No+Image'">
+                            </div>
+                        `).join('');
+                    } else {
+                        gallery.innerHTML = '';
+                    }
+                }
+
+                const loadingEl = document.getElementById('loading');
+                const productDetailEl = document.getElementById('product-detail');
+                
+                // Ocultar loading
+                if (loadingEl) {
+                    loadingEl.style.display = 'none';
+                }
+                
+                // Mostrar contenido solo cuando todo esté listo
+                if (productDetailEl) {
+                    // Asegurar que esté oculto primero
+                    productDetailEl.style.display = 'none';
+                    
+                    // Esperar a que las imágenes se carguen y el DOM esté listo
+                    const mainImage = document.getElementById('main-image');
+                    if (mainImage && mainImage.src && !mainImage.complete) {
+                        mainImage.onload = function() {
+                            showProductDetail();
+                        };
+                        mainImage.onerror = function() {
+                            showProductDetail();
+                        };
+                    } else {
+                        // Si no hay imagen o ya está cargada, mostrar inmediatamente
+                        showProductDetail();
+                    }
+                }
+                
+                function showProductDetail() {
+                    const productDetailEl = document.getElementById('product-detail');
+                    if (productDetailEl) {
+                        // Resetear scroll antes de mostrar
+                        resetPageState();
+                        
+                        // Pequeño delay para asegurar que todo esté renderizado
+                        setTimeout(() => {
+                            productDetailEl.style.display = 'block';
+                            
+                            // Forzar reflow múltiples veces
+                            requestAnimationFrame(() => {
+                                void productDetailEl.offsetHeight;
+                                resetPageState();
+                                
+                                requestAnimationFrame(() => {
+                                    void productDetailEl.offsetHeight;
+                                    resetPageState();
+                                    
+                                    // Último reflow y reset
+                                    setTimeout(() => {
+                                        void productDetailEl.offsetHeight;
+                                        resetPageState();
+                                    }, 100);
+                                });
+                            });
+                        }, 200);
+                    }
+                }
+                
+                // Inicializar formulario de comentarios después de mostrar el producto
+                setTimeout(() => {
+                    initCommentForm();
+                }, 300);
+            } catch (error) {
+                console.error('Error en displayProduct:', error);
+                document.getElementById('loading').classList.add('hidden');
+                const errorState = document.getElementById('error-state');
+                if (errorState) {
+                    errorState.classList.remove('hidden');
+                }
+            }
         }
 
         // Cambiar imagen principal
@@ -848,16 +974,62 @@
             }
         }
 
-        // Inicializar cuando el DOM esté listo
+        // Limpiar y resetear el estado de la página
+        function resetPageState() {
+            // Scroll inmediato al inicio (sin animación)
+            window.scrollTo(0, 0);
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+            
+            // Asegurar que el body esté en la posición correcta
+            document.body.style.overflow = 'auto';
+            document.documentElement.style.overflow = 'auto';
+        }
+
+        // Inicializar cuando el DOM esté listo y Firebase esté disponible
+        function initializePage() {
+            // Resetear estado de la página primero
+            resetPageState();
+            
+            // Esperar a que Firebase esté listo
+            if (typeof firebase === 'undefined' || typeof db === 'undefined') {
+                setTimeout(initializePage, 100);
+                return;
+            }
+            
+            // Esperar a que el DOM esté completamente renderizado
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    resetPageState();
+                    loadProduct();
+                    initAddToCartButton();
+                });
+            });
+        }
+
+        // Resetear inmediatamente cuando se carga el script
+        resetPageState();
+
+        // Asegurar que la página se inicialice correctamente
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                loadProduct();
-                initAddToCartButton();
+            document.addEventListener('DOMContentLoaded', function() {
+                resetPageState();
+                setTimeout(initializePage, 50);
             });
         } else {
-            loadProduct();
-            initAddToCartButton();
+            resetPageState();
+            setTimeout(initializePage, 50);
         }
+        
+        // Resetear cuando la página se carga completamente
+        window.addEventListener('load', function() {
+            resetPageState();
+        });
+        
+        // Resetear antes de que la página se descargue (cuando navegas)
+        window.addEventListener('beforeunload', function() {
+            resetPageState();
+        });
     </script>
     {% include 'partials/footer.html' %}
 </body>

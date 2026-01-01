@@ -34,18 +34,7 @@ def not_found(error):
 def internal_error(error):
     return {'error': 'Internal server error', 'traceback': traceback.format_exc()}, 500
 
-# Ruta de salud para verificar que la app funciona
-@app.route('/health')
-def health():
-    try:
-        logger.info("Health check requested")
-        response = {'status': 'ok', 'message': 'Application is running'}
-        logger.info(f"Health check response: {response}")
-        return response, 200
-    except Exception as e:
-        logger.error(f"Error in health check: {str(e)}")
-        logger.error(traceback.format_exc())
-        return {'status': 'error', 'message': str(e)}, 500
+
 
 @app.route('/')
 def index():
@@ -156,6 +145,11 @@ def fragancias():
 def decants():
     breadcrumbs = get_breadcrumbs([('Decants', '/decants')])
     return render_template('perfume/decants.html', breadcrumbs=breadcrumbs)
+
+@app.route('/sprays')
+def sprays():
+    breadcrumbs = get_breadcrumbs([('Sprays', '/sprays')])
+    return render_template('perfume/sprays.html', breadcrumbs=breadcrumbs)
 
 @app.route('/producto/<product_id>')
 def producto_detalle(product_id):
