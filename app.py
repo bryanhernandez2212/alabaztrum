@@ -71,6 +71,11 @@ def favoritos():
     breadcrumbs = get_breadcrumbs([('Favoritos', '/favoritos')])
     return render_template('perfume/favoritos.html', breadcrumbs=breadcrumbs)
 
+@app.route('/marcas')
+def marcas():
+    breadcrumbs = get_breadcrumbs([('Marcas', '/marcas')])
+    return render_template('perfume/marcas.html', breadcrumbs=breadcrumbs)
+
 @app.route('/admin')
 def admin():
     breadcrumbs = get_breadcrumbs([('Administración', '/admin')])
