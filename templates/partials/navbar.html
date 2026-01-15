@@ -272,9 +272,9 @@
                 </a>
                 <!-- Dropdown de Fragancias -->
                 <div id="fragrances-dropdown"
-                    class="absolute top-full left-1/2 transform -translate-x-1/2 w-96 bg-transparent z-50 hidden"
-                    style="margin-top: 0.5rem;">
-                    <div class="bg-black border border-gray-800 rounded-lg shadow-xl py-4">
+                    class="fixed inset-x-0 w-screen bg-transparent z-50 hidden">
+                    <div class="max-w-7xl mx-auto bg-black border border-gray-800 rounded-b-lg shadow-xl py-6 relative">
+                        <button id="fragrances-dropdown-close" class="absolute top-2 right-2 text-white bg-gray-800 hover:bg-gray-700 rounded px-3 py-1 text-xs">Cerrar</button>
                         <div class="grid grid-cols-2 gap-0">
                             <!-- Columna Masculinas -->
                             <div class="px-6">
@@ -306,9 +306,9 @@
                 </a>
                 <!-- Dropdown de Decants -->
                 <div id="decants-dropdown"
-                    class="absolute top-full left-1/2 transform -translate-x-1/2 w-96 bg-transparent z-50 hidden"
-                    style="margin-top: 0.5rem;">
-                    <div class="bg-black border border-gray-800 rounded-lg shadow-xl py-4">
+                    class="fixed inset-x-0 w-screen bg-transparent z-50 hidden">
+                    <div class="max-w-7xl mx-auto bg-black border border-gray-800 rounded-b-lg shadow-xl py-6 relative">
+                        <button id="decants-dropdown-close" class="absolute top-2 right-2 text-white bg-gray-800 hover:bg-gray-700 rounded px-3 py-1 text-xs">Cerrar</button>
                         <div class="grid grid-cols-2 gap-0">
                             <!-- Columna Masculinas -->
                             <div class="px-6">
@@ -345,9 +345,9 @@
                 </a>
                 <!-- Dropdown de Marcas -->
                 <div id="brands-dropdown"
-                    class="absolute top-full left-1/2 transform -translate-x-1/2 w-80 bg-transparent z-50 hidden"
-                    style="margin-top: 0.5rem;">
-                    <div class="bg-black border border-gray-800 rounded-lg shadow-xl py-4">
+                    class="fixed inset-x-0 w-screen bg-transparent z-50 hidden">
+                    <div class="max-w-7xl mx-auto bg-black border border-gray-800 rounded-b-lg shadow-xl py-6 relative">
+                        <button id="brands-dropdown-close" class="absolute top-2 right-2 text-white bg-gray-800 hover:bg-gray-700 rounded px-3 py-1 text-xs">Cerrar</button>
                         <div class="px-6">
                             <div id="brands-list" class="space-y-2 max-h-96 overflow-y-auto">
                                 <!-- Las marcas se cargarán aquí dinámicamente -->
@@ -919,6 +919,20 @@
         const spraysDropdown = document.getElementById('sprays-dropdown');
         const brandsDropdown = document.getElementById('brands-dropdown');
         const ayudaNavDropdown = document.getElementById('ayuda-nav-dropdown');
+        const fragrancesClose = document.getElementById('fragrances-dropdown-close');
+        const decantsClose = document.getElementById('decants-dropdown-close');
+        const brandsClose = document.getElementById('brands-dropdown-close');
+        function positionDropdown(dropdown) {
+            const navEl = document.querySelector('nav');
+            if (!navEl || !dropdown) return;
+            const rect = navEl.getBoundingClientRect();
+            dropdown.style.position = 'fixed';
+            dropdown.style.left = '0';
+            dropdown.style.right = '0';
+            dropdown.style.top = (rect.bottom + window.scrollY) + 'px';
+            dropdown.style.width = '100vw';
+            dropdown.style.zIndex = '50';
+        }
 
         let fraganciasTimer = null;
         let decantsTimer = null;
@@ -939,29 +953,14 @@
                 if (brandsDropdown) brandsDropdown.classList.add('hidden');
                 // Cargar tipos solo cuando se muestra el dropdown
                 loadFragranceTypes();
+                positionDropdown(fragrancesDropdown);
                 fragrancesDropdown.classList.remove('hidden');
             });
-
-            fraganciasGroup.addEventListener('mouseleave', function () {
-                fraganciasTimer = setTimeout(() => {
-                    if (!fraganciasGroup.matches(':hover') && !fragrancesDropdown.matches(':hover')) {
-                        fragrancesDropdown.classList.add('hidden');
-                    }
-                }, 200);
-            });
-
-            fragrancesDropdown.addEventListener('mouseenter', function () {
-                if (fraganciasTimer) {
-                    clearTimeout(fraganciasTimer);
-                    fraganciasTimer = null;
-                }
-            });
-
-            fragrancesDropdown.addEventListener('mouseleave', function () {
-                fraganciasTimer = setTimeout(() => {
+            if (fragrancesClose) {
+                fragrancesClose.addEventListener('click', function () {
                     fragrancesDropdown.classList.add('hidden');
-                }, 200);
-            });
+                });
+            }
         }
 
         // Marcas dropdown
@@ -977,29 +976,14 @@
                 if (spraysDropdown) spraysDropdown.classList.add('hidden');
                 // Cargar marcas solo cuando se muestra el dropdown
                 loadBrands();
+                positionDropdown(brandsDropdown);
                 brandsDropdown.classList.remove('hidden');
             });
-
-            brandsGroup.addEventListener('mouseleave', function () {
-                brandsTimer = setTimeout(() => {
-                    if (!brandsGroup.matches(':hover') && !brandsDropdown.matches(':hover')) {
-                        brandsDropdown.classList.add('hidden');
-                    }
-                }, 200);
-            });
-
-            brandsDropdown.addEventListener('mouseenter', function () {
-                if (brandsTimer) {
-                    clearTimeout(brandsTimer);
-                    brandsTimer = null;
-                }
-            });
-
-            brandsDropdown.addEventListener('mouseleave', function () {
-                brandsTimer = setTimeout(() => {
+            if (brandsClose) {
+                brandsClose.addEventListener('click', function () {
                     brandsDropdown.classList.add('hidden');
-                }, 200);
-            });
+                });
+            }
         }
 
         // Decants dropdown
@@ -1015,29 +999,14 @@
                 if (brandsDropdown) brandsDropdown.classList.add('hidden');
                 // Cargar tipos solo cuando se muestra el dropdown
                 loadDecantTypes();
+                positionDropdown(decantsDropdown);
                 decantsDropdown.classList.remove('hidden');
             });
-
-            decantsGroup.addEventListener('mouseleave', function () {
-                decantsTimer = setTimeout(() => {
-                    if (!decantsGroup.matches(':hover') && !decantsDropdown.matches(':hover')) {
-                        decantsDropdown.classList.add('hidden');
-                    }
-                }, 200);
-            });
-
-            decantsDropdown.addEventListener('mouseenter', function () {
-                if (decantsTimer) {
-                    clearTimeout(decantsTimer);
-                    decantsTimer = null;
-                }
-            });
-
-            decantsDropdown.addEventListener('mouseleave', function () {
-                decantsTimer = setTimeout(() => {
+            if (decantsClose) {
+                decantsClose.addEventListener('click', function () {
                     decantsDropdown.classList.add('hidden');
-                }, 200);
-            });
+                });
+            }
         }
 
         // Sprays dropdown
