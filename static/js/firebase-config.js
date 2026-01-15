@@ -23,6 +23,12 @@ let auth, db, storage;
 try {
     auth = firebase.auth();
     db = firebase.firestore();
+    if (db && typeof db.settings === 'function') {
+        db.settings({
+            experimentalForceLongPolling: true,
+            useFetchStreams: false
+        });
+    }
     // Storage es opcional - solo se inicializa si el SDK está disponible
     if (typeof firebase.storage === 'function') {
         storage = firebase.storage();
@@ -33,4 +39,3 @@ try {
 } catch (error) {
     console.error('Error al inicializar servicios de Firebase:', error);
 }
-

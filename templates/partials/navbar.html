@@ -600,16 +600,21 @@
             fragranceTypesLoading = false;
             fragranceTypesLoaded = true;
         } catch (error) {
-            console.error('Error al cargar tipos de fragancia:', error);
             fragranceTypesLoading = false;
+            const unauth = (typeof auth !== 'undefined') ? (auth.currentUser === null) : true;
+            const permErr = error && (error.code === 'permission-denied' || (String(error).toLowerCase().includes('insufficient permissions')));
             const masculinasContainer = document.getElementById('fragrances-masculinas');
             const femeninasContainer = document.getElementById('fragrances-femeninas');
             const mobileMasculinas = document.getElementById('mobile-fragancias-masculinas');
             const mobileFemeninas = document.getElementById('mobile-fragancias-femeninas');
-            if (masculinasContainer) masculinasContainer.innerHTML = '<div class="text-red-400 text-sm">Error al cargar</div>';
-            if (femeninasContainer) femeninasContainer.innerHTML = '<div class="text-red-400 text-sm">Error al cargar</div>';
-            if (mobileMasculinas) mobileMasculinas.innerHTML = '<div class="text-red-400 text-xs px-4">Error al cargar</div>';
-            if (mobileFemeninas) mobileFemeninas.innerHTML = '<div class="text-red-400 text-xs px-4">Error al cargar</div>';
+            const loginHtmlDesktop = '<div class="text-gray-300 text-sm"><a href="/login" class="underline">Inicia sesión para ver tipos</a></div>';
+            const loginHtmlMobile = '<div class="text-gray-300 text-xs px-4"><a href="/login" class="underline">Inicia sesión para ver tipos</a></div>';
+            const errorHtmlDesktop = '<div class="text-red-400 text-sm">Error al cargar</div>';
+            const errorHtmlMobile = '<div class="text-red-400 text-xs px-4">Error al cargar</div>';
+            if (masculinasContainer) masculinasContainer.innerHTML = (unauth && permErr) ? loginHtmlDesktop : errorHtmlDesktop;
+            if (femeninasContainer) femeninasContainer.innerHTML = (unauth && permErr) ? loginHtmlDesktop : errorHtmlDesktop;
+            if (mobileMasculinas) mobileMasculinas.innerHTML = (unauth && permErr) ? loginHtmlMobile : errorHtmlMobile;
+            if (mobileFemeninas) mobileFemeninas.innerHTML = (unauth && permErr) ? loginHtmlMobile : errorHtmlMobile;
         }
     }
 
@@ -709,12 +714,15 @@
             sprayTypesLoading = false;
             sprayTypesLoaded = true;
         } catch (error) {
-            console.error('Error al cargar tipos de fragancia para sprays:', error);
             sprayTypesLoading = false;
+            const unauth = (typeof auth !== 'undefined') ? (auth.currentUser === null) : true;
+            const permErr = error && (error.code === 'permission-denied' || (String(error).toLowerCase().includes('insufficient permissions')));
             const masculinasContainer = document.getElementById('sprays-masculinas');
             const femeninasContainer = document.getElementById('sprays-femeninas');
-            if (masculinasContainer) masculinasContainer.innerHTML = '<div class="text-red-400 text-sm">Error al cargar</div>';
-            if (femeninasContainer) femeninasContainer.innerHTML = '<div class="text-red-400 text-sm">Error al cargar</div>';
+            const loginHtmlDesktop = '<div class="text-gray-300 text-sm"><a href="/login" class="underline">Inicia sesión para ver tipos</a></div>';
+            const errorHtmlDesktop = '<div class="text-red-400 text-sm">Error al cargar</div>';
+            if (masculinasContainer) masculinasContainer.innerHTML = (unauth && permErr) ? loginHtmlDesktop : errorHtmlDesktop;
+            if (femeninasContainer) femeninasContainer.innerHTML = (unauth && permErr) ? loginHtmlDesktop : errorHtmlDesktop;
         }
     }
 
@@ -817,12 +825,15 @@
             decantTypesLoading = false;
             decantTypesLoaded = true;
         } catch (error) {
-            console.error('Error al cargar tipos de fragancia para decants:', error);
             decantTypesLoading = false;
+            const unauth = (typeof auth !== 'undefined') ? (auth.currentUser === null) : true;
+            const permErr = error && (error.code === 'permission-denied' || (String(error).toLowerCase().includes('insufficient permissions')));
             const masculinasContainer = document.getElementById('decants-masculinas');
             const femeninasContainer = document.getElementById('decants-femeninas');
-            if (masculinasContainer) masculinasContainer.innerHTML = '<div class="text-red-400 text-sm">Error al cargar</div>';
-            if (femeninasContainer) femeninasContainer.innerHTML = '<div class="text-red-400 text-sm">Error al cargar</div>';
+            const loginHtmlDesktop = '<div class="text-gray-300 text-sm"><a href="/login" class="underline">Inicia sesión para ver tipos</a></div>';
+            const errorHtmlDesktop = '<div class="text-red-400 text-sm">Error al cargar</div>';
+            if (masculinasContainer) masculinasContainer.innerHTML = (unauth && permErr) ? loginHtmlDesktop : errorHtmlDesktop;
+            if (femeninasContainer) femeninasContainer.innerHTML = (unauth && permErr) ? loginHtmlDesktop : errorHtmlDesktop;
         }
     }
 
@@ -884,11 +895,14 @@
             brandsLoading = false;
             brandsLoaded = true;
         } catch (error) {
-            console.error('Error al cargar marcas:', error);
             brandsLoading = false;
             const brandsList = document.getElementById('brands-list');
+            const unauth = (typeof auth !== 'undefined') ? (auth.currentUser === null) : true;
+            const permErr = error && (error.code === 'permission-denied' || (String(error).toLowerCase().includes('insufficient permissions')));
             if (brandsList) {
-                brandsList.innerHTML = '<div class="text-red-400 text-sm">Error al cargar</div>';
+                brandsList.innerHTML = (unauth && permErr)
+                    ? '<div class="text-gray-300 text-sm"><a href="/login" class="underline">Inicia sesión para ver marcas</a></div>'
+                    : '<div class="text-red-400 text-sm">Error al cargar</div>';
             }
         }
     }

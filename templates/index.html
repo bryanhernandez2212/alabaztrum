@@ -198,9 +198,13 @@
         // Cargar productos populares y recomendados
         async function loadHomeProducts() {
             try {
+                let retries = 0;
+                while (typeof db === 'undefined' && retries < 10) {
+                    await new Promise(r => setTimeout(r, 300));
+                    retries++;
+                }
                 if (typeof db === 'undefined') {
-                    setTimeout(loadHomeProducts, 500);
-                    return;
+                    throw new Error('Firebase no disponible');
                 }
 
                 // Cargar todos los productos (solo fragancias, no decants)
@@ -232,17 +236,30 @@
                 loadSiteReviews();
                 
             } catch (error) {
-                console.error('Error cargando productos:', error);
-                document.getElementById('popular-products').innerHTML = `
-                    <div class="col-span-full text-center py-12">
-                        <p class="text-gray-600">Error al cargar productos. Por favor, intenta más tarde.</p>
-                    </div>
-                `;
-                document.getElementById('recommended-products').innerHTML = `
-                    <div class="col-span-full text-center py-12">
-                        <p class="text-gray-600">Error al cargar productos. Por favor, intenta más tarde.</p>
-                    </div>
-                `;
+                const unauth = (typeof auth !== 'undefined') ? !isAuthenticated() : true;
+                const permErr = error && (error.code === 'permission-denied' || (String(error).toLowerCase().includes('insufficient permissions')));
+                if (unauth && permErr) {
+                    const loginHtml = `
+                        <div class="col-span-full text-center py-12">
+                            <p class="text-gray-600 mb-4">Necesitas iniciar sesión para ver productos.</p>
+                            <a href="/login" class="inline-block px-4 py-2 bg-gray-900 text-white rounded-md">Iniciar sesión</a>
+                        </div>
+                    `;
+                    const popular = document.getElementById('popular-products');
+                    const recommended = document.getElementById('recommended-products');
+                    if (popular) popular.innerHTML = loginHtml;
+                    if (recommended) recommended.innerHTML = loginHtml;
+                } else {
+                    const errorHtml = `
+                        <div class="col-span-full text-center py-12">
+                            <p class="text-gray-600">Error al cargar productos. Por favor, intenta más tarde.</p>
+                        </div>
+                    `;
+                    const popular = document.getElementById('popular-products');
+                    const recommended = document.getElementById('recommended-products');
+                    if (popular) popular.innerHTML = errorHtml;
+                    if (recommended) recommended.innerHTML = errorHtml;
+                }
             }
         }
 
@@ -472,15 +489,20 @@
                 }
 
                 const userId = auth.currentUser.uid;
-                const favoritesSnapshot = await db.collection('favorites')
-                    .where('userId', '==', userId)
-                    .where('productId', 'in', productIds)
-                    .get();
-
                 const favoriteProductIds = new Set();
-                favoritesSnapshot.forEach((doc) => {
-                    favoriteProductIds.add(doc.data().productId);
-                });
+                
+                // Firestore 'in' acepta máximo 10 valores; dividir en chunks
+                const chunkSize = 10;
+                for (let i = 0; i < productIds.length; i += chunkSize) {
+                    const chunk = productIds.slice(i, i + chunkSize);
+                    const snapshot = await db.collection('favorites')
+                        .where('userId', '==', userId)
+                        .where('productId', 'in', chunk)
+                        .get();
+                    snapshot.forEach((doc) => {
+                        favoriteProductIds.add(doc.data().productId);
+                    });
+                }
 
                 // Actualizar botones de favoritos
                 productIds.forEach((productId) => {
@@ -558,18 +580,20 @@
         }
 
         // Cargar productos cuando Firebase esté listo
-        if (typeof db !== 'undefined') {
-            loadHomeProducts();
-        } else {
-            document.addEventListener('DOMContentLoaded', function() {
-                setTimeout(() => {
-                    if (typeof db !== 'undefined') {
-                        loadHomeProducts();
-                    }
-                }, 1000);
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                if (typeof db !== 'undefined') {
+                    loadHomeProducts();
+                }
+            }, 500);
+        });
+        if (typeof auth !== 'undefined') {
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    loadHomeProducts();
+                }
             });
         }
     </script>
 </body>
 </html>
-

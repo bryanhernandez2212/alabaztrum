@@ -241,6 +241,7 @@
 
                 const commentsSnapshot = await db.collection('comments')
                     .where('productId', '==', productId)
+                    .where('approved', '==', true)
                     .get();
                 
                 let totalRating = 0;
@@ -715,6 +716,7 @@
                     // Intentar con orderBy primero
                     commentsSnapshot = await db.collection('comments')
                         .where('productId', '==', productId)
+                        .where('approved', '==', true)
                         .orderBy('createdAt', 'desc')
                         .get();
                 } catch (orderByError) {
@@ -722,6 +724,7 @@
                     console.warn('Error con orderBy, ordenando en cliente:', orderByError);
                     const allComments = await db.collection('comments')
                         .where('productId', '==', productId)
+                        .where('approved', '==', true)
                         .get();
                     
                     // Ordenar por fecha en JavaScript
@@ -1034,4 +1037,3 @@
     {% include 'partials/footer.html' %}
 </body>
 </html>
-

@@ -30,15 +30,27 @@
             
             // Extraer solo el contenido del main (no el navbar)
             const newMain = doc.querySelector('main');
+            const newBody = doc.querySelector('body');
             const newScripts = doc.querySelectorAll('script[src]');
             
             if (main && newMain) {
                 // Reemplazar el contenido
+                // Actualizar clases del main para evitar estilos de la home
+                const newMainClass = newMain.getAttribute('class') || '';
+                main.setAttribute('class', newMainClass);
                 main.innerHTML = newMain.innerHTML;
                 
                 // Actualizar el título
                 if (doc.title) {
                     document.title = doc.title;
+                }
+                
+                // Actualizar clases del body (p.ej. quitar 'home-page' al entrar a producto)
+                if (newBody) {
+                    document.body.className = newBody.className || '';
+                } else {
+                    // Fallback: si no hay body en el doc, al menos quitar la clase de home
+                    document.body.classList.remove('home-page');
                 }
                 
                 // Actualizar la URL sin recargar
@@ -137,4 +149,3 @@
     
     console.log('Navbar persistente inicializado');
 })();
-
