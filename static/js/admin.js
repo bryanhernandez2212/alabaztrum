@@ -24,7 +24,7 @@ auth.onAuthStateChanged(async (user) => {
 async function loadDashboardStats() {
     try {
         const currentUser = getCurrentUser();
-        
+
         // Cargar nombre del administrador
         if (currentUser) {
             const userDoc = await db.collection('users').doc(currentUser.uid).get();
@@ -36,7 +36,7 @@ async function loadDashboardStats() {
                 document.getElementById('admin-name').textContent = currentUser.displayName || currentUser.email;
             }
         }
-        
+
         // Cargar total de productos
         try {
             const productsSnapshot = await db.collection('products').get();
@@ -45,7 +45,7 @@ async function loadDashboardStats() {
             console.warn('No se pudo cargar productos:', error);
             document.getElementById('total-productos').textContent = '0';
         }
-        
+
         // Cargar total de pedidos
         try {
             const ordersSnapshot = await db.collection('orders').get();
@@ -54,7 +54,7 @@ async function loadDashboardStats() {
             console.warn('No se pudo cargar pedidos:', error);
             document.getElementById('total-pedidos').textContent = '0';
         }
-        
+
         // Cargar mensajes pendientes
         try {
             const messagesSnapshot = await db.collection('messages')
@@ -78,6 +78,11 @@ async function loadDashboardStats() {
 
 // Función para cargar datos del panel de administración (usuarios)
 async function loadAdminData() {
+    const usersTableBody = document.getElementById('users-table-body');
+    if (!usersTableBody) {
+        return;
+    }
+
     try {
         const usersSnapshot = await db.collection('users').get();
         const users = [];
@@ -113,7 +118,7 @@ async function loadAdminData() {
 // Función para actualizar la tabla de usuarios
 function updateUsersTable(users) {
     const tbody = document.getElementById('users-table-body');
-    
+
     if (users.length === 0) {
         tbody.innerHTML = `
             <tr>
@@ -126,10 +131,10 @@ function updateUsersTable(users) {
     }
 
     tbody.innerHTML = users.map(user => {
-        const createdAt = user.createdAt 
+        const createdAt = user.createdAt
             ? user.createdAt.toDate().toLocaleDateString('es-ES')
             : 'No disponible';
-        
+
         const roleBadge = user.role === 'administrador'
             ? '<span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold">Administrador</span>'
             : '<span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Cliente</span>';
@@ -156,14 +161,14 @@ function updateUsersTable(users) {
                     ${createdAt}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    ${user.role !== 'administrador' 
-                        ? `<button onclick="changeUserRole('${user.id}', 'administrador')" class="text-blue-600 hover:text-blue-900 mr-3">
+                    ${user.role !== 'administrador'
+                ? `<button onclick="changeUserRole('${user.id}', 'administrador')" class="text-blue-600 hover:text-blue-900 mr-3">
                             <i class="fas fa-user-shield mr-1"></i>Hacer Admin
                            </button>`
-                        : `<button onclick="changeUserRole('${user.id}', 'cliente')" class="text-orange-600 hover:text-orange-900">
+                : `<button onclick="changeUserRole('${user.id}', 'cliente')" class="text-orange-600 hover:text-orange-900">
                             <i class="fas fa-user mr-1"></i>Quitar Admin
                            </button>`
-                    }
+            }
                 </td>
             </tr>
         `;
@@ -180,7 +185,7 @@ async function changeUserRole(userId, newRole) {
         await db.collection('users').doc(userId).update({
             role: newRole
         });
-        
+
         showMessage(`Rol actualizado a ${newRole} exitosamente`, 'success');
         loadAdminData(); // Recargar datos
     } catch (error) {
@@ -193,11 +198,10 @@ async function changeUserRole(userId, newRole) {
 function showMessage(message, type) {
     const messageDiv = document.getElementById('message');
     messageDiv.textContent = message;
-    messageDiv.className = `mb-4 p-3 rounded-lg text-sm ${
-        type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-    }`;
+    messageDiv.className = `mb-4 p-3 rounded-lg text-sm ${type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+        }`;
     messageDiv.classList.remove('hidden');
-    
+
     setTimeout(() => {
         messageDiv.classList.add('hidden');
     }, 3000);
@@ -208,14 +212,14 @@ async function loadBrands() {
     try {
         const brandsSnapshot = await db.collection('brands').orderBy('name').get();
         const brandsList = document.getElementById('brandsList');
-        
+
         if (!brandsList) return;
-        
+
         if (brandsSnapshot.empty) {
             brandsList.innerHTML = '<p class="text-gray-500 text-center py-4">No hay marcas registradas</p>';
             return;
         }
-        
+
         brandsList.innerHTML = '';
         brandsSnapshot.forEach((doc) => {
             const brand = doc.data();
@@ -240,14 +244,14 @@ async function loadFragranceTypes() {
     try {
         const typesSnapshot = await db.collection('fragranceTypes').orderBy('name').get();
         const typesList = document.getElementById('fragranceTypesList');
-        
+
         if (!typesList) return;
-        
+
         if (typesSnapshot.empty) {
             typesList.innerHTML = '<p class="text-gray-500 text-center py-4">No hay tipos de fragancia registrados</p>';
             return;
         }
-        
+
         typesList.innerHTML = '';
         typesSnapshot.forEach((doc) => {
             const type = doc.data();

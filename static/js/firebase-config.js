@@ -5,7 +5,7 @@ const firebaseConfig = {
     apiKey: "AIzaSyDRDVUk8uwmI3gplHFNbr_jlTyfbE8vMJ8",
     authDomain: "alabaztrum.firebaseapp.com",
     projectId: "alabaztrum",
-    storageBucket: "alabaztrum.firebasestorage.app",
+    storageBucket: "alabaztrum.appspot.com",
     messagingSenderId: "98360608916",
     appId: "1:98360608916:web:2de09bd9f7367733660c81"
   };
@@ -28,6 +28,9 @@ try {
             experimentalForceLongPolling: true,
             useFetchStreams: false
         });
+    }
+    if (firebase.firestore && typeof firebase.firestore.setLogLevel === 'function') {
+        firebase.firestore.setLogLevel('silent');
     }
     // Storage es opcional - solo se inicializa si el SDK está disponible
     if (typeof firebase.storage === 'function') {

@@ -1,0 +1,77 @@
+// Reglas Firestore
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Catálogo público
+    match /products/{doc} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /brands/{doc} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /fragranceTypes/{doc} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    function isAdmin() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'administrador';
+    }
+
+    // Reseñas del sitio (solo aprobadas son públicas)
+    // El autor puede leer sus propias reseñas (para ver estado pendiente)
+    // Los administradores pueden leer y escribir todo
+    match /siteReviews/{doc} {
+      allow read: if resource.data.approved == true 
+                  || (request.auth != null && resource.data.userId == request.auth.uid)
+                  || isAdmin();
+      allow write: if request.auth != null;
+    }
+
+    // Comentarios de productos:
+    // - Lectura pública solo si approved == true
+    // - El autor puede leer su propio comentario aunque no esté aprobado
+    match /comments/{doc} {
+      allow read: if resource.data.approved == true
+                  || (request.auth != null && resource.data.userId == request.auth.uid);
+      allow write: if request.auth != null;
+    }
+
+    // Datos privados por usuario
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+    match /carts/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+    match /orders/{orderId} {
+      allow read, write: if request.auth != null &&
+                         (request.resource.data.userId == request.auth.uid
+                          || resource.data.userId == request.auth.uid);
+    }
+    
+    // Favoritos: privados por usuario (Bloque corregido y consolidado)
+    match /favorites/{doc} {
+      // Leer solo los documentos del propio usuario
+      allow read: if request.auth != null
+                  && resource.data.userId == request.auth.uid;
+
+      // Crear: el cuerpo que llega debe pertenecer al usuario
+      allow create: if request.auth != null
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.productId is string;
+
+      // Actualizar: debe seguir perteneciendo al usuario
+      allow update: if request.auth != null
+                    && resource.data.userId == request.auth.uid
+                    && request.resource.data.userId == request.auth.uid;
+
+      // Eliminar: solo el dueño
+      allow delete: if request.auth != null
+                    && resource.data.userId == request.auth.uid;
+    }
+  }
+}
