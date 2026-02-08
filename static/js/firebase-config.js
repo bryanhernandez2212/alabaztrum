@@ -5,10 +5,10 @@ const firebaseConfig = {
     apiKey: "AIzaSyDRDVUk8uwmI3gplHFNbr_jlTyfbE8vMJ8",
     authDomain: "alabaztrum.firebaseapp.com",
     projectId: "alabaztrum",
-    storageBucket: "alabaztrum.appspot.com",
+    storageBucket: "alabaztrum.firebasestorage.app",
     messagingSenderId: "98360608916",
     appId: "1:98360608916:web:2de09bd9f7367733660c81"
-  };
+};
 
 // Inicializar Firebase
 try {
