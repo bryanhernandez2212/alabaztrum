@@ -271,10 +271,10 @@
                     <i class="fas fa-chevron-down ml-1 text-xs"></i>
                 </a>
                 <!-- Dropdown de Fragancias -->
-                <div id="fragrances-dropdown"
-                    class="fixed inset-x-0 w-screen bg-transparent z-50 hidden">
+                <div id="fragrances-dropdown" class="fixed inset-x-0 w-screen bg-transparent z-50 hidden">
                     <div class="w-full bg-black border border-gray-800 rounded-b-lg shadow-xl py-6 relative">
-                        <button id="fragrances-dropdown-close" class="absolute top-2 right-2 text-white bg-gray-800 hover:bg-gray-700 rounded px-3 py-1 text-xs">Cerrar</button>
+                        <button id="fragrances-dropdown-close"
+                            class="absolute top-2 right-2 text-white bg-gray-800 hover:bg-gray-700 rounded px-3 py-1 text-xs">Cerrar</button>
                         <div class="grid grid-cols-2 gap-0">
                             <!-- Columna Masculinas -->
                             <div class="px-6">
@@ -285,7 +285,9 @@
                                     <div class="text-gray-400 text-sm">Cargando...</div>
                                 </div>
                                 <div class="mt-4">
-                                    <a href="/fragancias?genero=hombre" class="block text-gray-300 hover:text-white transition text-sm py-1">Ver solo masculinas</a>
+                                    <a href="/fragancias?genero=hombre"
+                                        class="block text-gray-300 hover:text-white transition text-sm py-1">Ver solo
+                                        masculinas</a>
                                 </div>
                             </div>
                             <!-- Columna Femeninas -->
@@ -297,7 +299,9 @@
                                     <div class="text-gray-400 text-sm">Cargando...</div>
                                 </div>
                                 <div class="mt-4">
-                                    <a href="/fragancias?genero=mujer" class="block text-gray-300 hover:text-white transition text-sm py-1">Ver solo femeninas</a>
+                                    <a href="/fragancias?genero=mujer"
+                                        class="block text-gray-300 hover:text-white transition text-sm py-1">Ver solo
+                                        femeninas</a>
                                 </div>
                             </div>
                         </div>
@@ -311,10 +315,10 @@
                     <i class="fas fa-chevron-down ml-1 text-xs"></i>
                 </a>
                 <!-- Dropdown de Decants -->
-                <div id="decants-dropdown"
-                    class="fixed inset-x-0 w-screen bg-transparent z-50 hidden">
+                <div id="decants-dropdown" class="fixed inset-x-0 w-screen bg-transparent z-50 hidden">
                     <div class="w-full bg-black border border-gray-800 rounded-b-lg shadow-xl py-6 relative">
-                        <button id="decants-dropdown-close" class="absolute top-2 right-2 text-white bg-gray-800 hover:bg-gray-700 rounded px-3 py-1 text-xs">Cerrar</button>
+                        <button id="decants-dropdown-close"
+                            class="absolute top-2 right-2 text-white bg-gray-800 hover:bg-gray-700 rounded px-3 py-1 text-xs">Cerrar</button>
                         <div class="grid grid-cols-2 gap-0">
                             <!-- Columna Masculinas -->
                             <div class="px-6">
@@ -325,7 +329,9 @@
                                     <div class="text-gray-400 text-sm">Cargando...</div>
                                 </div>
                                 <div class="mt-4">
-                                    <a href="/decants?genero=hombre" class="block text-gray-300 hover:text-white transition text-sm py-1">Ver solo masculinas</a>
+                                    <a href="/decants?genero=hombre"
+                                        class="block text-gray-300 hover:text-white transition text-sm py-1">Ver solo
+                                        masculinas</a>
                                 </div>
                             </div>
                             <!-- Columna Femeninas -->
@@ -337,7 +343,9 @@
                                     <div class="text-gray-400 text-sm">Cargando...</div>
                                 </div>
                                 <div class="mt-4">
-                                    <a href="/decants?genero=mujer" class="block text-gray-300 hover:text-white transition text-sm py-1">Ver solo femeninas</a>
+                                    <a href="/decants?genero=mujer"
+                                        class="block text-gray-300 hover:text-white transition text-sm py-1">Ver solo
+                                        femeninas</a>
                                 </div>
                             </div>
                         </div>
@@ -356,12 +364,14 @@
                     <i class="fas fa-chevron-down ml-1 text-xs"></i>
                 </a>
                 <!-- Dropdown de Marcas -->
-                <div id="brands-dropdown"
-                    class="fixed inset-x-0 w-screen bg-transparent z-50 hidden">
+                <div id="brands-dropdown" class="fixed inset-x-0 w-screen bg-transparent z-50 hidden">
                     <div class="w-full bg-black border border-gray-800 rounded-b-lg shadow-xl py-6 relative">
-                        <button id="brands-dropdown-close" class="absolute top-2 right-2 text-white bg-gray-800 hover:bg-gray-700 rounded px-3 py-1 text-xs">Cerrar</button>
+                        <button id="brands-dropdown-close"
+                            class="absolute top-2 right-2 text-white bg-gray-800 hover:bg-gray-700 rounded px-3 py-1 text-xs">Cerrar</button>
                         <div class="px-6">
-                            <a href="/marcas" class="block text-gray-300 hover:text-white transition text-sm py-1 mb-2">Ver todas las marcas</a>
+                            <a href="/marcas"
+                                class="block text-gray-300 hover:text-white transition text-sm py-1 mb-2">Ver todas las
+                                marcas</a>
                             <div id="brands-list" class="space-y-2 max-h-96 overflow-y-auto">
                                 <!-- Las marcas se cargarán aquí dinámicamente -->
                                 <div class="text-gray-400 text-sm">Cargando...</div>
@@ -401,6 +411,7 @@
 
     </div>
 </nav>
+
 
 <script>
     // Función para abrir menú móvil
@@ -942,7 +953,7 @@
             dropdown.style.position = 'fixed';
             dropdown.style.left = '0';
             dropdown.style.right = '0';
-            dropdown.style.top = (rect.bottom + window.scrollY) + 'px';
+            dropdown.style.top = rect.bottom + 'px';
             dropdown.style.width = '100vw';
             dropdown.style.zIndex = '50';
         }
@@ -1120,10 +1131,15 @@
     window.performSearch = performSearch;
 
     // Inicializar dropdowns cuando el DOM esté listo
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initDropdowns);
+    if (window.dropdownsInitialized) {
+        console.log('Dropdowns ya inicializados, omitiendo...');
     } else {
-        initDropdowns();
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initDropdowns);
+        } else {
+            initDropdowns();
+        }
+        window.dropdownsInitialized = true;
     }
 
     // Cargar tipos cuando el DOM esté listo y Firebase esté inicializado
