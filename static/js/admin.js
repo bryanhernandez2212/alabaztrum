@@ -24,55 +24,66 @@ auth.onAuthStateChanged(async (user) => {
 async function loadDashboardStats() {
     try {
         const currentUser = getCurrentUser();
+        if (!currentUser) return;
 
         // Cargar nombre del administrador
-        if (currentUser) {
+        const adminNameEl = document.getElementById('admin-name');
+        if (adminNameEl) {
             const userDoc = await db.collection('users').doc(currentUser.uid).get();
             if (userDoc.exists) {
                 const userData = userDoc.data();
                 const adminName = userData.fullName || currentUser.displayName || currentUser.email;
-                document.getElementById('admin-name').textContent = adminName;
+                adminNameEl.textContent = adminName;
             } else {
-                document.getElementById('admin-name').textContent = currentUser.displayName || currentUser.email;
+                adminNameEl.textContent = currentUser.displayName || currentUser.email;
             }
         }
 
-        // Cargar total de productos
-        try {
-            const productsSnapshot = await db.collection('products').get();
-            document.getElementById('total-productos').textContent = productsSnapshot.size;
-        } catch (error) {
-            console.warn('No se pudo cargar productos:', error);
-            document.getElementById('total-productos').textContent = '0';
-        }
-
-        // Cargar total de pedidos
-        try {
-            const ordersSnapshot = await db.collection('orders').get();
-            document.getElementById('total-pedidos').textContent = ordersSnapshot.size;
-        } catch (error) {
-            console.warn('No se pudo cargar pedidos:', error);
-            document.getElementById('total-pedidos').textContent = '0';
-        }
-
-        // Cargar mensajes pendientes
-        try {
-            const messagesSnapshot = await db.collection('messages')
-                .where('status', '==', 'pendiente')
-                .get();
-            document.getElementById('mensajes-pendientes').textContent = messagesSnapshot.size;
-        } catch (error) {
-            // Si no existe el campo status, contar todos los mensajes
+        // Cargar total de productos (solo si el elemento existe)
+        const totalProdsEl = document.getElementById('total-productos');
+        if (totalProdsEl) {
             try {
-                const allMessagesSnapshot = await db.collection('messages').get();
-                document.getElementById('mensajes-pendientes').textContent = allMessagesSnapshot.size;
-            } catch (error2) {
-                console.warn('No se pudo cargar mensajes:', error2);
-                document.getElementById('mensajes-pendientes').textContent = '0';
+                const productsSnapshot = await db.collection('products').get();
+                totalProdsEl.textContent = productsSnapshot.size;
+            } catch (error) {
+                console.warn('No se pudo cargar productos:', error);
+                totalProdsEl.textContent = '0';
+            }
+        }
+
+        // Cargar total de pedidos (solo si el elemento existe)
+        const totalOrdersEl = document.getElementById('total-pedidos');
+        if (totalOrdersEl) {
+            try {
+                const ordersSnapshot = await db.collection('orders').get();
+                totalOrdersEl.textContent = ordersSnapshot.size;
+            } catch (error) {
+                console.warn('No se pudo cargar pedidos:', error);
+                totalOrdersEl.textContent = '0';
+            }
+        }
+
+        // Cargar mensajes pendientes (solo si el elemento existe)
+        const pendingMsgsEl = document.getElementById('mensajes-pendientes');
+        if (pendingMsgsEl) {
+            try {
+                const messagesSnapshot = await db.collection('messages')
+                    .where('status', '==', 'pendiente')
+                    .get();
+                pendingMsgsEl.textContent = messagesSnapshot.size;
+            } catch (error) {
+                // Si no existe el campo status, contar todos los mensajes
+                try {
+                    const allMessagesSnapshot = await db.collection('messages').get();
+                    pendingMsgsEl.textContent = allMessagesSnapshot.size;
+                } catch (error2) {
+                    console.warn('No se pudo cargar mensajes:', error2);
+                    pendingMsgsEl.textContent = '0';
+                }
             }
         }
     } catch (error) {
-        console.error('Error al cargar estadísticas:', error);
+        console.error('Error al cargar estadísticas dashboard:', error);
     }
 }
 
@@ -271,3 +282,293 @@ async function loadFragranceTypes() {
     }
 }
 
+// Función para cargar pedidos en el panel admin
+async function loadAdminOrders() {
+    const ordersList = document.getElementById('ordersList');
+    if (!ordersList) return;
+
+    try {
+        console.log("Intentando cargar pedidos para usuario:", auth.currentUser.uid);
+        const ordersSnapshot = await db.collection('orders').get();
+        console.log("Pedidos cargados exitosamente, total:", ordersSnapshot.size);
+
+        if (ordersSnapshot.empty) {
+            ordersList.innerHTML = `
+                <tr>
+                    <td colspan="7" class="px-6 py-20 text-center">
+                        <div class="flex flex-col items-center">
+                            <div class="bg-gray-100 rounded-full p-6 mb-4">
+                                <i class="fas fa-shopping-bag text-gray-400 text-4xl"></i>
+                            </div>
+                            <p class="text-gray-600 mb-1 text-base font-medium">No hay pedidos registrados</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            document.getElementById('ordersCount').textContent = 'Mostrando 0 pedido(s)';
+            return;
+        }
+
+        ordersList.innerHTML = '';
+        let orderCount = 0;
+
+        ordersSnapshot.forEach((doc) => {
+            const order = doc.data();
+            orderCount++;
+
+            // Formatear fecha
+            let formattedDate = 'N/A';
+            if (order.createdAt) {
+                const date = order.createdAt.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
+                formattedDate = date.toLocaleDateString('es-ES', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+
+            // Badge de estado
+            const getStatusBadge = (status) => {
+                const s = (status || 'pendiente').toLowerCase();
+                const classes = {
+                    'pendiente': 'bg-yellow-100 text-yellow-800',
+                    'enviado': 'bg-blue-100 text-blue-800',
+                    'entregado': 'bg-green-100 text-green-800',
+                    'cancelado': 'bg-red-100 text-red-800'
+                };
+                return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${classes[s] || classes['pendiente']}">
+                    ${s.charAt(0).toUpperCase() + s.slice(1)}
+                </span>`;
+            };
+
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-gray-50 transition-colors duration-150';
+            row.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="text-xs font-mono text-gray-500">#${doc.id.substring(0, 8)}...</span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-gray-900">${order.shippingAddress?.fullName || 'Desconocido'}</div>
+                    <div class="text-xs text-gray-500">${order.shippingAddress?.phone || ''}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    ${formattedDate}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                    $${order.total ? order.total.toFixed(2) : '0.00'}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-600">
+                    ${order.paymentMethod === 'card' ? '<i class="far fa-credit-card mr-1"></i> Tarjeta' : order.paymentMethod}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <select onchange="updateOrderStatus('${doc.id}', this.value)" 
+                        class="text-xs border border-gray-300 rounded-md px-2 py-1 focus:ring-gray-900 focus:border-gray-900">
+                        <option value="pendiente" ${order.status === 'pendiente' ? 'selected' : ''}>Pendiente</option>
+                        <option value="enviado" ${order.status === 'enviado' ? 'selected' : ''}>Enviado</option>
+                        <option value="entregado" ${order.status === 'entregado' ? 'selected' : ''}>Entregado</option>
+                        <option value="cancelado" ${order.status === 'cancelado' ? 'selected' : ''}>Cancelado</option>
+                    </select>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                    <button onclick="viewOrderDetails('${doc.id}')" class="text-gray-900 hover:text-black font-medium">
+                        Ver Detalles
+                    </button>
+                </td>
+            `;
+            ordersList.appendChild(row);
+        });
+
+        document.getElementById('ordersCount').textContent = `Mostrando ${orderCount} pedido(s)`;
+
+    } catch (error) {
+        console.error('Error al cargar pedidos:', error);
+        ordersList.innerHTML = `
+            <tr>
+                <td colspan="7" class="px-6 py-16 text-center text-red-600">
+                    Error al cargar los pedidos. Por favor, intenta de nuevo.
+                </td>
+            </tr>
+        `;
+    }
+}
+
+// Función para actualizar estado de pedido
+async function updateOrderStatus(orderId, newStatus) {
+    try {
+        await db.collection('orders').doc(orderId).update({
+            status: newStatus,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        showMessage(`Estado del pedido #${orderId.substring(0, 8)} actualizado a ${newStatus}`, 'success');
+    } catch (error) {
+        console.error('Error al actualizar estado:', error);
+        showMessage('Error al actualizar el estado del pedido', 'error');
+    }
+}
+
+// Estado global para el pedido seleccionado en el modal
+let selectedOrderData = null;
+
+// Función para ver detalles del pedido
+async function viewOrderDetails(orderId) {
+    try {
+        const doc = await db.collection('orders').doc(orderId).get();
+        if (!doc.exists) {
+            showMessage('El pedido no existe.', 'error');
+            return;
+        }
+
+        const data = doc.data();
+        selectedOrderData = { id: doc.id, ...data };
+
+        // Poblar Modal
+        document.getElementById('modalOrderTitle').textContent = `Detalles del Pedido #${doc.id.substring(0, 8)}...`;
+        document.getElementById('detailCustomerName').textContent = data.shippingAddress?.fullName || 'Desconocido';
+        document.getElementById('detailCustomerEmail').textContent = data.userEmail || 'N/A';
+        document.getElementById('detailCustomerPhone').textContent = data.shippingAddress?.phone || 'Sin teléfono';
+
+        document.getElementById('detailAddressStreet').textContent = data.shippingAddress?.street || '';
+        document.getElementById('detailAddressColonia').textContent = data.shippingAddress?.colonia || '';
+        document.getElementById('detailAddressCityState').textContent = `${data.shippingAddress?.city || ''}, ${data.shippingAddress?.state || ''}`;
+        document.getElementById('detailAddressZip').textContent = data.shippingAddress?.postalCode || '';
+
+        // Poblar Items
+        const itemsList = document.getElementById('detailItemsList');
+        itemsList.innerHTML = '';
+        let subtotal = 0;
+
+        if (data.items && data.items.length > 0) {
+            data.items.forEach(item => {
+                const row = document.createElement('tr');
+                const rowTotal = (item.price || 0) * (item.quantity || 1);
+                subtotal += rowTotal;
+
+                row.innerHTML = `
+                    <td class="px-3 py-2">
+                        <div class="font-medium text-gray-900">${item.name || 'Producto'}</div>
+                    </td>
+                    <td class="px-3 py-2 text-center text-gray-600">${item.quantity || 1}</td>
+                    <td class="px-3 py-2 text-right text-gray-900">$${(item.price || 0).toFixed(2)}</td>
+                `;
+                itemsList.appendChild(row);
+            });
+        }
+
+        document.getElementById('detailSubtotal').textContent = `$${subtotal.toFixed(2)}`;
+        document.getElementById('detailTotal').textContent = `$${(data.total || subtotal).toFixed(2)}`;
+
+        // Mostrar Modal
+        document.getElementById('orderDetailModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // Evitar scroll de fondo
+
+    } catch (error) {
+        console.error('Error al obtener detalles del pedido:', error);
+        showMessage('Error al cargar detalles del pedido', 'error');
+    }
+}
+
+// Función para cerrar el modal
+function closeOrderDetailModal() {
+    document.getElementById('orderDetailModal').classList.add('hidden');
+    document.body.style.overflow = 'auto';
+    selectedOrderData = null;
+}
+
+// Función para generar UI de la guía de envío y disparar impresión
+function generateShippingGuideUI() {
+    if (!selectedOrderData) return;
+
+    const data = selectedOrderData;
+    const address = data.shippingAddress || {};
+
+    // Poblar sección de impresión
+    document.getElementById('printOrderId').textContent = `#${selectedOrderData.id.substring(0, 8)}`;
+    document.getElementById('printCustomerName').textContent = address.fullName || 'Desconocido';
+    document.getElementById('printAddress').textContent = address.street || '';
+    document.getElementById('printColonia').textContent = address.colonia || '';
+    document.getElementById('printCityStateZip').textContent = `${address.city || ''}, ${address.state || ''} CP: ${address.postalCode || ''}`;
+    document.getElementById('printPhone').textContent = address.phone || '';
+    document.getElementById('printBarcodeId').textContent = selectedOrderData.id;
+
+    const container = document.getElementById('shipping-guide-print');
+    container.classList.remove('hidden');
+
+    // Pequeño timeout para asegurar que el DOM se actualice antes de imprimir
+    setTimeout(() => {
+        window.print();
+        container.classList.add('hidden');
+    }, 500);
+}
+
+// Función para descargar la guía de envío como PDF profesional
+async function downloadShippingGuidePDF() {
+    if (!selectedOrderData) return;
+
+    const btn = event.currentTarget;
+    const originalContent = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Generando...';
+    btn.disabled = true;
+
+    try {
+        const data = selectedOrderData;
+        const address = data.shippingAddress || {};
+
+        // Poblar el contenedor de la guía (asegurarse de que sea visible para la captura pero no para el usuario)
+        document.getElementById('printOrderId').textContent = `#${selectedOrderData.id}`;
+        document.getElementById('printCustomerName').textContent = address.fullName || 'Desconocido';
+        document.getElementById('printAddress').textContent = address.street || '';
+        document.getElementById('printColonia').textContent = address.colonia || '';
+        document.getElementById('printCityStateZip').textContent = `${address.city || ''}, ${address.state || ''} CP: ${address.postalCode || ''}`;
+        document.getElementById('printPhone').textContent = address.phone || '';
+        document.getElementById('printBarcodeId').textContent = selectedOrderData.id;
+
+        const container = document.getElementById('shipping-guide-print');
+        container.classList.remove('hidden');
+
+        // Usar html2canvas para capturar el diseño (Ajustado para Luxury Design)
+        const canvas = await html2canvas(container, {
+            scale: 3, // Mayor escala para nitidez extrema
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#ffffff',
+            windowWidth: 794, // Ancho estándar A4 en px a 96dpi
+            windowHeight: 1123
+        });
+
+        container.classList.add('hidden');
+
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4'
+        });
+
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+        pdf.addImage(imgData, 'PNG', 0, 10, pdfWidth, pdfHeight);
+        pdf.save(`guia_envio_${selectedOrderData.id.substring(0, 8)}.pdf`);
+
+        showMessage('Guía descargada exitosamente', 'success');
+    } catch (error) {
+        console.error('Error al generar PDF:', error);
+        showMessage('Error al generar el PDF de la guía', 'error');
+    } finally {
+        btn.innerHTML = originalContent;
+        btn.disabled = false;
+    }
+}
+
+// Exportar funciones globalmente
+window.loadAdminOrders = loadAdminOrders;
+window.updateOrderStatus = updateOrderStatus;
+window.viewOrderDetails = viewOrderDetails;
+window.closeOrderDetailModal = closeOrderDetailModal;
+window.generateShippingGuideUI = generateShippingGuideUI;
+window.downloadShippingGuidePDF = downloadShippingGuidePDF;

@@ -26,19 +26,19 @@ function updateNavbarFromAuthManager(state) {
     if (document.body.classList.contains('admin-body')) {
         return;
     }
-    
+
     const notLoggedDiv = document.getElementById('user-not-logged');
     const notLoggedMenu = document.getElementById('user-not-logged-menu');
     const loggedDiv = document.getElementById('user-logged');
     const loggedMenu = document.getElementById('user-logged-menu');
     const userNameSpan = document.getElementById('user-name');
-    
+
     if (state.isAuthenticated && state.user) {
         console.log('Navbar: Mostrando elementos de autenticado');
         console.log('Navbar: notLoggedDiv encontrado:', !!notLoggedDiv);
         console.log('Navbar: loggedDiv encontrado:', !!loggedDiv);
         console.log('Navbar: userNameSpan encontrado:', !!userNameSpan);
-        
+
         // Ocultar elementos de no autenticado
         if (notLoggedDiv) {
             notLoggedDiv.classList.add('hidden');
@@ -50,7 +50,7 @@ function updateNavbarFromAuthManager(state) {
             notLoggedMenu.classList.add('hidden');
             notLoggedMenu.style.setProperty('display', 'none', 'important');
         }
-        
+
         // Mostrar elementos de autenticado
         if (loggedDiv) {
             loggedDiv.classList.remove('hidden');
@@ -62,11 +62,11 @@ function updateNavbarFromAuthManager(state) {
             loggedMenu.classList.remove('hidden');
             loggedMenu.style.setProperty('display', 'block', 'important');
         }
-        
+
         // Actualizar nombre de usuario
         if (userNameSpan) {
             let displayName = 'Mi cuenta';
-            
+
             // Intentar obtener el nombre del estado
             if (state.userData && state.userData.fullName) {
                 displayName = state.userData.fullName;
@@ -78,46 +78,46 @@ function updateNavbarFromAuthManager(state) {
                 // Fallback: usar AuthManager si el estado no tiene el nombre
                 displayName = authManager.getDisplayName() || 'Mi cuenta';
             }
-            
-            const truncatedName = displayName.length > 15 
-                ? displayName.substring(0, 15) + '...' 
+
+            const truncatedName = displayName.length > 15
+                ? displayName.substring(0, 15) + '...'
                 : displayName;
             userNameSpan.textContent = truncatedName;
-            
+
             console.log('Navbar: Nombre actualizado a:', truncatedName);
             console.log('Navbar: userNameSpan.textContent después:', userNameSpan.textContent);
         } else {
             console.error('Navbar: userNameSpan no encontrado!');
         }
-        
+
         // Verificar que los elementos estén correctamente visibles después de un pequeño delay
         setTimeout(() => {
             if (loggedDiv) {
-                const isVisible = !loggedDiv.classList.contains('hidden') && 
-                                 loggedDiv.style.display !== 'none' && 
-                                 loggedDiv.offsetWidth > 0;
+                const isVisible = !loggedDiv.classList.contains('hidden') &&
+                    loggedDiv.style.display !== 'none' &&
+                    loggedDiv.offsetWidth > 0;
                 console.log('Navbar: Verificación final - loggedDiv visible:', isVisible);
                 console.log('Navbar: loggedDiv.classList:', loggedDiv.classList.toString());
                 console.log('Navbar: loggedDiv.style.display:', loggedDiv.style.display);
                 console.log('Navbar: loggedDiv.offsetWidth:', loggedDiv.offsetWidth);
             }
             if (notLoggedDiv) {
-                const isHidden = notLoggedDiv.classList.contains('hidden') || 
-                                notLoggedDiv.style.display === 'none' || 
-                                notLoggedDiv.offsetWidth === 0;
+                const isHidden = notLoggedDiv.classList.contains('hidden') ||
+                    notLoggedDiv.style.display === 'none' ||
+                    notLoggedDiv.offsetWidth === 0;
                 console.log('Navbar: Verificación final - notLoggedDiv oculto:', isHidden);
             }
         }, 100);
-        
+
         // Actualizar menú móvil
         const mobileUserNotLogged = document.getElementById('mobile-user-not-logged');
         const mobileUserLogged = document.getElementById('mobile-user-logged');
         if (mobileUserNotLogged) mobileUserNotLogged.classList.add('hidden');
         if (mobileUserLogged) mobileUserLogged.classList.remove('hidden');
-        
+
         // Actualizar UI según rol
         updateNavbarRoleUI(state.role);
-        
+
     } else {
         // Ocultar elementos de autenticado
         if (loggedDiv) {
@@ -129,7 +129,7 @@ function updateNavbarFromAuthManager(state) {
             loggedMenu.classList.add('hidden');
             loggedMenu.style.setProperty('display', 'none', 'important');
         }
-        
+
         // Mostrar elementos de no autenticado
         if (notLoggedDiv) {
             notLoggedDiv.classList.remove('hidden');
@@ -140,25 +140,25 @@ function updateNavbarFromAuthManager(state) {
             notLoggedMenu.classList.remove('hidden');
             notLoggedMenu.style.setProperty('display', 'block', 'important');
         }
-        
+
         // Actualizar menú móvil
         const mobileUserNotLogged = document.getElementById('mobile-user-not-logged');
         const mobileUserLogged = document.getElementById('mobile-user-logged');
         if (mobileUserNotLogged) mobileUserNotLogged.classList.remove('hidden');
         if (mobileUserLogged) mobileUserLogged.classList.add('hidden');
-        
+
         // Mostrar elementos de cliente por defecto
         const searchBar = document.getElementById('search-bar');
         const cartIcon = document.getElementById('cart-icon');
         const clientNav = document.getElementById('client-nav');
         const adminMenuHeader = document.getElementById('admin-menu-header');
-        
+
         if (searchBar) searchBar.classList.remove('hidden');
         if (cartIcon) cartIcon.classList.remove('hidden');
         if (clientNav) clientNav.classList.remove('hidden');
         if (adminMenuHeader) adminMenuHeader.classList.add('hidden');
     }
-    
+
     // Mostrar navbar
     showNavbar();
 }
@@ -171,7 +171,7 @@ function updateNavbarRoleUI(userRole) {
     const clientNav = document.getElementById('client-nav');
     const adminNav = document.getElementById('admin-nav');
     const adminMenuHeader = document.getElementById('admin-menu-header');
-    
+
     if (userRole === 'administrador') {
         // Mostrar opción de administración en el menú
         if (profileLink) {
@@ -186,14 +186,14 @@ function updateNavbarRoleUI(userRole) {
             }
             adminLink.classList.remove('hidden');
         }
-        
+
         // Ocultar buscador y carrito para administradores
         if (searchBar) searchBar.classList.add('hidden');
         if (cartIcon) cartIcon.classList.add('hidden');
-        
+
         // Mostrar menú de administración en el header
         if (adminMenuHeader) adminMenuHeader.classList.remove('hidden');
-        
+
         // Ocultar navegación de cliente
         if (clientNav) clientNav.classList.add('hidden');
     } else {
@@ -202,14 +202,14 @@ function updateNavbarRoleUI(userRole) {
         if (adminLink) {
             adminLink.classList.add('hidden');
         }
-        
+
         // Mostrar buscador y carrito para clientes
         if (searchBar) searchBar.classList.remove('hidden');
         if (cartIcon) cartIcon.classList.remove('hidden');
-        
+
         // Ocultar menú de administración en el header
         if (adminMenuHeader) adminMenuHeader.classList.add('hidden');
-        
+
         // Mostrar navegación de cliente
         if (clientNav) clientNav.classList.remove('hidden');
     }
@@ -231,16 +231,16 @@ async function updateNavbarForLoggedUser(user) {
 // Función para manejar el cierre de sesión
 async function handleLogout(event) {
     event.preventDefault();
-    
+
     if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
         const result = await logoutUser();
-        
+
         if (result.success) {
             // Limpiar AuthManager (esto notificará automáticamente a los listeners)
             if (typeof authManager !== 'undefined') {
                 authManager.clearUser();
             }
-            
+
             // Redirigir a la página principal
             window.location.href = '/';
         } else {
@@ -255,43 +255,43 @@ function initNavbarFromCache() {
     if (document.body.classList.contains('admin-body')) {
         return;
     }
-    
+
     try {
         // Cargar estado desde cache de AuthManager
         const cached = sessionStorage.getItem('authManager_cache');
         if (cached) {
             const cacheData = JSON.parse(cached);
             const maxAge = 60 * 60 * 1000; // 1 hora
-            
+
             if (Date.now() - cacheData.timestamp < maxAge && cacheData.uid) {
                 // Hay un usuario cacheado, mostrar estado de autenticado inmediatamente
                 const notLoggedDiv = document.getElementById('user-not-logged');
                 const loggedDiv = document.getElementById('user-logged');
                 const userNameSpan = document.getElementById('user-name');
-                
+
                 if (notLoggedDiv && loggedDiv) {
                     // Ocultar no autenticado
                     notLoggedDiv.classList.add('hidden');
                     notLoggedDiv.style.setProperty('display', 'none', 'important');
-                    
+
                     // Mostrar autenticado
                     loggedDiv.classList.remove('hidden');
                     loggedDiv.style.setProperty('display', 'flex', 'important');
-                    
+
                     // Actualizar nombre desde cache
                     if (userNameSpan && cacheData.userData && cacheData.userData.fullName) {
                         const displayName = cacheData.userData.fullName;
-                        const truncatedName = displayName.length > 15 
-                            ? displayName.substring(0, 15) + '...' 
+                        const truncatedName = displayName.length > 15
+                            ? displayName.substring(0, 15) + '...'
                             : displayName;
                         userNameSpan.textContent = truncatedName;
                     } else if (userNameSpan && cacheData.displayName) {
-                        const truncatedName = cacheData.displayName.length > 15 
-                            ? cacheData.displayName.substring(0, 15) + '...' 
+                        const truncatedName = cacheData.displayName.length > 15
+                            ? cacheData.displayName.substring(0, 15) + '...'
                             : cacheData.displayName;
                         userNameSpan.textContent = truncatedName;
                     }
-                    
+
                     console.log('Navbar: Inicializado desde cache - Usuario:', cacheData.email);
                 }
             }
@@ -306,7 +306,7 @@ function initNavbarWithAuthManager() {
     if (document.body.classList.contains('admin-body')) {
         return;
     }
-    
+
     // Suscribirse a cambios de estado del AuthManager
     if (typeof authManager !== 'undefined') {
         // Obtener estado inicial inmediatamente (síncrono)
@@ -316,10 +316,10 @@ function initNavbarWithAuthManager() {
             userData: authManager.getUserData(),
             isAuthenticated: authManager.isAuthenticated()
         };
-        
+
         // Actualizar navbar con estado inicial
         updateNavbarFromAuthManager(initialState);
-        
+
         // Suscribirse a cambios futuros
         authManager.subscribe((state) => {
             console.log('Navbar: Estado actualizado desde AuthManager', state);
@@ -338,7 +338,7 @@ if (!document.body.classList.contains('admin-body')) {
     if (document.readyState !== 'loading') {
         initNavbarFromCache();
     }
-    
+
     // También ejecutar cuando el DOM esté listo (por si acaso)
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {

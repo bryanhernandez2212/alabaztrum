@@ -81,6 +81,11 @@ def admin():
     breadcrumbs = get_breadcrumbs([('Administración', '/admin')])
     return render_template('admin/dashboard.html', breadcrumbs=breadcrumbs)
 
+@app.route('/admin/profile')
+def admin_profile():
+    breadcrumbs = get_breadcrumbs([('Administración', '/admin'), ('Mi Perfil', '/admin/profile')])
+    return render_template('admin/perfil_admin.html', breadcrumbs=breadcrumbs)
+
 @app.route('/admin/products')
 def admin_products():
     breadcrumbs = get_breadcrumbs([('Administración', '/admin'), ('Productos', '/admin/products')])

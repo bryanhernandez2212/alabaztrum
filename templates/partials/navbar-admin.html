@@ -1,28 +1,32 @@
 <!-- Header para Administradores -->
-<header id="admin-header" class="bg-black text-white" style="display: block !important; visibility: visible !important; opacity: 1 !important;">
+<header id="admin-header" class="bg-black text-white"
+    style="display: block !important; visibility: visible !important; opacity: 1 !important;">
     <div class="container mx-auto px-4 py-4">
         <div class="flex items-center justify-between relative">
             <!-- Menú hamburguesa (solo móvil) -->
-            <button id="mobile-menu-toggle" class="md:hidden text-white focus:outline-none" aria-label="Abrir menú de navegación">
+            <button id="mobile-menu-toggle" class="md:hidden text-white focus:outline-none"
+                aria-label="Abrir menú de navegación">
                 <i class="fas fa-bars text-2xl"></i>
             </button>
-            
+
             <!-- Logo - centrado en móvil, izquierda en desktop -->
-            <div class="flex items-center absolute left-1/2 transform -translate-x-1/2 md:relative md:left-0 md:transform-none">
+            <div
+                class="flex items-center absolute left-1/2 transform -translate-x-1/2 md:relative md:left-0 md:transform-none">
                 <div class="logo-icon mr-3">
                     <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <!-- Icono estilizado tipo botella de perfume/cruz -->
-                        <rect x="12" y="4" width="8" height="20" rx="2" fill="white"/>
-                        <rect x="14" y="24" width="4" height="4" rx="1" fill="white"/>
-                        <line x1="16" y1="4" x2="16" y2="2" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                        <line x1="16" y1="28" x2="16" y2="30" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                        <rect x="12" y="4" width="8" height="20" rx="2" fill="white" />
+                        <rect x="14" y="24" width="4" height="4" rx="1" fill="white" />
+                        <line x1="16" y1="4" x2="16" y2="2" stroke="white" stroke-width="2" stroke-linecap="round" />
+                        <line x1="16" y1="28" x2="16" y2="30" stroke="white" stroke-width="2" stroke-linecap="round" />
                     </svg>
                 </div>
                 <span class="text-2xl font-bold tracking-tight">ALABAZTRUM</span>
             </div>
-            
+
             <!-- Menú de administración centrado (solo desktop) -->
-            <div class="hidden md:flex items-center justify-center space-x-6 absolute left-1/2 transform -translate-x-1/2">
+            <div
+                class="hidden md:flex items-center justify-center space-x-6 absolute left-1/2 transform -translate-x-1/2">
                 <a href="/admin" class="hover:text-gray-300 transition text-base font-medium">
                     Home
                 </a>
@@ -51,7 +55,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Iconos derecho -->
             <div class="flex items-center space-x-6">
                 <!-- Menú de usuario -->
@@ -61,7 +65,7 @@
                         <span class="text-xs hidden md:block" id="admin-user-name">Mi cuenta</span>
                     </div>
                     <div class="dropdown-menu">
-                        <a href="{{ url_for('profile') }}" class="dropdown-item">
+                        <a href="/admin/profile" class="dropdown-item">
                             <i class="far fa-user-circle mr-2"></i>
                             Mi perfil
                         </a>
@@ -77,17 +81,21 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Menú móvil (oculto por defecto) -->
-        <div id="mobile-menu" class="hidden md:hidden mt-4 pb-4 border-t border-gray-800 pt-4 max-h-[calc(100vh-120px)] overflow-y-auto">
+        <div id="mobile-menu"
+            class="hidden md:hidden mt-4 pb-4 border-t border-gray-800 pt-4 max-h-[calc(100vh-120px)] overflow-y-auto">
             <div class="flex flex-col space-y-1">
-                <a href="/admin/products" class="hover:bg-gray-900 active:bg-gray-800 transition text-base font-medium py-4 px-4 rounded-lg">
+                <a href="/admin/products"
+                    class="hover:bg-gray-900 active:bg-gray-800 transition text-base font-medium py-4 px-4 rounded-lg">
                     Productos
                 </a>
-                <a href="/admin/orders" class="hover:bg-gray-900 active:bg-gray-800 transition text-base font-medium py-4 px-4 rounded-lg">
+                <a href="/admin/orders"
+                    class="hover:bg-gray-900 active:bg-gray-800 transition text-base font-medium py-4 px-4 rounded-lg">
                     Pedidos
                 </a>
-                <a href="/admin/messages" class="hover:bg-gray-900 active:bg-gray-800 transition text-base font-medium py-4 px-4 rounded-lg">
+                <a href="/admin/messages"
+                    class="hover:bg-gray-900 active:bg-gray-800 transition text-base font-medium py-4 px-4 rounded-lg">
                     Mensajes
                 </a>
                 <div class="pt-3 mt-2 border-t border-gray-800">
@@ -95,10 +103,12 @@
                         Gestionar
                     </div>
                     <div class="space-y-1">
-                        <a href="/admin/brands" class="hover:bg-gray-900 active:bg-gray-800 transition text-base font-medium block py-4 px-6 rounded-lg">
+                        <a href="/admin/brands"
+                            class="hover:bg-gray-900 active:bg-gray-800 transition text-base font-medium block py-4 px-6 rounded-lg">
                             Gestionar Marcas
                         </a>
-                        <a href="/admin/fragrance-types" class="hover:bg-gray-900 active:bg-gray-800 transition text-base font-medium block py-4 px-6 rounded-lg">
+                        <a href="/admin/fragrance-types"
+                            class="hover:bg-gray-900 active:bg-gray-800 transition text-base font-medium block py-4 px-6 rounded-lg">
                             Gestionar Tipos de Fragancia
                         </a>
                     </div>
@@ -110,12 +120,12 @@
 
 <script>
     // Toggle del menú móvil
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
         const mobileMenu = document.getElementById('mobile-menu');
-        
+
         if (mobileMenuToggle && mobileMenu) {
-            mobileMenuToggle.addEventListener('click', function() {
+            mobileMenuToggle.addEventListener('click', function () {
                 mobileMenu.classList.toggle('hidden');
                 // Cambiar ícono de hamburguesa a X
                 const icon = mobileMenuToggle.querySelector('i');
@@ -130,4 +140,3 @@
         }
     });
 </script>
-

@@ -602,10 +602,12 @@
                         productId: productId,
                         userId: user.uid,
                         userName: userName,
+                        userPhoto: user.photoURL || null,
                         userEmail: user.email,
                         rating: rating,
                         comment: commentText,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        approved: true // Por ahora auto-aprobados para que se vean
                     };
 
                     await db.collection('comments').add(commentData);
@@ -788,16 +790,27 @@
                         }
                     }
 
+                    const userPhoto = comment.userPhoto
+                        ? `<div class="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 border border-gray-100 shadow-sm">
+                             <img src="${comment.userPhoto}" alt="${comment.userName}" class="w-full h-full object-cover">
+                           </div>`
+                        : `<div class="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 flex-shrink-0 border border-gray-100">
+                             <i class="far fa-user text-xl"></i>
+                           </div>`;
+
                     return `
                         <div class="border-b border-gray-200 pb-6 last:border-b-0" id="comment-${doc.id}">
-                            <div class="flex items-start justify-between mb-3">
+                            <div class="flex gap-4">
+                                ${userPhoto}
                                 <div class="flex-1">
-                                    <p class="font-semibold text-gray-900">${comment.userName || 'Usuario'}</p>
-                                    <div class="flex items-center gap-2 mt-1">
-                                        <div class="flex items-center gap-1">${stars}</div>
-                                        <span class="text-sm text-gray-500">${formattedDate}</span>
-                                    </div>
-                                </div>
+                                    <div class="flex items-start justify-between mb-2">
+                                        <div class="flex-1">
+                                            <p class="font-semibold text-gray-900">${comment.userName || 'Usuario'}</p>
+                                            <div class="flex items-center gap-2 mt-1">
+                                                <div class="flex items-center gap-1">${stars}</div>
+                                                <span class="text-sm text-gray-500">${formattedDate}</span>
+                                            </div>
+                                        </div>
                                 <button 
                                     id="delete-comment-${doc.id}"
                                     onclick="deleteCommentFromProduct('${doc.id}')" 
@@ -831,8 +844,28 @@
                 return;
             }
 
-            // Redirigir a checkout con el producto
-            window.location.href = `/checkout?product=${productId}`;
+            const buyNowBtn = this;
+            const originalText = buyNowBtn.innerHTML;
+
+            try {
+                // Deshabilitar botón y mostrar carga
+                buyNowBtn.disabled = true;
+                buyNowBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Procesando...';
+
+                // Añadir al carrito antes de redirigir
+                if (typeof addToCart !== 'undefined' && currentProduct) {
+                    await addToCart(user.uid, productId, currentProduct, 1);
+                    // Redirigir a checkout
+                    window.location.href = '/checkout';
+                } else {
+                    throw new Error('No se pudo añadir al carrito: Producto o función no disponibles');
+                }
+            } catch (error) {
+                console.error('Error en comprar ahora:', error);
+                alert('Hubo un problema al procesar tu compra. Por favor, intenta de nuevo.');
+                buyNowBtn.disabled = false;
+                buyNowBtn.innerHTML = originalText;
+            }
         });
 
         // Verificar si el usuario puede comentar

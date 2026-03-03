@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,12 +8,17 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <!-- Google Maps API -->
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDRDVUk8uwmI3gplHFNbr_jlTyfbE8vMJ8&libraries=places"></script>
 </head>
+
 <body class="bg-gray-50">
     {% include 'partials/navbar.html' %}
 
@@ -26,7 +32,8 @@
                 <div class="flex items-center justify-between">
                     <!-- Paso 1: Dirección -->
                     <div class="flex items-center flex-1">
-                        <div id="step-1-indicator" class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-900 text-white font-semibold mr-3">
+                        <div id="step-1-indicator"
+                            class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-900 text-white font-semibold mr-3">
                             <i class="fas fa-check"></i>
                         </div>
                         <div>
@@ -34,13 +41,14 @@
                             <p class="text-xs text-gray-500">Dirección de Envío</p>
                         </div>
                     </div>
-                    
+
                     <!-- Línea conectora -->
                     <div class="flex-1 h-0.5 bg-gray-300 mx-4"></div>
-                    
+
                     <!-- Paso 2: Pago -->
                     <div class="flex items-center flex-1">
-                        <div id="step-2-indicator" class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-300 text-gray-600 font-semibold mr-3">
+                        <div id="step-2-indicator"
+                            class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-300 text-gray-600 font-semibold mr-3">
                             <span>2</span>
                         </div>
                         <div>
@@ -57,21 +65,16 @@
                     <!-- Paso 1: Dirección de Envío -->
                     <div id="step-1-content" class="bg-white rounded-lg shadow-md p-6">
                         <h2 class="text-xl font-semibold text-gray-900 mb-6">Dirección de Envío</h2>
-                        
+
                         <form id="address-form" class="space-y-4">
                             <!-- Nombre completo -->
                             <div>
                                 <label for="full-name" class="block text-sm font-medium text-gray-700 mb-2">
                                     Nombre Completo <span class="text-red-500">*</span>
                                 </label>
-                                <input 
-                                    type="text" 
-                                    id="full-name" 
-                                    name="fullName"
-                                    required
+                                <input type="text" id="full-name" name="fullName" required
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition"
-                                    placeholder="Juan Pérez"
-                                >
+                                    placeholder="Juan Pérez">
                             </div>
 
                             <!-- Teléfono -->
@@ -79,14 +82,9 @@
                                 <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
                                     Teléfono <span class="text-red-500">*</span>
                                 </label>
-                                <input 
-                                    type="tel" 
-                                    id="phone" 
-                                    name="phone"
-                                    required
+                                <input type="tel" id="phone" name="phone" required
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition"
-                                    placeholder="1234567890"
-                                >
+                                    placeholder="1234567890">
                             </div>
 
                             <!-- Calle y número -->
@@ -94,14 +92,9 @@
                                 <label for="street" class="block text-sm font-medium text-gray-700 mb-2">
                                     Calle y Número <span class="text-red-500">*</span>
                                 </label>
-                                <input 
-                                    type="text" 
-                                    id="street" 
-                                    name="street"
-                                    required
+                                <input type="text" id="street" name="street" required
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition"
-                                    placeholder="Calle Principal #123"
-                                >
+                                    placeholder="Calle Principal #123">
                             </div>
 
                             <!-- Colonia -->
@@ -109,14 +102,9 @@
                                 <label for="colonia" class="block text-sm font-medium text-gray-700 mb-2">
                                     Colonia <span class="text-red-500">*</span>
                                 </label>
-                                <input 
-                                    type="text" 
-                                    id="colonia" 
-                                    name="colonia"
-                                    required
+                                <input type="text" id="colonia" name="colonia" required
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition"
-                                    placeholder="Centro"
-                                >
+                                    placeholder="Centro">
                             </div>
 
                             <!-- Ciudad y Estado -->
@@ -125,27 +113,50 @@
                                     <label for="city" class="block text-sm font-medium text-gray-700 mb-2">
                                         Ciudad <span class="text-red-500">*</span>
                                     </label>
-                                    <input 
-                                        type="text" 
-                                        id="city" 
-                                        name="city"
-                                        required
+                                    <input type="text" id="city" name="city" required
                                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition"
-                                        placeholder="Ciudad de México"
-                                    >
+                                        placeholder="Ciudad de México">
                                 </div>
                                 <div>
                                     <label for="state" class="block text-sm font-medium text-gray-700 mb-2">
                                         Estado <span class="text-red-500">*</span>
                                     </label>
-                                    <input 
-                                        type="text" 
-                                        id="state" 
-                                        name="state"
-                                        required
-                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition"
-                                        placeholder="CDMX"
-                                    >
+                                    <select id="state" name="state" required
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition bg-white">
+                                        <option value="" disabled selected>Selecciona un estado</option>
+                                        <option value="Aguascalientes">Aguascalientes</option>
+                                        <option value="Baja California">Baja California</option>
+                                        <option value="Baja California Sur">Baja California Sur</option>
+                                        <option value="Campeche">Campeche</option>
+                                        <option value="Chiapas">Chiapas</option>
+                                        <option value="Chihuahua">Chihuahua</option>
+                                        <option value="Ciudad de México">Ciudad de México</option>
+                                        <option value="Coahuila">Coahuila</option>
+                                        <option value="Colima">Colima</option>
+                                        <option value="Durango">Durango</option>
+                                        <option value="Estado de México">Estado de México</option>
+                                        <option value="Guanajuato">Guanajuato</option>
+                                        <option value="Guerrero">Guerrero</option>
+                                        <option value="Hidalgo">Hidalgo</option>
+                                        <option value="Jalisco">Jalisco</option>
+                                        <option value="Michoacán">Michoacán</option>
+                                        <option value="Morelos">Morelos</option>
+                                        <option value="Nayarit">Nayarit</option>
+                                        <option value="Nuevo León">Nuevo León</option>
+                                        <option value="Oaxaca">Oaxaca</option>
+                                        <option value="Puebla">Puebla</option>
+                                        <option value="Querétaro">Querétaro</option>
+                                        <option value="Quintana Roo">Quintana Roo</option>
+                                        <option value="San Luis Potosí">San Luis Potosí</option>
+                                        <option value="Sinaloa">Sinaloa</option>
+                                        <option value="Sonora">Sonora</option>
+                                        <option value="Tabasco">Tabasco</option>
+                                        <option value="Tamaulipas">Tamaulipas</option>
+                                        <option value="Tlaxcala">Tlaxcala</option>
+                                        <option value="Veracruz">Veracruz</option>
+                                        <option value="Yucatán">Yucatán</option>
+                                        <option value="Zacatecas">Zacatecas</option>
+                                    </select>
                                 </div>
                             </div>
 
@@ -154,16 +165,10 @@
                                 <label for="postal-code" class="block text-sm font-medium text-gray-700 mb-2">
                                     Código Postal <span class="text-red-500">*</span>
                                 </label>
-                                <input 
-                                    type="text" 
-                                    id="postal-code" 
-                                    name="postalCode"
-                                    required
-                                    pattern="[0-9]{5}"
+                                <input type="text" id="postal-code" name="postalCode" required pattern="[0-9]{5}"
                                     maxlength="5"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition"
-                                    placeholder="12345"
-                                >
+                                    placeholder="12345">
                             </div>
 
                             <!-- Referencias -->
@@ -171,21 +176,15 @@
                                 <label for="references" class="block text-sm font-medium text-gray-700 mb-2">
                                     Referencias (opcional)
                                 </label>
-                                <textarea 
-                                    id="references" 
-                                    name="references"
-                                    rows="3"
+                                <textarea id="references" name="references" rows="3"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition resize-none"
-                                    placeholder="Ej: Casa blanca, portón negro, entre calles X y Y"
-                                ></textarea>
+                                    placeholder="Ej: Casa blanca, portón negro, entre calles X y Y"></textarea>
                             </div>
 
                             <!-- Botón continuar -->
                             <div class="pt-4">
-                                <button 
-                                    type="submit" 
-                                    class="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold py-4 px-6 rounded-lg transition"
-                                >
+                                <button type="submit"
+                                    class="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold py-4 px-6 rounded-lg transition">
                                     Continuar al Pago
                                 </button>
                             </div>
@@ -195,54 +194,14 @@
                     <!-- Paso 2: Método de Pago -->
                     <div id="step-2-content" class="hidden bg-white rounded-lg shadow-md p-6">
                         <h2 class="text-xl font-semibold text-gray-900 mb-6">Método de Pago</h2>
-                        
+
                         <form id="payment-form" class="space-y-6">
                             <!-- Métodos de pago -->
                             <div class="space-y-3">
-                                <label class="flex items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-gray-900 transition payment-method">
-                                    <input 
-                                        type="radio" 
-                                        name="paymentMethod" 
-                                        value="cash" 
-                                        checked
-                                        class="mr-4 w-4 h-4 text-gray-900 focus:ring-gray-900"
-                                    >
-                                    <div class="flex-1">
-                                        <div class="flex items-center">
-                                            <i class="fas fa-money-bill-wave text-2xl text-green-600 mr-3"></i>
-                                            <div>
-                                                <p class="font-semibold text-gray-900">Pago en Efectivo</p>
-                                                <p class="text-sm text-gray-500">Paga cuando recibas tu pedido</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </label>
-
-                                <label class="flex items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-gray-900 transition payment-method">
-                                    <input 
-                                        type="radio" 
-                                        name="paymentMethod" 
-                                        value="transfer" 
-                                        class="mr-4 w-4 h-4 text-gray-900 focus:ring-gray-900"
-                                    >
-                                    <div class="flex-1">
-                                        <div class="flex items-center">
-                                            <i class="fas fa-university text-2xl text-blue-600 mr-3"></i>
-                                            <div>
-                                                <p class="font-semibold text-gray-900">Transferencia Bancaria</p>
-                                                <p class="text-sm text-gray-500">Transferencia directa a nuestra cuenta</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </label>
-
-                                <label class="flex items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-gray-900 transition payment-method">
-                                    <input 
-                                        type="radio" 
-                                        name="paymentMethod" 
-                                        value="card" 
-                                        class="mr-4 w-4 h-4 text-gray-900 focus:ring-gray-900"
-                                    >
+                                <label
+                                    class="flex items-center p-4 border-2 border-gray-900 bg-gray-50 rounded-lg cursor-pointer transition payment-method">
+                                    <input type="radio" name="paymentMethod" value="card" checked
+                                        class="mr-4 w-4 h-4 text-gray-900 focus:ring-gray-900">
                                     <div class="flex-1">
                                         <div class="flex items-center">
                                             <i class="fas fa-credit-card text-2xl text-purple-600 mr-3"></i>
@@ -256,29 +215,8 @@
                             </div>
 
                             <!-- Información de pago (mostrar según método seleccionado) -->
-                            <div id="payment-info" class="hidden p-4 bg-gray-50 rounded-lg">
-                                <div id="cash-info" class="hidden">
-                                    <p class="text-sm text-gray-600 mb-2">
-                                        <i class="fas fa-info-circle mr-2"></i>
-                                        El repartidor recibirá el pago en efectivo al momento de la entrega.
-                                    </p>
-                                </div>
-                                
-                                <div id="transfer-info" class="hidden">
-                                    <p class="text-sm font-medium text-gray-900 mb-2">Datos para transferencia:</p>
-                                    <div class="bg-white p-3 rounded border border-gray-200">
-                                        <p class="text-sm text-gray-700"><span class="font-medium">Banco:</span> BBVA</p>
-                                        <p class="text-sm text-gray-700"><span class="font-medium">CLABE:</span> 012345678901234567</p>
-                                        <p class="text-sm text-gray-700"><span class="font-medium">Cuenta:</span> 1234567890</p>
-                                        <p class="text-sm text-gray-700"><span class="font-medium">Beneficiario:</span> ALABAZTRUM</p>
-                                    </div>
-                                    <p class="text-xs text-gray-500 mt-2">
-                                        <i class="fas fa-exclamation-triangle mr-1"></i>
-                                        Envía el comprobante de transferencia a nuestro WhatsApp después de realizar el pago.
-                                    </p>
-                                </div>
-                                
-                                <div id="card-info" class="hidden">
+                            <div id="payment-info" class="p-4 bg-gray-50 rounded-lg">
+                                <div id="card-info">
                                     <p class="text-sm text-gray-600 mb-4">
                                         <i class="fas fa-info-circle mr-2"></i>
                                         El procesamiento de pago con tarjeta se realizará de forma segura.
@@ -289,19 +227,13 @@
 
                             <!-- Botones -->
                             <div class="flex gap-4 pt-4">
-                                <button 
-                                    type="button" 
-                                    id="back-to-address-btn"
-                                    class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-4 px-6 rounded-lg transition"
-                                >
+                                <button type="button" id="back-to-address-btn"
+                                    class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-4 px-6 rounded-lg transition">
                                     <i class="fas fa-arrow-left mr-2"></i>
                                     Volver
                                 </button>
-                                <button 
-                                    type="submit" 
-                                    id="complete-order-btn"
-                                    class="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-semibold py-4 px-6 rounded-lg transition"
-                                >
+                                <button type="submit" id="complete-order-btn"
+                                    class="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-semibold py-4 px-6 rounded-lg transition">
                                     Completar Pedido
                                 </button>
                             </div>
@@ -313,7 +245,7 @@
                 <div class="lg:col-span-1">
                     <div class="bg-white rounded-lg shadow-md p-6 sticky top-4">
                         <h2 class="text-xl font-semibold text-gray-900 mb-4">Resumen del Pedido</h2>
-                        
+
                         <!-- Productos -->
                         <div id="order-items" class="space-y-3 mb-6">
                             <!-- Los productos se cargarán aquí -->
@@ -328,7 +260,8 @@
                                 <span>Envío</span>
                                 <span class="text-green-600">Gratis</span>
                             </div>
-                            <div class="border-t border-gray-200 pt-3 flex justify-between text-lg font-semibold text-gray-900">
+                            <div
+                                class="border-t border-gray-200 pt-3 flex justify-between text-lg font-semibold text-gray-900">
                                 <span>Total</span>
                                 <span id="order-total">$0.00</span>
                             </div>
@@ -354,7 +287,7 @@
     <script src="{{ url_for('static', filename='js/navbar-auth.js') }}"></script>
     <script src="{{ url_for('static', filename='js/navbar-persistent.js') }}"></script>
     <script src="{{ url_for('static', filename='js/cart.js') }}"></script>
-    
+
     <script>
         if (typeof currentUser === 'undefined') {
             var currentUser = null;
@@ -391,10 +324,10 @@
 
                 // Obtener datos del usuario desde Firestore
                 const userDoc = await db.collection('users').doc(currentUser.uid).get();
-                
+
                 if (userDoc.exists) {
                     const userData = userDoc.data();
-                    
+
                     // Pre-llenar nombre si existe
                     if (userData.fullName) {
                         const fullNameInput = document.getElementById('full-name');
@@ -402,7 +335,7 @@
                             fullNameInput.value = userData.fullName;
                         }
                     }
-                    
+
                     // Pre-llenar teléfono si existe
                     if (userData.phone) {
                         const phoneInput = document.getElementById('phone');
@@ -427,7 +360,7 @@
 
                 // Usar la función getCart de cart.js que busca en la colección 'carts'
                 const items = await getCart(currentUser.uid);
-                
+
                 // Convertir al formato esperado
                 cartItems = items.map(item => ({
                     productId: item.productId,
@@ -455,12 +388,12 @@
         // Mostrar productos en el resumen
         function displayOrderItems() {
             const container = document.getElementById('order-items');
-            
+
             container.innerHTML = cartItems.map(item => {
-                const imageUrl = item.images && item.images.length > 0 
-                    ? item.images[0] 
+                const imageUrl = item.images && item.images.length > 0
+                    ? item.images[0]
                     : 'https://via.placeholder.com/100x100?text=Sin+Imagen';
-                
+
                 return `
                     <div class="flex items-center gap-3">
                         <img 
@@ -489,9 +422,9 @@
         }
 
         // Manejar envío de formulario de dirección
-        document.getElementById('address-form').addEventListener('submit', function(e) {
+        document.getElementById('address-form').addEventListener('submit', function (e) {
             e.preventDefault();
-            
+
             shippingAddress = {
                 fullName: document.getElementById('full-name').value,
                 phone: document.getElementById('phone').value,
@@ -505,7 +438,7 @@
 
             // Mostrar dirección en el resumen
             displayDeliveryAddress();
-            
+
             // Cambiar al paso 2
             goToStep(2);
         });
@@ -514,7 +447,7 @@
         function displayDeliveryAddress() {
             const deliveryInfo = document.getElementById('delivery-info');
             const addressText = document.getElementById('delivery-address-text');
-            
+
             addressText.innerHTML = `
                 <p class="font-medium">${shippingAddress.fullName}</p>
                 <p>${shippingAddress.street}</p>
@@ -523,84 +456,52 @@
                 <p>Tel: ${shippingAddress.phone}</p>
                 ${shippingAddress.references ? `<p class="mt-2 text-xs italic">${shippingAddress.references}</p>` : ''}
             `;
-            
+
             deliveryInfo.classList.remove('hidden');
         }
 
         // Cambiar de paso
         function goToStep(step) {
             currentStep = step;
-            
+
             if (step === 1) {
                 // Mostrar paso 1
                 document.getElementById('step-1-content').classList.remove('hidden');
                 document.getElementById('step-2-content').classList.add('hidden');
-                
+
                 // Actualizar indicadores
                 document.getElementById('step-1-indicator').innerHTML = '<i class="fas fa-check"></i>';
                 document.getElementById('step-1-indicator').className = 'flex items-center justify-center w-10 h-10 rounded-full bg-gray-900 text-white font-semibold mr-3';
-                
+
                 document.getElementById('step-2-indicator').innerHTML = '<span>2</span>';
                 document.getElementById('step-2-indicator').className = 'flex items-center justify-center w-10 h-10 rounded-full bg-gray-300 text-gray-600 font-semibold mr-3';
             } else if (step === 2) {
                 // Mostrar paso 2
                 document.getElementById('step-1-content').classList.add('hidden');
                 document.getElementById('step-2-content').classList.remove('hidden');
-                
+
                 // Actualizar indicadores
                 document.getElementById('step-1-indicator').innerHTML = '<i class="fas fa-check"></i>';
                 document.getElementById('step-1-indicator').className = 'flex items-center justify-center w-10 h-10 rounded-full bg-green-600 text-white font-semibold mr-3';
-                
+
                 document.getElementById('step-2-indicator').innerHTML = '<i class="fas fa-check"></i>';
                 document.getElementById('step-2-indicator').className = 'flex items-center justify-center w-10 h-10 rounded-full bg-gray-900 text-white font-semibold mr-3';
             }
         }
 
         // Botón volver
-        document.getElementById('back-to-address-btn').addEventListener('click', function() {
+        document.getElementById('back-to-address-btn').addEventListener('click', function () {
             goToStep(1);
         });
 
-        // Manejar cambio de método de pago
-        document.querySelectorAll('input[name="paymentMethod"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                const paymentInfo = document.getElementById('payment-info');
-                const method = this.value;
-                
-                // Ocultar todos
-                document.getElementById('cash-info').classList.add('hidden');
-                document.getElementById('transfer-info').classList.add('hidden');
-                document.getElementById('card-info').classList.add('hidden');
-                
-                // Mostrar el seleccionado
-                if (method === 'cash') {
-                    document.getElementById('cash-info').classList.remove('hidden');
-                } else if (method === 'transfer') {
-                    document.getElementById('transfer-info').classList.remove('hidden');
-                } else if (method === 'card') {
-                    document.getElementById('card-info').classList.remove('hidden');
-                }
-                
-                paymentInfo.classList.remove('hidden');
-                
-                // Actualizar estilo de los métodos
-                document.querySelectorAll('.payment-method').forEach(label => {
-                    label.classList.remove('border-gray-900', 'bg-gray-50');
-                    label.classList.add('border-gray-300');
-                });
-                
-                this.closest('.payment-method').classList.remove('border-gray-300');
-                this.closest('.payment-method').classList.add('border-gray-900', 'bg-gray-50');
-            });
-        });
-
         // Inicializar método de pago por defecto
-        document.querySelector('input[name="paymentMethod"][value="cash"]').dispatchEvent(new Event('change'));
+        const cardRadio = document.querySelector('input[name="paymentMethod"][value="card"]');
+        if (cardRadio) cardRadio.checked = true;
 
         // Manejar envío de formulario de pago
-        document.getElementById('payment-form').addEventListener('submit', async function(e) {
+        document.getElementById('payment-form').addEventListener('submit', async function (e) {
             e.preventDefault();
-            
+
             if (!shippingAddress) {
                 alert('Por favor, completa la dirección de envío');
                 goToStep(1);
@@ -610,7 +511,7 @@
             const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
             const button = document.getElementById('complete-order-btn');
             const originalText = button.innerHTML;
-            
+
             button.disabled = true;
             button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Procesando...';
 
@@ -652,7 +553,7 @@
 
                 // Redirigir a página de confirmación
                 window.location.href = `/orden-confirmada?orderId=${orderRef.id}`;
-                
+
             } catch (error) {
                 console.error('Error completando pedido:', error);
                 alert('Error al procesar el pedido. Por favor, intenta de nuevo.');
@@ -660,8 +561,78 @@
                 button.innerHTML = originalText;
             }
         });
+
+        // --- Integración de Google Maps Geocoding ---
+        const postalCodeInput = document.getElementById('postal-code');
+        const cityInput = document.getElementById('city');
+        const stateInput = document.getElementById('state');
+
+        if (postalCodeInput) {
+            postalCodeInput.addEventListener('input', function (e) {
+                const zip = e.target.value;
+                if (zip.length === 5) {
+                    fetchLocationFromZip(zip);
+                }
+            });
+        }
+
+        async function fetchLocationFromZip(zip) {
+            const geocoder = new google.maps.Geocoder();
+
+            // Añadir indicador visual de carga
+            postalCodeInput.classList.add('border-blue-500', 'animate-pulse');
+
+            geocoder.geocode({
+                address: zip,
+                componentRestrictions: { country: 'MX' } // Ajustar según el mercado principal
+            }, (results, status) => {
+                postalCodeInput.classList.remove('border-blue-500', 'animate-pulse');
+
+                if (status === 'OK' && results[0]) {
+                    const addressComponents = results[0].address_components;
+                    let city = '';
+                    let state = '';
+
+                    addressComponents.forEach(component => {
+                        const types = component.types;
+                        if (types.includes('locality') || types.includes('administrative_area_level_2')) {
+                            city = component.long_name;
+                        }
+                        if (types.includes('administrative_area_level_1')) {
+                            state = component.long_name;
+                        }
+                    });
+
+                    if (city) cityInput.value = city;
+
+                    if (state) {
+                        // Intentar seleccionar el estado en el dropdown
+                        const options = stateInput.options;
+                        for (let i = 0; i < options.length; i++) {
+                            // Comparación flexible para variaciones de nombres (ej. CDMX vs Ciudad de México)
+                            if (options[i].value === state ||
+                                (state.toLowerCase().includes('ciudad de méxico') && options[i].value === 'Ciudad de México') ||
+                                (state.toLowerCase().includes('méxico') && !state.toLowerCase().includes('estado') && options[i].value === 'Ciudad de México')) {
+                                stateInput.selectedIndex = i;
+                                break;
+                            }
+                        }
+                    }
+
+                    // Efecto de éxito
+                    cityInput.classList.add('bg-green-50');
+                    stateInput.classList.add('bg-green-50');
+                    setTimeout(() => {
+                        cityInput.classList.remove('bg-green-50');
+                        stateInput.classList.remove('bg-green-50');
+                    }, 2000);
+                } else {
+                    console.warn('No se pudo encontrar la ubicación para el CP:', zip, status);
+                }
+            });
+        }
     </script>
     {% include 'partials/footer.html' %}
 </body>
-</html>
 
+</html>

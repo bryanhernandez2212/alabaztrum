@@ -103,8 +103,9 @@ async function loginWithGoogle() {
 
             if (!userDoc.exists) {
                 await db.collection('users').doc(user.uid).set({
-                    fullName: user.displayName,
+                    fullName: user.displayName || '',
                     email: user.email,
+                    phone: user.phoneNumber || '',
                     role: 'cliente', // Rol por defecto
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });

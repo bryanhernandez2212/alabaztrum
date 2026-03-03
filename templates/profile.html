@@ -42,9 +42,11 @@
                 <div id="tab-content-profile" class="tab-content">
                     <div class="bg-white rounded-lg shadow-md p-6">
                         <div class="text-center mb-6">
-                            <div
-                                class="w-24 h-24 bg-gray-300 rounded-full mx-auto mb-4 flex items-center justify-center">
-                                <i class="far fa-user text-4xl text-gray-600"></i>
+                            <div id="profile-avatar-container"
+                                class="w-24 h-24 bg-gray-100 rounded-full mx-auto mb-4 relative overflow-hidden border-2 border-white shadow-sm flex items-center justify-center">
+                                <i id="profile-icon" class="far fa-user text-4xl text-gray-400"></i>
+                                <img id="profile-photo" src="" alt="Perfil"
+                                    class="hidden absolute inset-0 w-full h-full object-cover">
                             </div>
                             <h2 id="profile-name" class="text-2xl font-bold text-gray-800 mb-2">Cargando...</h2>
                             <p id="profile-email" class="text-gray-600 mb-6">Cargando...</p>
@@ -360,6 +362,7 @@
                 await db.collection('siteReviews').add({
                     userId: auth.currentUser.uid,
                     userName: userName,
+                    userPhoto: auth.currentUser.photoURL || null,
                     rating: rating,
                     title: title,
                     review: review,
@@ -429,24 +432,37 @@
                         `<i class="${i < data.rating ? 'fas' : 'far'} fa-star text-yellow-400 text-xs"></i>`
                     ).join('');
 
+                    const photoHtml = data.userPhoto
+                        ? `<div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border border-gray-100 shadow-sm">
+                             <img src="${data.userPhoto}" alt="${data.userName}" class="w-full h-full object-cover">
+                           </div>`
+                        : `<div class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 flex-shrink-0 border border-gray-100">
+                             <i class="far fa-user"></i>
+                           </div>`;
+
                     return `
                         <div class="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
-                            <div class="flex justify-between items-start mb-2">
-                                <div>
-                                    <h4 class="font-bold text-gray-900">${data.title}</h4>
-                                    <div class="flex items-center gap-2 mt-1">
-                                        <div class="flex text-yellow-400">${stars}</div>
-                                        <span class="text-xs text-gray-500">• ${date}</span>
-                                    </div>
-                                </div>
-                                <span class="px-2 py-1 text-xs rounded-full font-medium ${data.approved
+                            <div class="flex gap-4">
+                                ${photoHtml}
+                                <div class="flex-1">
+                                    <div class="flex justify-between items-start mb-1">
+                                        <div>
+                                            <h4 class="font-bold text-gray-900">${data.title}</h4>
+                                            <div class="flex items-center gap-2 mt-1">
+                                                <div class="flex text-yellow-400">${stars}</div>
+                                                <span class="text-xs text-gray-500">• ${date}</span>
+                                            </div>
+                                        </div>
+                                        <span class="px-2 py-1 text-xs rounded-full font-medium ${data.approved
                             ? 'bg-green-100 text-green-800'
                             : 'bg-yellow-100 text-yellow-800'
                         }">
-                                    ${data.approved ? 'Aprobada' : 'Pendiente'}
-                                </span>
+                                            ${data.approved ? 'Aprobada' : 'Pendiente'}
+                                        </span>
+                                    </div>
+                                    <p class="text-gray-600 text-sm italic">"${data.review}"</p>
+                                </div>
                             </div>
-                            <p class="text-gray-600 text-sm italic">"${data.review}"</p>
                         </div>
                     `;
                 }).join('');
@@ -536,6 +552,25 @@
                 if (profileName) {
                     profileName.textContent = user.displayName || user.email?.split('@')[0] || 'Usuario';
                 }
+
+                // Actualizar foto de perfil
+                const profilePhoto = document.getElementById('profile-photo');
+                const profileIcon = document.getElementById('profile-icon');
+                if (profilePhoto && profileIcon) {
+                    if (user.photoURL) {
+                        profilePhoto.src = user.photoURL;
+                        profilePhoto.classList.remove('hidden');
+                        profileIcon.classList.add('hidden');
+
+                        profilePhoto.onerror = () => {
+                            profilePhoto.classList.add('hidden');
+                            profileIcon.classList.remove('hidden');
+                        };
+                    } else {
+                        profilePhoto.classList.add('hidden');
+                        profileIcon.classList.remove('hidden');
+                    }
+                }
                 if (profileEmail) {
                     profileEmail.textContent = user.email || 'No disponible';
                 }
@@ -546,7 +581,7 @@
                     profileFullname.textContent = user.displayName || user.email?.split('@')[0] || '-';
                 }
                 if (profilePhone) {
-                    profilePhone.textContent = '-';
+                    profilePhone.textContent = user.phoneNumber || '-';
                 }
                 if (profileAddress) {
                     profileAddress.textContent = '-';
@@ -574,6 +609,21 @@
                             profileCreated.textContent = date.toLocaleDateString('es-ES');
                         } else if (profileCreated) {
                             profileCreated.textContent = 'No disponible';
+                        }
+
+                        // Ocultar pestañas de cliente para administradores
+                        if (userData.role === 'administrador') {
+                            const tabOrders = document.getElementById('tab-btn-orders');
+                            const tabReviews = document.getElementById('tab-btn-reviews');
+                            if (tabOrders) tabOrders.classList.add('hidden');
+                            if (tabReviews) tabReviews.classList.add('hidden');
+
+                            // Redirigir si está en una pestaña no permitida
+                            const urlParams = new URLSearchParams(window.location.search);
+                            const currentTab = urlParams.get('tab');
+                            if (currentTab === 'orders' || currentTab === 'reviews') {
+                                showTab('profile');
+                            }
                         }
                     } else {
                         // Si no existe el documento, usar la fecha de creación de auth

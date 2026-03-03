@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil de Administrador - ALABAZTRUM</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+
+<body class="bg-gray-50 admin-body">
+    {% include 'partials/navbar-admin.html' %}
+
+    <main class="min-h-screen py-8 bg-gray-50">
+        <div class="container mx-auto px-6">
+            <div class="max-w-4xl mx-auto">
+                <!-- Header -->
+                <div class="mb-8 flex justify-between items-center">
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1 uppercase tracking-wide font-medium">Administración</p>
+                        <h1 class="text-3xl font-bold text-gray-900">Mi Perfil Administrativo</h1>
+                    </div>
+                    <button id="edit-profile-btn" onclick="toggleEditMode()"
+                        class="px-6 py-2 bg-gray-900 hover:bg-black text-white font-medium rounded-lg transition duration-200 shadow-sm">
+                        <i class="fas fa-edit mr-2"></i>Editar Perfil
+                    </button>
+                </div>
+
+                <!-- Card de Perfil -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="p-8 border-b border-gray-100 bg-gray-50/50">
+                        <div class="flex flex-col md:flex-row items-center gap-6">
+                            <!-- Avatar -->
+                            <div id="profile-avatar-container"
+                                class="w-32 h-32 bg-white rounded-full relative overflow-hidden border-4 border-white shadow-md flex items-center justify-center">
+                                <i id="profile-icon" class="far fa-user text-5xl text-gray-300"></i>
+                                <img id="profile-photo" src="" alt="Perfil"
+                                    class="hidden absolute inset-0 w-full h-full object-cover">
+                            </div>
+                            <!-- Info Corta -->
+                            <div class="text-center md:text-left">
+                                <h2 id="profile-name" class="text-2xl font-bold text-gray-900 mb-1">Cargando...</h2>
+                                <p id="profile-email" class="text-gray-500 mb-3">Cargando...</p>
+                                <span
+                                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-700 uppercase tracking-wider">
+                                    <i class="fas fa-shield-alt mr-1"></i> Administrador
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-8">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <!-- Columna 1 -->
+                            <div id="profile-info-view" class="space-y-6">
+                                <div>
+                                    <label
+                                        class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Nombre
+                                        Completo</label>
+                                    <p id="profile-fullname" class="text-gray-900 font-medium text-lg leading-tight">-
+                                    </p>
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Correo
+                                        Electrónico</label>
+                                    <p id="profile-email-detail" class="text-gray-900 font-medium">-</p>
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Teléfono</label>
+                                    <p id="profile-phone" class="text-gray-900 font-medium">-</p>
+                                </div>
+                            </div>
+
+                            <!-- Columna 2 -->
+                            <div class="space-y-6">
+                                <div>
+                                    <label
+                                        class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Fecha
+                                        de Registro</label>
+                                    <p id="profile-created" class="text-gray-900 font-medium">-</p>
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Nivel
+                                        de Acceso</label>
+                                    <p class="text-gray-900 font-medium">Control Total del Sistema</p>
+                                </div>
+                                <div class="pt-4">
+                                    <a href="/admin"
+                                        class="text-gray-900 hover:text-black font-bold text-sm flex items-center transition">
+                                        Ir al Panel de Control <i class="fas fa-arrow-right ml-2"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Formulario de Edición (Oculto) -->
+                        <form id="profile-edit-form" class="space-y-6 hidden mt-8 pt-8 border-t border-gray-100">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="edit-fullname" class="block text-sm font-bold text-gray-700 mb-2">Nombre
+                                        Completo</label>
+                                    <input type="text" id="edit-fullname" name="fullname" required
+                                        class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition">
+                                </div>
+                                <div>
+                                    <label for="edit-email"
+                                        class="block text-sm font-bold text-gray-700 mb-2">Email</label>
+                                    <input type="email" id="edit-email" name="email" required
+                                        class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition">
+                                </div>
+                                <div>
+                                    <label for="edit-phone"
+                                        class="block text-sm font-bold text-gray-700 mb-2">Teléfono</label>
+                                    <input type="tel" id="edit-phone" name="phone"
+                                        class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
+                                        placeholder="+52 000 000 0000">
+                                </div>
+                            </div>
+
+                            <div id="edit-profile-message" class="hidden p-4 rounded-xl text-sm font-medium"></div>
+
+                            <div class="flex items-center justify-end space-x-4">
+                                <button type="button" onclick="toggleEditMode()"
+                                    class="px-6 py-3 text-gray-500 hover:text-gray-800 font-bold transition">
+                                    Cancelar
+                                </button>
+                                <button type="submit"
+                                    class="px-10 py-3 bg-gray-900 hover:bg-black text-white font-bold rounded-xl transition shadow-md">
+                                    Guardar Cambios
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/navbar-admin.js') }}"></script>
+
+    <script>
+        let currentUser = null;
+        let userData = {};
+
+        async function initAdminProfile() {
+            auth.onAuthStateChanged(async (user) => {
+                if (user) {
+                    currentUser = user;
+                    // Verificar rol
+                    const role = await getUserRole(user.uid);
+                    if (role !== 'administrador') {
+                        window.location.href = '/profile';
+                        return;
+                    }
+                    loadAdminData(user);
+                } else {
+                    window.location.href = '/login';
+                }
+            });
+        }
+
+        async function loadAdminData(user) {
+            try {
+                // Info Auth básica
+                document.getElementById('profile-name').textContent = user.displayName || 'Administrador';
+                document.getElementById('profile-email').textContent = user.email;
+                document.getElementById('profile-email-detail').textContent = user.email;
+                document.getElementById('profile-fullname').textContent = user.displayName || '-';
+                document.getElementById('profile-phone').textContent = user.phoneNumber || '-';
+
+                // Foto
+                if (user.photoURL) {
+                    const img = document.getElementById('profile-photo');
+                    const icon = document.getElementById('profile-icon');
+                    img.src = user.photoURL;
+                    img.classList.remove('hidden');
+                    icon.classList.add('hidden');
+                }
+
+                // Firestore
+                const doc = await db.collection('users').doc(user.uid).get();
+                if (doc.exists) {
+                    userData = doc.data();
+                    if (userData.fullName) {
+                        document.getElementById('profile-name').textContent = userData.fullName;
+                        document.getElementById('profile-fullname').textContent = userData.fullName;
+                    }
+                    if (userData.phone) document.getElementById('profile-phone').textContent = userData.phone;
+                    if (userData.createdAt) {
+                        const date = userData.createdAt.toDate();
+                        document.getElementById('profile-created').textContent = date.toLocaleDateString('es-ES', {
+                            year: 'numeric', month: 'long', day: 'numeric'
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading admin data:', error);
+            }
+        }
+
+        function toggleEditMode() {
+            const view = document.getElementById('profile-info-view').parentElement;
+            const form = document.getElementById('profile-edit-form');
+            const btn = document.getElementById('edit-profile-btn');
+
+            if (form.classList.contains('hidden')) {
+                form.classList.remove('hidden');
+                document.getElementById('profile-info-view').parentElement.children[0].classList.add('hidden'); // Ocultar grid
+                btn.innerHTML = '<i class="fas fa-times mr-2"></i>Cancelar';
+
+                // Cargar campos
+                document.getElementById('edit-fullname').value = userData.fullName || currentUser.displayName || '';
+                document.getElementById('edit-email').value = currentUser.email;
+                document.getElementById('edit-phone').value = userData.phone || currentUser.phoneNumber || '';
+            } else {
+                form.classList.add('hidden');
+                document.getElementById('profile-info-view').parentElement.children[0].classList.remove('hidden');
+                btn.innerHTML = '<i class="fas fa-edit mr-2"></i>Editar Perfil';
+            }
+        }
+
+        document.getElementById('profile-edit-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const msg = document.getElementById('edit-profile-message');
+
+            btn.disabled = true;
+            btn.textContent = 'Guardando...';
+
+            try {
+                const fullName = document.getElementById('edit-fullname').value.trim();
+                const phone = document.getElementById('edit-phone').value.trim();
+
+                await currentUser.updateProfile({ displayName: fullName });
+                await db.collection('users').doc(currentUser.uid).set({
+                    fullName, phone, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+
+                msg.textContent = 'Perfil actualizado correctamente';
+                msg.className = 'p-4 rounded-xl text-sm font-medium bg-green-100 text-green-700 block';
+
+                setTimeout(() => window.location.reload(), 1500);
+            } catch (error) {
+                console.error(error);
+                msg.textContent = 'Error al actualizar: ' + error.message;
+                msg.className = 'p-4 rounded-xl text-sm font-medium bg-red-100 text-red-700 block';
+                btn.disabled = false;
+                btn.textContent = 'Guardar Cambios';
+            }
+        });
+
+        initAdminProfile();
+    </script>
+    {% include 'partials/footer.html' %}
+</body>
+
+</html>
