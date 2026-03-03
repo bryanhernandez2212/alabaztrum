@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,12 +8,13 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
+
 <body class="bg-white">
     {% include 'partials/navbar.html' %}
 
@@ -26,13 +28,15 @@
                 <!-- Filtros de ordenamiento -->
                 <div class="flex items-center gap-2">
                     <!-- Botón Filtros (solo móvil) -->
-                    <button id="mobile-filters-toggle" class="lg:hidden flex items-center gap-2 px-3 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-lg transition font-medium text-sm">
+                    <button id="mobile-filters-toggle"
+                        class="lg:hidden flex items-center gap-2 px-3 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-lg transition font-medium text-sm">
                         <i class="fas fa-filter"></i>
                         <span>Filtros</span>
                     </button>
                     <label class="hidden lg:block text-xs text-gray-600 font-medium">Ordenar por:</label>
                     <div class="relative">
-                        <select id="sort-select" class="appearance-none px-4 py-2 pr-8 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 cursor-pointer hover:border-gray-400 transition-all shadow-sm">
+                        <select id="sort-select"
+                            class="appearance-none px-4 py-2 pr-8 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 cursor-pointer hover:border-gray-400 transition-all shadow-sm">
                             <option value="relevance">Relevancia</option>
                             <option value="price-asc">Menor precio</option>
                             <option value="price-desc">Mayor precio</option>
@@ -45,33 +49,42 @@
             </div>
 
             <!-- Panel de filtros móvil (oculto por defecto) - Pantalla completa -->
-            <div id="mobile-filters-overlay" class="lg:hidden hidden fixed inset-0 bg-black bg-opacity-50" onclick="closeMobileFilters()" style="z-index: 1003; width: 100vw; max-width: 100vw;"></div>
-            <div id="mobile-filters-panel" class="lg:hidden hidden fixed inset-0 bg-white" style="z-index: 1004; overflow-y: auto; overflow-x: hidden; width: 100vw; max-width: 100vw;">
+            <div id="mobile-filters-overlay" class="lg:hidden hidden fixed inset-0 bg-black bg-opacity-50"
+                onclick="closeMobileFilters()" style="z-index: 1003; width: 100vw; max-width: 100vw;"></div>
+            <div id="mobile-filters-panel" class="lg:hidden hidden fixed inset-0 bg-white"
+                style="z-index: 1004; overflow-y: auto; overflow-x: hidden; width: 100vw; max-width: 100vw;">
                 <div class="min-h-screen" style="width: 100%; max-width: 100%; padding: 1rem; box-sizing: border-box;">
                     <!-- Header fijo -->
-                    <div class="sticky top-0 bg-white border-b border-gray-200 pb-4 mb-4 pt-4 z-10" style="margin-left: -1rem; margin-right: -1rem; padding-left: 1rem; padding-right: 1rem; width: calc(100% + 2rem);">
+                    <div class="sticky top-0 bg-white border-b border-gray-200 pb-4 mb-4 pt-4 z-10"
+                        style="margin-left: -1rem; margin-right: -1rem; padding-left: 1rem; padding-right: 1rem; width: calc(100% + 2rem);">
                         <div class="flex items-center justify-between">
                             <h2 class="text-xl font-bold text-gray-900">Filtros</h2>
-                            <button id="mobile-filters-close" class="text-gray-500 hover:text-gray-700 p-2 flex-shrink-0" onclick="closeMobileFilters()" aria-label="Cerrar filtros">
+                            <button id="mobile-filters-close"
+                                class="text-gray-500 hover:text-gray-700 p-2 flex-shrink-0"
+                                onclick="closeMobileFilters()" aria-label="Cerrar filtros">
                                 <i class="fas fa-times text-2xl"></i>
                             </button>
                         </div>
                     </div>
-                    
+
                     <!-- Filtro por Género -->
                     <div class="mb-6">
                         <h3 class="text-base font-semibold text-gray-900 mb-3">Género</h3>
                         <div class="space-y-3">
                             <label class="flex items-center cursor-pointer py-2">
-                                <input type="checkbox" name="gender-mobile" value="all" class="mr-3 w-5 h-5 rounded border-gray-300 text-gray-900 focus:ring-gray-900" checked>
+                                <input type="checkbox" name="gender-mobile" value="all"
+                                    class="mr-3 w-5 h-5 rounded border-gray-300 text-gray-900 focus:ring-gray-900"
+                                    checked>
                                 <span class="text-base text-gray-700">Todos</span>
                             </label>
                             <label class="flex items-center cursor-pointer py-2">
-                                <input type="checkbox" name="gender-mobile" value="mujer" class="mr-3 w-5 h-5 rounded border-gray-300 text-gray-900 focus:ring-gray-900">
+                                <input type="checkbox" name="gender-mobile" value="mujer"
+                                    class="mr-3 w-5 h-5 rounded border-gray-300 text-gray-900 focus:ring-gray-900">
                                 <span class="text-base text-gray-700">Mujer</span>
                             </label>
                             <label class="flex items-center cursor-pointer py-2">
-                                <input type="checkbox" name="gender-mobile" value="hombre" class="mr-3 w-5 h-5 rounded border-gray-300 text-gray-900 focus:ring-gray-900">
+                                <input type="checkbox" name="gender-mobile" value="hombre"
+                                    class="mr-3 w-5 h-5 rounded border-gray-300 text-gray-900 focus:ring-gray-900">
                                 <span class="text-base text-gray-700">Hombre</span>
                             </label>
                         </div>
@@ -94,11 +107,16 @@
                     </div>
 
                     <!-- Botones fijos al final -->
-                    <div class="sticky bottom-0 bg-white border-t border-gray-200 pt-4 pb-4 mt-6 z-10" style="margin-left: -1rem; margin-right: -1rem; padding-left: 1rem; padding-right: 1rem; width: calc(100% + 2rem);">
-                        <button id="clear-filters-mobile" class="w-full px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition font-medium text-base mb-3" style="box-sizing: border-box;">
+                    <div class="sticky bottom-0 bg-white border-t border-gray-200 pt-4 pb-4 mt-6 z-10"
+                        style="margin-left: -1rem; margin-right: -1rem; padding-left: 1rem; padding-right: 1rem; width: calc(100% + 2rem);">
+                        <button id="clear-filters-mobile"
+                            class="w-full px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition font-medium text-base mb-3"
+                            style="box-sizing: border-box;">
                             Limpiar Filtros
                         </button>
-                        <button onclick="closeMobileFilters()" class="w-full px-4 py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-lg transition font-medium text-base" style="box-sizing: border-box;">
+                        <button onclick="closeMobileFilters()"
+                            class="w-full px-4 py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-lg transition font-medium text-base"
+                            style="box-sizing: border-box;">
                             Aplicar Filtros
                         </button>
                     </div>
@@ -110,21 +128,24 @@
                 <aside class="hidden lg:block w-52 flex-shrink-0">
                     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sticky" style="top: 1rem;">
                         <h2 class="text-sm font-bold text-gray-900 mb-3">Filtros</h2>
-                        
+
                         <!-- Filtro por Género -->
                         <div class="mb-3">
                             <h3 class="text-xs font-semibold text-gray-900 mb-1.5">Género</h3>
                             <div class="space-y-1.5">
                                 <label class="flex items-center cursor-pointer">
-                                    <input type="checkbox" name="gender" value="all" class="mr-2 rounded border-gray-300 text-gray-900 focus:ring-gray-900" checked>
+                                    <input type="checkbox" name="gender" value="all"
+                                        class="mr-2 rounded border-gray-300 text-gray-900 focus:ring-gray-900" checked>
                                     <span class="text-sm text-gray-700">Todos</span>
                                 </label>
                                 <label class="flex items-center cursor-pointer">
-                                    <input type="checkbox" name="gender" value="mujer" class="mr-2 rounded border-gray-300 text-gray-900 focus:ring-gray-900">
+                                    <input type="checkbox" name="gender" value="mujer"
+                                        class="mr-2 rounded border-gray-300 text-gray-900 focus:ring-gray-900">
                                     <span class="text-sm text-gray-700">Mujer</span>
                                 </label>
                                 <label class="flex items-center cursor-pointer">
-                                    <input type="checkbox" name="gender" value="hombre" class="mr-2 rounded border-gray-300 text-gray-900 focus:ring-gray-900">
+                                    <input type="checkbox" name="gender" value="hombre"
+                                        class="mr-2 rounded border-gray-300 text-gray-900 focus:ring-gray-900">
                                     <span class="text-sm text-gray-700">Hombre</span>
                                 </label>
                             </div>
@@ -147,7 +168,8 @@
                         </div>
 
                         <!-- Botón limpiar filtros -->
-                        <button id="clear-filters" class="w-full px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition font-medium text-xs mt-2">
+                        <button id="clear-filters"
+                            class="w-full px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition font-medium text-xs mt-2">
                             Limpiar Filtros
                         </button>
                     </div>
@@ -156,23 +178,24 @@
                 <!-- Contenido principal -->
                 <div class="flex-1">
                     <!-- Grid de productos -->
-                    <div id="products-container" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
-                <!-- Los productos se cargarán aquí dinámicamente -->
-                <div class="col-span-full text-center py-12">
-                    <div class="flex flex-col items-center">
-                        <div class="bg-gray-100 rounded-full p-4 mb-3">
-                            <i class="fas fa-spinner fa-spin text-gray-400 text-2xl"></i>
+                    <div id="products-container"
+                        class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
+                        <!-- Los productos se cargarán aquí dinámicamente -->
+                        <div class="col-span-full text-center py-12">
+                            <div class="flex flex-col items-center">
+                                <div class="bg-gray-100 rounded-full p-4 mb-3">
+                                    <i class="fas fa-spinner fa-spin text-gray-400 text-2xl"></i>
+                                </div>
+                                <p class="text-gray-600 font-medium">Cargando fragancias...</p>
+                            </div>
                         </div>
-                        <p class="text-gray-600 font-medium">Cargando fragancias...</p>
                     </div>
-                </div>
-                </div>
                     <!-- Paginación -->
                     <div id="pagination" class="mt-6 flex items-center justify-center gap-2">
                         <!-- Controles de paginación se renderizan dinámicamente -->
                     </div>
+                </div>
             </div>
-        </div>
     </main>
 
 
@@ -182,7 +205,7 @@
     <script src="{{ url_for('static', filename='js/auth-manager.js') }}"></script>
     <script src="{{ url_for('static', filename='js/navbar-auth.js') }}"></script>
     <script src="{{ url_for('static', filename='js/navbar-persistent.js') }}"></script>
-    
+
     <script>
         let allProducts = [];
         let allBrands = [];
@@ -209,14 +232,18 @@
                 allProducts = [];
                 const brandsSet = new Set();
                 const typesSet = new Set();
-                
+
                 productsSnapshot.forEach((doc) => {
                     const product = doc.data();
+
+                    // Filtrar productos sin stock
+                    if (product.stock !== undefined && Number(product.stock) === 0) return;
+
                     allProducts.push({
                         id: doc.id,
                         ...product
                     });
-                    
+
                     if (product.brand) brandsSet.add(product.brand);
                     if (product.fragranceType) typesSet.add(product.fragranceType);
                 });
@@ -225,7 +252,7 @@
                 allFragranceTypes = Array.from(typesSet).sort();
 
                 loadFilters();
-                
+
                 // Aplicar filtros desde URL después de cargar los filtros
                 // Usar setTimeout para asegurar que los checkboxes estén en el DOM
                 setTimeout(() => {
@@ -320,7 +347,7 @@
 
             // Agregar event listeners a los checkboxes
             document.querySelectorAll('.filter-checkbox, .filter-checkbox-mobile').forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
+                checkbox.addEventListener('change', function () {
                     syncCheckboxes(this);
                     updateFilters();
                 });
@@ -328,10 +355,10 @@
 
             // Event listener para los checkboxes de género (desktop y móvil)
             document.querySelectorAll('input[name="gender"], input[name="gender-mobile"]').forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
+                checkbox.addEventListener('change', function () {
                     const isMobile = this.name === 'gender-mobile';
                     const otherName = isMobile ? 'gender' : 'gender-mobile';
-                    
+
                     if (this.value === 'all' && this.checked) {
                         // Si se selecciona "Todos", desmarcar los demás
                         document.querySelectorAll(`input[name="${this.name}"]:not([value="all"])`).forEach(cb => cb.checked = false);
@@ -357,7 +384,7 @@
             const name = checkbox.name;
             const value = checkbox.value;
             const isChecked = checkbox.checked;
-            
+
             // Si es un checkbox móvil, sincronizar con desktop
             if (name.includes('-mobile')) {
                 const desktopName = name.replace('-mobile', '');
@@ -446,7 +473,7 @@
         // Mostrar productos
         function displayProducts() {
             const container = document.getElementById('products-container');
-            
+
             if (allProducts.length === 0) {
                 container.innerHTML = `
                     <div class="col-span-full text-center py-12">
@@ -521,15 +548,15 @@
 
             // Generar HTML de productos
             container.innerHTML = pageItems.map(product => {
-                const imageUrl = product.images && product.images.length > 0 
-                    ? product.images[0] 
+                const imageUrl = product.images && product.images.length > 0
+                    ? product.images[0]
                     : 'https://via.placeholder.com/300x300?text=No+Image';
-                
-                const genderBadge = product.gender === 'hombre' 
+
+                const genderBadge = product.gender === 'hombre'
                     ? '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">Hombre</span>'
                     : '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-pink-50 text-pink-700 border border-pink-100">Mujer</span>';
-                
-                const decantBadge = product.isDecant 
+
+                const decantBadge = product.isDecant
                     ? `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">Decant ${product.decantSize || ''}</span>`
                     : '';
 
@@ -547,7 +574,7 @@
                                 ${decantBadge}
                             </div>
                             <div class="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
-                                <span class="text-xl font-bold text-gray-900">$${product.price ? product.price.toFixed(2) : '0.00'}</span>
+                                <span class="text-xl font-bold text-gray-900">$${product.price ? parseFloat(product.price).toFixed(2).split('.')[0] + '<span class="text-sm">.' + parseFloat(product.price).toFixed(2).split('.')[1] + '</span>' : '0<span class="text-sm">.00</span>'}</span>
                             </div>
                         </div>
                     </a>
@@ -559,7 +586,7 @@
         }
 
         // Ordenamiento
-        document.getElementById('sort-select').addEventListener('change', function() {
+        document.getElementById('sort-select').addEventListener('change', function () {
             currentSort = this.value;
             currentPage = 1;
             displayProducts();
@@ -594,7 +621,7 @@
         window.closeMobileFilters = closeMobileFilters;
 
         // Limpiar filtros (desktop)
-        document.getElementById('clear-filters').addEventListener('click', function() {
+        document.getElementById('clear-filters').addEventListener('click', function () {
             // Desmarcar todos los checkboxes
             document.querySelectorAll('.filter-checkbox, .filter-checkbox-mobile').forEach(cb => cb.checked = false);
             document.querySelectorAll('input[name="gender"], input[name="gender-mobile"]').forEach(cb => cb.checked = false);
@@ -603,26 +630,26 @@
             const allGenderMobile = document.querySelector('input[name="gender-mobile"][value="all"]');
             if (allGenderDesktop) allGenderDesktop.checked = true;
             if (allGenderMobile) allGenderMobile.checked = true;
-            
+
             // Limpiar filtros activos
             activeFilters = {
                 gender: [],
                 brand: [],
                 fragranceType: []
             };
-            
+
             // Resetear ordenamiento
             document.getElementById('sort-select').value = 'relevance';
             currentSort = 'relevance';
             currentPage = 1;
-            
+
             displayProducts();
         });
 
         // Limpiar filtros (móvil)
         const clearFiltersMobile = document.getElementById('clear-filters-mobile');
         if (clearFiltersMobile) {
-            clearFiltersMobile.addEventListener('click', function() {
+            clearFiltersMobile.addEventListener('click', function () {
                 // Desmarcar todos los checkboxes
                 document.querySelectorAll('.filter-checkbox, .filter-checkbox-mobile').forEach(cb => cb.checked = false);
                 document.querySelectorAll('input[name="gender"], input[name="gender-mobile"]').forEach(cb => cb.checked = false);
@@ -631,19 +658,19 @@
                 const allGenderMobile = document.querySelector('input[name="gender-mobile"][value="all"]');
                 if (allGenderDesktop) allGenderDesktop.checked = true;
                 if (allGenderMobile) allGenderMobile.checked = true;
-                
+
                 // Limpiar filtros activos
                 activeFilters = {
                     gender: [],
                     brand: [],
                     fragranceType: []
                 };
-                
+
                 // Resetear ordenamiento
                 document.getElementById('sort-select').value = 'relevance';
                 currentSort = 'relevance';
                 currentPage = 1;
-                
+
                 displayProducts();
             });
         }
@@ -654,7 +681,7 @@
             const tipo = urlParams.get('tipo');
             const genero = urlParams.get('genero');
             const marca = urlParams.get('marca');
-            
+
             if (genero) {
                 // Desmarcar "Todos" y marcar el género correspondiente
                 const allCheckbox = document.querySelector('input[name="gender"][value="all"]');
@@ -676,7 +703,7 @@
                     genderCheckboxMobile.checked = true;
                 }
             }
-            
+
             if (tipo) {
                 // Marcar el tipo de fragancia correspondiente
                 const decodedTipo = decodeURIComponent(tipo);
@@ -691,13 +718,13 @@
                     typeCheckboxMobile.checked = true;
                 }
             }
-            
+
             if (marca) {
                 // Aplicar el filtro de marca directamente, independientemente de si el checkbox existe
                 const decodedMarca = decodeURIComponent(marca);
                 activeFilters.brand = [decodedMarca];
                 console.log('Filtro de marca aplicado:', decodedMarca, 'Filtros activos:', activeFilters);
-                
+
                 // Intentar encontrar y marcar el checkbox de marca (puede que aún no esté cargado)
                 const brandCheckbox = document.querySelector(`input[name="brand"][value="${decodedMarca}"]`);
                 if (brandCheckbox) {
@@ -708,7 +735,7 @@
                 if (brandCheckboxMobile) {
                     brandCheckboxMobile.checked = true;
                 }
-                
+
                 // Si no se encontró el checkbox, intentar de nuevo después de un pequeño delay
                 // (por si los filtros aún se están cargando)
                 if (!brandCheckbox && !brandCheckboxMobile) {
@@ -732,7 +759,7 @@
             window.scrollTo(0, 0);
             document.documentElement.scrollTop = 0;
             document.body.scrollTop = 0;
-            
+
             // Asegurar que el body esté en la posición correcta
             document.body.style.overflow = 'auto';
             document.documentElement.style.overflow = 'auto';
@@ -744,7 +771,7 @@
         // Cargar productos al iniciar
         function initializePage() {
             resetPageState();
-            
+
             if (typeof db !== 'undefined') {
                 setTimeout(() => {
                     loadProducts();
@@ -761,7 +788,7 @@
         }
 
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('DOMContentLoaded', function () {
                 resetPageState();
                 setTimeout(initializePage, 50);
             });
@@ -769,17 +796,18 @@
             resetPageState();
             setTimeout(initializePage, 50);
         }
-        
+
         // Resetear cuando la página se carga completamente
-        window.addEventListener('load', function() {
+        window.addEventListener('load', function () {
             resetPageState();
         });
-        
+
         // Resetear antes de que la página se descargue (cuando navegas)
-        window.addEventListener('beforeunload', function() {
+        window.addEventListener('beforeunload', function () {
             resetPageState();
         });
     </script>
     {% include 'partials/footer.html' %}
 </body>
+
 </html>

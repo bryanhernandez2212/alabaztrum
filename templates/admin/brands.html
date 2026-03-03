@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,12 +8,13 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
+
 <body class="bg-white admin-body">
     {% include 'partials/navbar-admin.html' %}
 
@@ -21,14 +23,23 @@
             <div class="max-w-7xl mx-auto">
                 <!-- Header -->
                 <div class="mb-8">
-                    <div class="flex items-center justify-between">
+                    <div class="flex items-center justify-between flex-wrap gap-4">
                         <div>
                             <h1 class="text-2xl font-normal text-gray-900">Marcas</h1>
                             <p class="text-sm text-gray-500 mt-1">Gestiona las marcas de perfumes</p>
                         </div>
-                        <a href="/admin/brands/add" class="bg-black hover:bg-gray-800 text-white text-sm font-normal py-2 px-4 rounded-lg transition">
-                            + Agregar marca
-                        </a>
+                        <div class="flex items-center gap-4">
+                            <div class="relative">
+                                <i
+                                    class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"></i>
+                                <input type="text" id="searchInput" placeholder="Buscar marca..."
+                                    class="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 w-64 transition-all">
+                            </div>
+                            <a href="/admin/brands/add"
+                                class="bg-black hover:bg-gray-800 text-white text-sm font-normal py-2 px-4 rounded-lg transition">
+                                + Agregar marca
+                            </a>
+                        </div>
                     </div>
                 </div>
 
@@ -73,13 +84,13 @@
     <script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
     <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
     <script src="{{ url_for('static', filename='js/navbar-admin.js') }}"></script>
-    
+
     <script>
         async function loadBrands() {
             try {
                 const brandsSnapshot = await db.collection('brands').orderBy('name').get();
                 const brandsList = document.getElementById('brandsList');
-                
+
                 if (brandsSnapshot.empty) {
                     brandsList.innerHTML = `
                         <tr>
@@ -96,11 +107,11 @@
                     `;
                     return;
                 }
-                
+
                 brandsList.innerHTML = '';
                 brandsSnapshot.forEach((doc) => {
                     const brand = doc.data();
-                    const imageDisplay = brand.imageUrl 
+                    const imageDisplay = brand.imageUrl
                         ? `<img src="${brand.imageUrl}" alt="${brand.name}" class="w-16 h-16 object-contain rounded border border-gray-200" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                            <div class="w-16 h-16 bg-gray-100 rounded border border-gray-200 flex items-center justify-center" style="display: none;">
                                <i class="fas fa-image text-gray-400"></i>
@@ -108,7 +119,7 @@
                         : `<div class="w-16 h-16 bg-gray-100 rounded border border-gray-200 flex items-center justify-center">
                                <i class="fas fa-image text-gray-400"></i>
                            </div>`;
-                    
+
                     const row = document.createElement('tr');
                     row.className = 'hover:bg-gray-50 transition';
                     row.innerHTML = `
@@ -147,21 +158,21 @@
             }
         }
 
-        window.deleteBrand = async function(brandId) {
+        window.deleteBrand = async function (brandId) {
             if (!confirm('¿Estás seguro de que quieres eliminar esta marca?')) {
                 return;
             }
-            
+
             try {
                 await db.collection('brands').doc(brandId).delete();
                 await loadBrands();
-                
+
                 const messageDiv = document.getElementById('message');
                 if (messageDiv) {
                     messageDiv.className = 'mb-4 p-3 rounded-lg text-sm bg-green-100 text-green-700 border border-green-200';
                     messageDiv.textContent = 'Marca eliminada exitosamente';
                     messageDiv.classList.remove('hidden');
-                    
+
                     setTimeout(() => {
                         messageDiv.classList.add('hidden');
                     }, 3000);
@@ -174,6 +185,24 @@
 
         window.loadBrands = loadBrands;
 
+        // Búsqueda en tiempo real
+        document.getElementById('searchInput').addEventListener('input', function (e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#brandsList tr');
+
+            rows.forEach(row => {
+                if (row.cells.length === 1 && row.cells[0].colSpan > 1) return;
+
+                const name = row.cells[1] ? row.cells[1].textContent.toLowerCase() : '';
+
+                if (name.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
         if (typeof db !== 'undefined') {
             auth.onAuthStateChanged((user) => {
                 if (user) {
@@ -181,7 +210,7 @@
                 }
             });
         } else {
-            document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('DOMContentLoaded', function () {
                 setTimeout(() => {
                     if (typeof db !== 'undefined' && typeof auth !== 'undefined') {
                         auth.onAuthStateChanged((user) => {
@@ -195,4 +224,5 @@
         }
     </script>
 </body>
+
 </html>

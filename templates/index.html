@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,43 +8,47 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
+
 <body class="bg-white home-page">
     {% include 'partials/navbar.html' %}
 
     <!-- Área principal con imagen -->
     <main class="w-full home-main bg-white">
-        <img 
-            src="{{ url_for('static', filename='images/perfumes.png') }}" 
-            alt="Perfumes ALABAZTRUM" 
-            class="w-full h-auto object-cover block home-image"
-        >
-        
+        <img src="{{ url_for('static', filename='images/perfumes.png') }}" alt="Perfumes ALABAZTRUM"
+            class="w-full h-auto object-cover block home-image">
+
         <!-- Sección Hero con texto -->
         <section class="py-20 md:py-28 bg-gradient-to-b from-white via-gray-50 to-white">
             <div class="container mx-auto px-4">
                 <div class="text-center max-w-4xl mx-auto fade-in">
-                    <p class="text-sm md:text-base font-medium text-gray-500 uppercase tracking-wider mb-4 letter-spacing-wide">
+                    <p
+                        class="text-sm md:text-base font-medium text-gray-500 uppercase tracking-wider mb-4 letter-spacing-wide">
                         Bienvenido a
                     </p>
                     <h2 class="text-5xl md:text-7xl font-light text-gray-900 mb-6 leading-tight elegant-title">
                         Descubre tu Fragancia<br class="hidden md:block"> <span class="font-normal">Perfecta</span>
                     </h2>
                     <div class="w-24 h-px bg-gray-300 mx-auto mb-8"></div>
-                    <p class="text-base md:text-lg text-gray-500 mb-10 leading-relaxed max-w-2xl mx-auto font-light elegant-text">
-                        En ALABAZTRUM encontrarás una selección exclusiva de perfumes y fragancias de las mejores marcas. 
-                        Desde clásicos atemporales hasta las últimas novedades, cada fragancia cuenta una historia única.
+                    <p
+                        class="text-base md:text-lg text-gray-500 mb-10 leading-relaxed max-w-2xl mx-auto font-light elegant-text">
+                        En ALABAZTRUM encontrarás una selección exclusiva de perfumes y fragancias de las mejores
+                        marcas.
+                        Desde clásicos atemporales hasta las últimas novedades, cada fragancia cuenta una historia
+                        única.
                     </p>
                     <div class="flex flex-wrap justify-center gap-4">
-                        <a href="/fragancias" class="px-10 py-4 bg-gray-900 hover:bg-gray-800 text-white font-light tracking-wide rounded-sm transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-xl uppercase text-sm letter-spacing-wide">
+                        <a href="/fragancias"
+                            class="px-10 py-4 bg-gray-900 hover:bg-gray-800 text-white font-light tracking-wide rounded-sm transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-xl uppercase text-sm letter-spacing-wide">
                             Explorar Fragancias
                         </a>
-                        <a href="/decants" class="px-10 py-4 bg-transparent hover:bg-gray-50 text-gray-900 font-light tracking-wide rounded-sm border border-gray-300 hover:border-gray-900 transition-all duration-300 transform hover:scale-105 uppercase text-sm letter-spacing-wide">
+                        <a href="/decants"
+                            class="px-10 py-4 bg-transparent hover:bg-gray-50 text-gray-900 font-light tracking-wide rounded-sm border border-gray-300 hover:border-gray-900 transition-all duration-300 transform hover:scale-105 uppercase text-sm letter-spacing-wide">
                             Ver Decants
                         </a>
                     </div>
@@ -102,7 +107,8 @@
                         Las mejores marcas de perfumería en un solo lugar
                     </p>
                 </div>
-                <div id="featured-brands" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 max-w-6xl mx-auto">
+                <div id="featured-brands"
+                    class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 max-w-6xl mx-auto">
                     <div class="col-span-full text-center py-12">
                         <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
                         <p class="text-gray-600 mt-4">Cargando marcas...</p>
@@ -115,32 +121,45 @@
         <section class="py-20 bg-white border-t border-gray-100">
             <div class="container mx-auto px-4">
                 <div class="text-center mb-12 fade-in">
-                    <p class="text-xs md:text-sm font-medium text-gray-400 uppercase tracking-widest mb-2 letter-spacing-wide">
+                    <p
+                        class="text-xs md:text-sm font-medium text-gray-400 uppercase tracking-widest mb-2 letter-spacing-wide">
                         Nuestro Compromiso
                     </p>
                     <div class="w-16 h-px bg-gray-300 mx-auto"></div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-5xl mx-auto">
                     <div class="text-center fade-in feature-delay-1">
-                        <div class="w-16 h-16 flex items-center justify-center mx-auto mb-6 transform hover:scale-110 transition-transform duration-300">
+                        <div
+                            class="w-16 h-16 flex items-center justify-center mx-auto mb-6 transform hover:scale-110 transition-transform duration-300">
                             <i class="fas fa-shipping-fast text-3xl text-gray-700"></i>
                         </div>
-                        <h3 class="text-lg font-light text-gray-900 mb-3 tracking-wide uppercase text-sm letter-spacing-wide">Envío Rápido</h3>
-                        <p class="text-sm text-gray-500 font-light leading-relaxed">Recibe tus fragancias favoritas en tiempo récord</p>
+                        <h3
+                            class="text-lg font-light text-gray-900 mb-3 tracking-wide uppercase text-sm letter-spacing-wide">
+                            Envío Rápido</h3>
+                        <p class="text-sm text-gray-500 font-light leading-relaxed">Recibe tus fragancias favoritas en
+                            tiempo récord</p>
                     </div>
                     <div class="text-center fade-in feature-delay-2">
-                        <div class="w-16 h-16 flex items-center justify-center mx-auto mb-6 transform hover:scale-110 transition-transform duration-300">
+                        <div
+                            class="w-16 h-16 flex items-center justify-center mx-auto mb-6 transform hover:scale-110 transition-transform duration-300">
                             <i class="fas fa-shield-alt text-3xl text-gray-700"></i>
                         </div>
-                        <h3 class="text-lg font-light text-gray-900 mb-3 tracking-wide uppercase text-sm letter-spacing-wide">Productos Auténticos</h3>
-                        <p class="text-sm text-gray-500 font-light leading-relaxed">Garantizamos la autenticidad de todas nuestras fragancias</p>
+                        <h3
+                            class="text-lg font-light text-gray-900 mb-3 tracking-wide uppercase text-sm letter-spacing-wide">
+                            Productos Auténticos</h3>
+                        <p class="text-sm text-gray-500 font-light leading-relaxed">Garantizamos la autenticidad de
+                            todas nuestras fragancias</p>
                     </div>
                     <div class="text-center fade-in feature-delay-3">
-                        <div class="w-16 h-16 flex items-center justify-center mx-auto mb-6 transform hover:scale-110 transition-transform duration-300">
+                        <div
+                            class="w-16 h-16 flex items-center justify-center mx-auto mb-6 transform hover:scale-110 transition-transform duration-300">
                             <i class="fas fa-headset text-3xl text-gray-700"></i>
                         </div>
-                        <h3 class="text-lg font-light text-gray-900 mb-3 tracking-wide uppercase text-sm letter-spacing-wide">Atención Personalizada</h3>
-                        <p class="text-sm text-gray-500 font-light leading-relaxed">Nuestro equipo está listo para ayudarte a encontrar tu fragancia ideal</p>
+                        <h3
+                            class="text-lg font-light text-gray-900 mb-3 tracking-wide uppercase text-sm letter-spacing-wide">
+                            Atención Personalizada</h3>
+                        <p class="text-sm text-gray-500 font-light leading-relaxed">Nuestro equipo está listo para
+                            ayudarte a encontrar tu fragancia ideal</p>
                     </div>
                 </div>
             </div>
@@ -164,7 +183,9 @@
                     </div>
                 </div>
                 <div class="text-center mt-8">
-                    <a href="/profile" onclick="event.preventDefault(); if(typeof showTab === 'function') { window.location.href='/profile'; setTimeout(() => showTab('reviews'), 500); } else { window.location.href='/profile'; }" class="inline-block text-gray-600 hover:text-gray-900 transition">
+                    <a href="/profile"
+                        onclick="event.preventDefault(); if(typeof showTab === 'function') { window.location.href='/profile'; setTimeout(() => showTab('reviews'), 500); } else { window.location.href='/profile'; }"
+                        class="inline-block text-gray-600 hover:text-gray-900 transition">
                         <i class="fas fa-star mr-2"></i>
                         Deja tu reseña
                     </a>
@@ -177,13 +198,8 @@
     {% include 'partials/footer.html' %}
 
     <!-- Botón flotante de WhatsApp -->
-    <a 
-        href="https://wa.me/9191936256" 
-        target="_blank" 
-        rel="noopener"
-        class="whatsapp-float"
-        aria-label="Contactar por WhatsApp"
-    >
+    <a href="https://wa.me/9191936256" target="_blank" rel="noopener" class="whatsapp-float"
+        aria-label="Contactar por WhatsApp">
         <i class="fab fa-whatsapp"></i>
     </a>
 
@@ -193,7 +209,7 @@
     <script src="{{ url_for('static', filename='js/auth-manager.js') }}"></script>
     <script src="{{ url_for('static', filename='js/navbar-auth.js') }}"></script>
     <script src="{{ url_for('static', filename='js/navbar-persistent.js') }}"></script>
-    
+
     <script>
         // Cargar productos populares y recomendados
         async function loadHomeProducts() {
@@ -212,10 +228,14 @@
                     .where('isDecant', '==', false)
                     .limit(30)
                     .get();
-                
+
                 const products = [];
                 productsSnapshot.forEach((doc) => {
                     const product = doc.data();
+
+                    // Filtrar productos sin stock
+                    if (product.stock !== undefined && Number(product.stock) === 0) return;
+
                     products.push({
                         id: doc.id,
                         ...product
@@ -224,17 +244,17 @@
 
                 // Mostrar productos populares (primeros 8)
                 displayProducts(products.slice(0, 8), 'popular-products');
-                
+
                 // Mostrar productos recomendados (siguientes 8 o mezclados)
                 const recommended = products.length > 8 ? products.slice(8, 16) : products.slice(0, 8);
                 displayProducts(recommended, 'recommended-products');
-                
+
                 // Cargar marcas destacadas desde la colección de marcas
                 loadFeaturedBrands();
-                
+
                 // Cargar reseñas del sitio
                 loadSiteReviews();
-                
+
             } catch (error) {
                 const unauth = (typeof auth !== 'undefined') ? !isAuthenticated() : true;
                 const permErr = error && (error.code === 'permission-denied' || (String(error).toLowerCase().includes('insufficient permissions')));
@@ -265,7 +285,7 @@
 
         function displayProducts(products, containerId) {
             const container = document.getElementById(containerId);
-            
+
             if (!products || products.length === 0) {
                 container.innerHTML = `
                     <div class="col-span-full text-center py-12">
@@ -276,11 +296,15 @@
             }
 
             container.innerHTML = products.map((product, index) => {
-                const imageUrl = product.images && product.images.length > 0 
-                    ? product.images[0] 
+                const imageUrl = product.images && product.images.length > 0
+                    ? product.images[0]
                     : 'https://via.placeholder.com/300x300?text=Sin+Imagen';
-                
-                const price = product.price ? `$${parseFloat(product.price).toFixed(2)}` : 'Precio no disponible';
+
+                let price = 'Precio no disponible';
+                if (product.price) {
+                    const parts = parseFloat(product.price).toFixed(2).split('.');
+                    price = `$${parts[0]}<span class="text-sm">.${parts[1]}</span>`;
+                }
                 const stock = product.stock !== undefined ? parseInt(product.stock) : 0;
                 const stockClass = stock === 0 ? 'bg-red-100 text-red-800' : stock < 10 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800';
                 const stockText = stock === 0 ? 'Agotado' : stock < 10 ? `Últimas ${stock}` : 'Disponible';
@@ -320,7 +344,7 @@
                     </div>
                 `;
             }).join('');
-            
+
             // Verificar favoritos después de renderizar
             checkFavorites(products.map(p => p.id));
         }
@@ -339,7 +363,7 @@
                     .get();
 
                 const reviewsContainer = document.getElementById('reviews-container');
-                
+
                 if (reviewsSnapshot.empty) {
                     reviewsContainer.innerHTML = `
                         <div class="col-span-full text-center py-12 text-gray-500">
@@ -368,10 +392,10 @@
 
                 reviewsContainer.innerHTML = reviews.map(review => {
                     const date = review.createdAt?.toDate?.() || new Date();
-                    const formattedDate = date.toLocaleDateString('es-ES', { 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
+                    const formattedDate = date.toLocaleDateString('es-ES', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
                     });
 
                     // Generar estrellas
@@ -421,16 +445,16 @@
         async function loadFeaturedBrands() {
             const container = document.getElementById('featured-brands');
             if (!container) return;
-            
+
             try {
                 if (typeof db === 'undefined') {
                     setTimeout(loadFeaturedBrands, 500);
                     return;
                 }
-                
+
                 // Cargar marcas desde la colección de marcas
                 const brandsSnapshot = await db.collection('brands').orderBy('name').limit(12).get();
-                
+
                 if (brandsSnapshot.empty) {
                     container.innerHTML = `
                         <div class="col-span-full text-center py-12">
@@ -439,7 +463,7 @@
                     `;
                     return;
                 }
-                
+
                 const brands = [];
                 brandsSnapshot.forEach((doc) => {
                     const brand = doc.data();
@@ -449,9 +473,9 @@
                         imageUrl: brand.imageUrl || null
                     });
                 });
-                
+
                 container.innerHTML = brands.map((brand, index) => {
-                    const imageDisplay = brand.imageUrl 
+                    const imageDisplay = brand.imageUrl
                         ? `<div class="w-full h-full rounded-full overflow-hidden flex items-center justify-center bg-white absolute inset-0">
                                <img src="${brand.imageUrl}" alt="${brand.name}" class="max-w-full max-h-full w-auto h-auto object-contain" style="padding: 20%;" onerror="this.style.display='none'; this.parentElement.querySelector('.brand-placeholder').style.display='flex';">
                                <div class="brand-placeholder w-full h-full bg-gray-100 rounded-full flex items-center justify-center absolute inset-0" style="display: none;">
@@ -461,7 +485,7 @@
                         : `<div class="w-full h-full bg-gray-100 rounded-full flex items-center justify-center absolute inset-0">
                                <i class="fas fa-image text-gray-400 text-2xl"></i>
                            </div>`;
-                    
+
                     return `
                         <div class="brand-card fade-in" style="animation-delay: ${index * 0.05}s;">
                             <a href="/fragancias?marca=${encodeURIComponent(brand.name)}" class="block" title="${brand.name}">
@@ -491,7 +515,7 @@
 
                 const userId = auth.currentUser.uid;
                 const favoriteProductIds = new Set();
-                
+
                 // Firestore 'in' acepta máximo 10 valores; dividir en chunks
                 const chunkSize = 10;
                 for (let i = 0; i < productIds.length; i += chunkSize) {
@@ -547,7 +571,7 @@
                 const userId = user.uid;
                 const button = event.currentTarget;
                 const icon = button.querySelector('i');
-                
+
                 // Verificar si ya está en favoritos
                 const favoritesSnapshot = await db.collection('favorites')
                     .where('userId', '==', userId)
@@ -558,7 +582,7 @@
                     // Eliminar de favoritos
                     const favoriteDoc = favoritesSnapshot.docs[0];
                     await db.collection('favorites').doc(favoriteDoc.id).delete();
-                    
+
                     icon.classList.remove('text-red-500');
                     icon.classList.add('text-gray-400');
                     button.setAttribute('title', 'Agregar a favoritos');
@@ -569,7 +593,7 @@
                         productId: productId,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
-                    
+
                     icon.classList.remove('text-gray-400');
                     icon.classList.add('text-red-500');
                     button.setAttribute('title', 'Quitar de favoritos');
@@ -581,7 +605,7 @@
         }
 
         // Cargar productos cuando Firebase esté listo
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             setTimeout(() => {
                 if (typeof db !== 'undefined') {
                     loadHomeProducts();
@@ -597,4 +621,5 @@
         }
     </script>
 </body>
+
 </html>

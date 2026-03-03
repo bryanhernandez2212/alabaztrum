@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,12 +8,13 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
+
 <body class="bg-white">
     {% include 'partials/navbar.html' %}
 
@@ -48,7 +50,8 @@
                         </div>
                         <p class="text-gray-600 font-medium text-lg mb-2">No se encontraron productos</p>
                         <p class="text-gray-500 text-sm mb-6">Intenta con otros términos de búsqueda</p>
-                        <a href="/fragancias" class="inline-block bg-gray-900 hover:bg-gray-800 text-white font-semibold py-3 px-6 rounded-lg transition">
+                        <a href="/fragancias"
+                            class="inline-block bg-gray-900 hover:bg-gray-800 text-white font-semibold py-3 px-6 rounded-lg transition">
                             Ver Todas las Fragancias
                         </a>
                     </div>
@@ -65,7 +68,7 @@
     <script src="{{ url_for('static', filename='js/auth-manager.js') }}"></script>
     <script src="{{ url_for('static', filename='js/navbar-auth.js') }}"></script>
     <script src="{{ url_for('static', filename='js/navbar-persistent.js') }}"></script>
-    
+
     <script>
         // Obtener query de la URL
         const urlParams = new URLSearchParams(window.location.search);
@@ -94,26 +97,31 @@
                 }
 
                 const queryLower = query.toLowerCase().trim();
-                
+
                 // Buscar en Firestore
                 const productsSnapshot = await db.collection('products').get();
-                
+
                 const matchingProducts = [];
-                
+
                 productsSnapshot.forEach((doc) => {
+                    const data = doc.data();
+
+                    // Filtrar productos sin stock
+                    if (data.stock !== undefined && Number(data.stock) === 0) return;
+
                     const product = {
                         id: doc.id,
-                        ...doc.data()
+                        ...data
                     };
-                    
+
                     // Buscar en nombre, marca, descripción, tipo de fragancia
                     const name = (product.name || '').toLowerCase();
                     const brand = (product.brand || '').toLowerCase();
                     const description = (product.description || '').toLowerCase();
                     const fragranceType = (product.fragranceType || '').toLowerCase();
-                    
-                    if (name.includes(queryLower) || 
-                        brand.includes(queryLower) || 
+
+                    if (name.includes(queryLower) ||
+                        brand.includes(queryLower) ||
                         description.includes(queryLower) ||
                         fragranceType.includes(queryLower)) {
                         matchingProducts.push(product);
@@ -133,7 +141,7 @@
         function displayResults(products, query) {
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('results-container').classList.remove('hidden');
-            
+
             const productsGrid = document.getElementById('products-grid');
             const resultsCount = document.getElementById('results-count');
             const noResults = document.getElementById('no-results');
@@ -152,10 +160,10 @@
                     const commentsSnapshot = await db.collection('comments')
                         .where('productId', '==', product.id)
                         .get();
-                    
+
                     let totalRating = 0;
                     let ratingCount = 0;
-                    
+
                     commentsSnapshot.forEach((doc) => {
                         const comment = doc.data();
                         if (comment.rating) {
@@ -163,7 +171,7 @@
                             ratingCount++;
                         }
                     });
-                    
+
                     const averageRating = ratingCount > 0 ? (totalRating / ratingCount) : 0;
                     product.averageRating = averageRating;
                     product.ratingCount = ratingCount;
@@ -176,18 +184,18 @@
 
             // Renderizar productos
             productsGrid.innerHTML = products.map(product => {
-                const imageUrl = product.images && product.images.length > 0 
-                    ? product.images[0] 
+                const imageUrl = product.images && product.images.length > 0
+                    ? product.images[0]
                     : 'https://via.placeholder.com/300x300?text=No+Image';
-                
+
                 const averageRating = product.averageRating || 0;
                 const ratingCount = product.ratingCount || 0;
-                
+
                 // Generar estrellas
                 let starsHtml = '';
                 const fullStars = Math.floor(averageRating);
                 const hasHalfStar = averageRating % 1 >= 0.5;
-                
+
                 for (let i = 1; i <= 5; i++) {
                     if (i <= fullStars) {
                         starsHtml += '<i class="fas fa-star text-yellow-400 text-xs"></i>';
@@ -214,7 +222,7 @@
                                 </div>
                             ` : ''}
                             <div class="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
-                                <span class="text-xl font-bold text-gray-900">$${product.price ? product.price.toFixed(2) : '0.00'}</span>
+                                <span class="text-xl font-bold text-gray-900">$${product.price ? parseFloat(product.price).toFixed(2).split('.')[0] + '<span class="text-sm">.' + parseFloat(product.price).toFixed(2).split('.')[1] + '</span>' : '0<span class="text-sm">.00</span>'}</span>
                             </div>
                         </div>
                     </a>
@@ -233,4 +241,5 @@
         }
     </script>
 </body>
+
 </html>

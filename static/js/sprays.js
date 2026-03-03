@@ -18,12 +18,16 @@ async function loadProducts() {
 
         // Cargar todos los productos y filtrar por tipo de fragancia "sprays" o "Sprays"
         const productsSnapshot = await db.collection('products').orderBy('name').get();
-        
+
         allProducts = [];
         const brandsSet = new Set();
-        
+
         productsSnapshot.forEach((doc) => {
             const product = doc.data();
+
+            // Filtrar productos sin stock
+            if (product.stock !== undefined && Number(product.stock) === 0) return;
+
             // Filtrar productos que tengan fragranceType igual a "sprays" o "Sprays" (case insensitive)
             const fragranceType = product.fragranceType ? product.fragranceType.toLowerCase() : '';
             if (fragranceType === 'sprays') {
@@ -31,7 +35,7 @@ async function loadProducts() {
                     id: doc.id,
                     ...product
                 });
-                
+
                 if (product.brand) brandsSet.add(product.brand);
             }
         });
@@ -101,7 +105,7 @@ function loadFilters() {
 
     // Agregar event listeners a los checkboxes
     document.querySelectorAll('.filter-checkbox, .filter-checkbox-mobile').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
+        checkbox.addEventListener('change', function () {
             syncCheckboxes(this);
             updateFilters();
         });
@@ -109,10 +113,10 @@ function loadFilters() {
 
     // Event listener para los checkboxes de género (desktop y móvil)
     document.querySelectorAll('input[name="gender"], input[name="gender-mobile"]').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
+        checkbox.addEventListener('change', function () {
             const isMobile = this.name === 'gender-mobile';
             const otherName = isMobile ? 'gender' : 'gender-mobile';
-            
+
             if (this.value === 'all' && this.checked) {
                 document.querySelectorAll(`input[name="${this.name}"]:not([value="all"])`).forEach(cb => cb.checked = false);
                 document.querySelectorAll(`input[name="${otherName}"]:not([value="all"])`).forEach(cb => cb.checked = false);
@@ -135,7 +139,7 @@ function syncCheckboxes(checkbox) {
     const name = checkbox.name;
     const value = checkbox.value;
     const isChecked = checkbox.checked;
-    
+
     if (name.includes('-mobile')) {
         const desktopName = name.replace('-mobile', '');
         const desktopCheckbox = document.querySelector(`input[name="${desktopName}"][value="${value}"]`);
@@ -173,7 +177,7 @@ function updateFilters() {
 // Mostrar productos
 function displayProducts() {
     const container = document.getElementById('products-container');
-    
+
     if (allProducts.length === 0) {
         container.innerHTML = `
             <div class="col-span-full text-center py-12">
@@ -224,14 +228,14 @@ function displayProducts() {
     }
 
     container.innerHTML = filteredProducts.map(product => {
-        const imageUrl = product.images && product.images.length > 0 
-            ? product.images[0] 
+        const imageUrl = product.images && product.images.length > 0
+            ? product.images[0]
             : 'https://via.placeholder.com/300x300?text=No+Image';
-        
-        const genderBadge = product.gender === 'hombre' 
+
+        const genderBadge = product.gender === 'hombre'
             ? '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">Hombre</span>'
             : '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-pink-50 text-pink-700 border border-pink-100">Mujer</span>';
-        
+
         const sprayBadge = product.fragranceType && product.fragranceType.toLowerCase() === 'sprays'
             ? `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-100">Spray</span>`
             : '';
@@ -250,7 +254,7 @@ function displayProducts() {
                         ${sprayBadge}
                     </div>
                     <div class="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
-                        <span class="text-xl font-bold text-gray-900">$${product.price ? product.price.toFixed(2) : '0.00'}</span>
+                        <span class="text-xl font-bold text-gray-900">$${product.price ? parseFloat(product.price).toFixed(2).split('.')[0] + '<span class="text-sm">.' + parseFloat(product.price).toFixed(2).split('.')[1] + '</span>' : '0<span class="text-sm">.00</span>'}</span>
                     </div>
                 </div>
             </a>
@@ -288,7 +292,7 @@ function resetPageState() {
 // Cargar productos al iniciar
 function initializePage() {
     resetPageState();
-    
+
     if (typeof db !== 'undefined') {
         setTimeout(() => {
             loadProducts();
@@ -306,15 +310,15 @@ function initializePage() {
 
 // Inicialización cuando el DOM está listo
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         resetPageState();
-        
+
         // Toggle del panel de filtros móvil
         const mobileFiltersToggle = document.getElementById('mobile-filters-toggle');
         if (mobileFiltersToggle) {
             mobileFiltersToggle.addEventListener('click', openMobileFilters);
         }
-        
+
         const mobileFiltersClose = document.getElementById('mobile-filters-close');
         if (mobileFiltersClose) {
             mobileFiltersClose.addEventListener('click', closeMobileFilters);
@@ -327,19 +331,19 @@ if (document.readyState === 'loading') {
         // Limpiar filtros (desktop)
         const clearFilters = document.getElementById('clear-filters');
         if (clearFilters) {
-            clearFilters.addEventListener('click', function() {
+            clearFilters.addEventListener('click', function () {
                 document.querySelectorAll('.filter-checkbox, .filter-checkbox-mobile').forEach(cb => cb.checked = false);
                 document.querySelectorAll('input[name="gender"], input[name="gender-mobile"]').forEach(cb => cb.checked = false);
                 const allGenderDesktop = document.querySelector('input[name="gender"][value="all"]');
                 const allGenderMobile = document.querySelector('input[name="gender-mobile"][value="all"]');
                 if (allGenderDesktop) allGenderDesktop.checked = true;
                 if (allGenderMobile) allGenderMobile.checked = true;
-                
+
                 activeFilters = {
                     gender: [],
                     brand: []
                 };
-                
+
                 displayProducts();
             });
         }
@@ -347,34 +351,34 @@ if (document.readyState === 'loading') {
         // Limpiar filtros (móvil)
         const clearFiltersMobile = document.getElementById('clear-filters-mobile');
         if (clearFiltersMobile) {
-            clearFiltersMobile.addEventListener('click', function() {
+            clearFiltersMobile.addEventListener('click', function () {
                 document.querySelectorAll('.filter-checkbox, .filter-checkbox-mobile').forEach(cb => cb.checked = false);
                 document.querySelectorAll('input[name="gender"], input[name="gender-mobile"]').forEach(cb => cb.checked = false);
                 const allGenderDesktop = document.querySelector('input[name="gender"][value="all"]');
                 const allGenderMobile = document.querySelector('input[name="gender-mobile"][value="all"]');
                 if (allGenderDesktop) allGenderDesktop.checked = true;
                 if (allGenderMobile) allGenderMobile.checked = true;
-                
+
                 activeFilters = {
                     gender: [],
                     brand: []
                 };
-                
+
                 displayProducts();
             });
         }
-        
+
         setTimeout(initializePage, 50);
     });
 } else {
     resetPageState();
-    
+
     // Toggle del panel de filtros móvil
     const mobileFiltersToggle = document.getElementById('mobile-filters-toggle');
     if (mobileFiltersToggle) {
         mobileFiltersToggle.addEventListener('click', openMobileFilters);
     }
-    
+
     const mobileFiltersClose = document.getElementById('mobile-filters-close');
     if (mobileFiltersClose) {
         mobileFiltersClose.addEventListener('click', closeMobileFilters);
@@ -387,19 +391,19 @@ if (document.readyState === 'loading') {
     // Limpiar filtros (desktop)
     const clearFilters = document.getElementById('clear-filters');
     if (clearFilters) {
-        clearFilters.addEventListener('click', function() {
+        clearFilters.addEventListener('click', function () {
             document.querySelectorAll('.filter-checkbox, .filter-checkbox-mobile').forEach(cb => cb.checked = false);
             document.querySelectorAll('input[name="gender"], input[name="gender-mobile"]').forEach(cb => cb.checked = false);
             const allGenderDesktop = document.querySelector('input[name="gender"][value="all"]');
             const allGenderMobile = document.querySelector('input[name="gender-mobile"][value="all"]');
             if (allGenderDesktop) allGenderDesktop.checked = true;
             if (allGenderMobile) allGenderMobile.checked = true;
-            
+
             activeFilters = {
                 gender: [],
                 brand: []
             };
-            
+
             displayProducts();
         });
     }
@@ -407,30 +411,30 @@ if (document.readyState === 'loading') {
     // Limpiar filtros (móvil)
     const clearFiltersMobile = document.getElementById('clear-filters-mobile');
     if (clearFiltersMobile) {
-        clearFiltersMobile.addEventListener('click', function() {
+        clearFiltersMobile.addEventListener('click', function () {
             document.querySelectorAll('.filter-checkbox, .filter-checkbox-mobile').forEach(cb => cb.checked = false);
             document.querySelectorAll('input[name="gender"], input[name="gender-mobile"]').forEach(cb => cb.checked = false);
             const allGenderDesktop = document.querySelector('input[name="gender"][value="all"]');
             const allGenderMobile = document.querySelector('input[name="gender-mobile"][value="all"]');
             if (allGenderDesktop) allGenderDesktop.checked = true;
             if (allGenderMobile) allGenderMobile.checked = true;
-            
+
             activeFilters = {
                 gender: [],
                 brand: []
             };
-            
+
             displayProducts();
         });
     }
-    
+
     setTimeout(initializePage, 50);
 }
 
-window.addEventListener('load', function() {
+window.addEventListener('load', function () {
     resetPageState();
 });
 
-window.addEventListener('beforeunload', function() {
+window.addEventListener('beforeunload', function () {
     resetPageState();
 });
