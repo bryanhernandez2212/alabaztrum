@@ -152,397 +152,350 @@
     <script src="{{ url_for('static', filename='js/navbar-persistent.js') }}"></script>
 
     <script>
-        // Variables globales
-        if (typeof currentUser === 'undefined') var currentUser = null;
-        if (typeof orderData === 'undefined') var orderData = null;
-        let loadRetries = 0;
-        const MAX_RETRIES = 10;
+        (function () {
+            'use strict';
 
-        // Obtener ID de orden de la URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const orderId = urlParams.get('orderId');
+            // Variables globales locales al scope
+            let currentUser = null;
+            let orderData = null;
+            let loadRetries = 0;
+            const MAX_RETRIES = 10;
 
-        if (!orderId) {
-            alert('No se encontró información de la orden');
-            window.location.href = '/mis-compras';
-        }
+            // Obtener ID de orden de la URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const orderId = urlParams.get('orderId');
 
-        // Función de inicialización robusta
-        function initPage() {
-            if (typeof auth === 'undefined') {
-                console.log('Esperando Firebase Auth...');
-                setTimeout(initPage, 500);
+            if (!orderId) {
+                alert('No se encontró información de la orden');
+                window.location.href = '/mis-compras';
                 return;
             }
 
-            auth.onAuthStateChanged(async (user) => {
-                if (!user) {
-                    console.log('Usuario no autenticado, redirigiendo...');
-                    window.location.href = '/login';
+            // Función de inicialización robusta
+            function initPage() {
+                if (typeof auth === 'undefined') {
+                    console.log('Esperando Firebase Auth...');
+                    setTimeout(initPage, 500);
                     return;
                 }
 
-                currentUser = user;
-                console.log('Usuario autenticado:', user.uid);
-                await loadOrder();
-            });
-        }
-
-        // Iniciar proceso
-        initPage();
-
-        // Cargar información de la orden
-        async function loadOrder() {
-            try {
-                if (typeof db === 'undefined') {
-                    loadRetries++;
-                    console.log(`Esperando Firestore... Intento ${loadRetries}/${MAX_RETRIES}`);
-
-                    if (loadRetries >= MAX_RETRIES) {
-                        showLoadError('No se pudo conectar con la base de datos. Por favor, recarga la página.');
+                auth.onAuthStateChanged(async (user) => {
+                    if (!user) {
+                        console.log('Usuario no autenticado, redirigiendo...');
+                        window.location.href = '/login';
                         return;
                     }
 
-                    setTimeout(loadOrder, 800);
-                    return;
-                }
-
-                const orderDoc = await db.collection('orders').doc(orderId).get();
-
-                if (!orderDoc.exists) {
-                    alert('Orden no encontrada');
-                    window.location.href = '/mis-compras';
-                    return;
-                }
-
-                orderData = {
-                    id: orderDoc.id,
-                    ...orderDoc.data()
-                };
-
-                // Verificar que la orden pertenece al usuario
-                if (orderData.userId !== currentUser.uid) {
-                    alert('No tienes permiso para ver esta orden');
-                    window.location.href = '/mis-compras';
-                    return;
-                }
-
-                displayOrderInfo();
-
-                // Intentar renderizar la barra
-                try {
-                    renderCustomerTrackingBar(orderData.trackingHistory || [], orderData.status || 'pending');
-                } catch (trError) {
-                    console.error('Error renderizando barra de seguimiento:', trError);
-                }
-
-                document.getElementById('loading').classList.add('hidden');
-                document.getElementById('order-content').classList.remove('hidden');
-
-            } catch (error) {
-                console.error('Error cargando orden:', error);
-                showLoadError(error.message);
-            }
-        }
-
-        function showLoadError(message) {
-            const loadingText = document.querySelector('#loading p');
-            if (loadingText) loadingText.innerHTML = `
-                <span class="text-red-600 font-bold">Error de conexión</span><br>
-                <span class="text-sm text-gray-500">${message}</span><br>
-                <button onclick="location.reload()" class="mt-4 bg-gray-900 text-white px-4 py-2 rounded-lg text-xs hover:bg-black transition">Recargar página</button>
-            `;
-            const loadingIcon = document.querySelector('#loading i');
-            if (loadingIcon) {
-                loadingIcon.classList.remove('fa-spinner', 'fa-spin');
-                loadingIcon.classList.add('fa-exclamation-triangle', 'text-red-500');
-            }
-        }
-
-        // Mostrar información de la orden
-        function displayOrderInfo() {
-            // Número de orden
-            document.getElementById('order-number').textContent = orderData.id.substring(0, 8).toUpperCase();
-
-            // Fecha
-            if (orderData.createdAt) {
-                let date;
-                if (orderData.createdAt.toDate) {
-                    date = orderData.createdAt.toDate();
-                } else if (orderData.createdAt instanceof Date) {
-                    date = orderData.createdAt;
-                } else if (orderData.createdAt.seconds) {
-                    date = new Date(orderData.createdAt.seconds * 1000);
-                } else {
-                    date = new Date(orderData.createdAt);
-                }
-
-                document.getElementById('order-date').textContent = date.toLocaleDateString('es-MX', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
+                    currentUser = user;
+                    console.log('Usuario autenticado:', user.uid);
+                    await loadOrder();
                 });
-            } else {
-                document.getElementById('order-date').textContent = 'Fecha no disponible';
             }
 
-            // Total
-            let subtotal = 0;
-            if (orderData.subtotal !== undefined && orderData.subtotal !== null) {
-                subtotal = parseFloat(orderData.subtotal) || 0;
-            } else if (orderData.items && orderData.items.length > 0) {
-                subtotal = orderData.items.reduce((sum, item) => {
-                    const price = parseFloat(item.price) || 0;
-                    const quantity = parseInt(item.quantity) || 1;
-                    return sum + (price * quantity);
-                }, 0);
-            }
+            // Iniciar proceso
+            initPage();
 
-            const shipping = parseFloat(orderData.shipping) || 0;
-            const total = parseFloat(orderData.total) || (subtotal + shipping);
+            // Cargar información de la orden
+            async function loadOrder() {
+                try {
+                    if (typeof db === 'undefined') {
+                        loadRetries++;
+                        console.log(`Esperando Firestore... Intento ${loadRetries}/${MAX_RETRIES}`);
 
-            document.getElementById('order-subtotal').textContent = `$${subtotal.toFixed(2)}`;
+                        if (loadRetries >= MAX_RETRIES) {
+                            showLoadError('No se pudo conectar con la base de datos. Por favor, recarga la página.');
+                            return;
+                        }
 
-            // Actualizar costo de envío
-            const shippingCostElement = document.getElementById('shipping-cost');
-            if (shipping > 0) {
-                shippingCostElement.textContent = `$${shipping.toFixed(2)}`;
-                shippingCostElement.classList.remove('text-green-600');
-                shippingCostElement.classList.add('text-gray-900');
-            } else {
-                shippingCostElement.textContent = 'Gratis';
-                shippingCostElement.classList.remove('text-gray-900');
-                shippingCostElement.classList.add('text-green-600');
-            }
-
-            document.getElementById('order-total').textContent = `$${total.toFixed(2)}`;
-
-            // Estado
-            const statusElement = document.getElementById('order-status');
-            const status = orderData.status || 'pending';
-            const statusMap = {
-                'pending': { text: 'Pendiente', class: 'bg-yellow-100 text-yellow-800' },
-                'processing': { text: 'En Proceso', class: 'bg-blue-100 text-blue-800' },
-                'shipped': { text: 'Enviado', class: 'bg-purple-100 text-purple-800' },
-                'delivered': { text: 'Entregado', class: 'bg-green-100 text-green-800' },
-                'cancelled': { text: 'Cancelado', class: 'bg-red-100 text-red-800' }
-            };
-
-            const statusInfo = statusMap[status] || { text: status, class: 'bg-gray-100 text-gray-800' };
-            statusElement.textContent = statusInfo.text;
-            statusElement.className = `inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${statusInfo.class}`;
-
-            // Productos
-            const itemsContainer = document.getElementById('order-items-list');
-            if (orderData.items && orderData.items.length > 0) {
-                itemsContainer.innerHTML = orderData.items.map(item => {
-                    // Manejar diferentes formatos de imagen
-                    let imageUrl = 'https://via.placeholder.com/100x100?text=Sin+Imagen';
-                    if (item.images && Array.isArray(item.images) && item.images.length > 0) {
-                        imageUrl = item.images[0];
-                    } else if (item.image) {
-                        imageUrl = item.image;
+                        setTimeout(loadOrder, 800);
+                        return;
                     }
 
-                    const itemPrice = parseFloat(item.price) || 0;
-                    const itemQuantity = parseInt(item.quantity) || 1;
-                    const itemTotal = itemPrice * itemQuantity;
+                    const orderDoc = await db.collection('orders').doc(orderId).get();
 
-                    return `
-                        <div class="flex items-center gap-4 pb-4 border-b border-gray-200 last:border-0">
-                            <img 
-                                src="${imageUrl}" 
-                                alt="${item.name || 'Producto'}"
-                                class="w-20 h-20 object-cover rounded"
-                                onerror="this.src='https://via.placeholder.com/100x100?text=Sin+Imagen'"
-                            >
-                            <div class="flex-1">
-                                <p class="font-medium text-gray-900">${item.name || 'Producto sin nombre'}</p>
-                                ${item.brand ? `<p class="text-sm text-gray-500">${item.brand}</p>` : ''}
-                                <p class="text-sm text-gray-600">Cantidad: ${itemQuantity}</p>
-                                <p class="text-sm text-gray-500 mt-1">Precio unitario: $${itemPrice.toFixed(2)}</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="font-semibold text-gray-900">$${itemTotal.toFixed(2)}</p>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            } else {
-                itemsContainer.innerHTML = '<p class="text-gray-600">No hay productos en esta orden.</p>';
+                    if (!orderDoc.exists) {
+                        alert('Orden no encontrada');
+                        window.location.href = '/mis-compras';
+                        return;
+                    }
+
+                    orderData = {
+                        id: orderDoc.id,
+                        ...orderDoc.data()
+                    };
+
+                    // Verificar que la orden pertenece al usuario
+                    if (orderData.userId !== currentUser.uid) {
+                        alert('No tienes permiso para ver esta orden');
+                        window.location.href = '/mis-compras';
+                        return;
+                    }
+
+                    displayOrderInfo();
+
+                    // Intentar renderizar la barra
+                    try {
+                        renderCustomerTrackingBar(orderData.trackingHistory || [], orderData.status || 'pending');
+                    } catch (trError) {
+                        console.error('Error renderizando barra de seguimiento:', trError);
+                    }
+
+                    document.getElementById('loading').classList.add('hidden');
+                    document.getElementById('order-content').classList.remove('hidden');
+
+                } catch (error) {
+                    console.error('Error cargando orden:', error);
+                    showLoadError(error.message);
+                }
             }
 
-            // Dirección de envío
-            if (orderData.shippingAddress) {
-                const address = orderData.shippingAddress;
-                let addressHTML = '';
+            function showLoadError(message) {
+                const loadingText = document.querySelector('#loading p');
+                if (loadingText) loadingText.innerHTML = `
+                    <span class="text-red-600 font-bold">Error de conexión</span><br>
+                    <span class="text-sm text-gray-500">${message}</span><br>
+                    <button onclick="location.reload()" class="mt-4 bg-gray-900 text-white px-4 py-2 rounded-lg text-xs hover:bg-black transition">Recargar página</button>
+                `;
+                const loadingIcon = document.querySelector('#loading i');
+                if (loadingIcon) {
+                    loadingIcon.classList.remove('fa-spinner', 'fa-spin');
+                    loadingIcon.classList.add('fa-exclamation-triangle', 'text-red-500');
+                }
+            }
 
-                if (address.fullName) {
-                    addressHTML += `<p class="font-medium mb-2">${address.fullName}</p>`;
+            // Mostrar información de la orden
+            function displayOrderInfo() {
+                // Número de orden
+                document.getElementById('order-number').textContent = orderData.id.substring(0, 8).toUpperCase();
+
+                // Fecha
+                if (orderData.createdAt) {
+                    let date;
+                    if (orderData.createdAt.toDate) {
+                        date = orderData.createdAt.toDate();
+                    } else if (orderData.createdAt instanceof Date) {
+                        date = orderData.createdAt;
+                    } else if (orderData.createdAt.seconds) {
+                        date = new Date(orderData.createdAt.seconds * 1000);
+                    } else {
+                        date = new Date(orderData.createdAt);
+                    }
+
+                    document.getElementById('order-date').textContent = date.toLocaleDateString('es-MX', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                } else {
+                    document.getElementById('order-date').textContent = 'Fecha no disponible';
                 }
 
-                if (address.street) {
-                    addressHTML += `<p>${address.street}</p>`;
+                // Total
+                let subtotal = 0;
+                if (orderData.subtotal !== undefined && orderData.subtotal !== null) {
+                    subtotal = parseFloat(orderData.subtotal) || 0;
+                } else if (orderData.items && orderData.items.length > 0) {
+                    subtotal = orderData.items.reduce((sum, item) => {
+                        const price = parseFloat(item.price) || 0;
+                        const quantity = parseInt(item.quantity) || 1;
+                        return sum + (price * quantity);
+                    }, 0);
                 }
 
-                const locationParts = [];
-                if (address.colonia) locationParts.push(address.colonia);
-                if (address.city) locationParts.push(address.city);
-                if (address.state) locationParts.push(address.state);
+                const shipping = parseFloat(orderData.shipping) || 0;
+                const total = parseFloat(orderData.total) || (subtotal + shipping);
 
-                if (locationParts.length > 0) {
-                    addressHTML += `<p>${locationParts.join(', ')}</p>`;
+                document.getElementById('order-subtotal').textContent = `$${subtotal.toFixed(2)}`;
+
+                // Actualizar costo de envío
+                const shippingCostElement = document.getElementById('shipping-cost');
+                if (shipping > 0) {
+                    shippingCostElement.textContent = `$${shipping.toFixed(2)}`;
+                    shippingCostElement.classList.remove('text-green-600');
+                    shippingCostElement.classList.add('text-gray-900');
+                } else {
+                    shippingCostElement.textContent = 'Gratis';
+                    shippingCostElement.classList.remove('text-gray-900');
+                    shippingCostElement.classList.add('text-green-600');
                 }
 
-                if (address.postalCode) {
-                    addressHTML += `<p>CP: ${address.postalCode}</p>`;
+                document.getElementById('order-total').textContent = `$${total.toFixed(2)}`;
+
+                // Estado
+                const statusElement = document.getElementById('order-status');
+                const status = orderData.status || 'pending';
+                const statusMap = {
+                    'pending': { text: 'Pendiente', class: 'bg-yellow-100 text-yellow-800' },
+                    'processing': { text: 'En Proceso', class: 'bg-blue-100 text-blue-800' },
+                    'shipped': { text: 'En Camino', class: 'bg-purple-100 text-purple-800' },
+                    'delivered': { text: 'Entregado', class: 'bg-green-100 text-green-800' },
+                    'cancelled': { text: 'Cancelado', class: 'bg-red-100 text-red-800' }
+                };
+
+                const statusInfo = statusMap[status] || { text: status, class: 'bg-gray-100 text-gray-800' };
+                statusElement.textContent = statusInfo.text;
+                statusElement.className = `inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${statusInfo.class}`;
+
+                // Productos
+                const itemsContainer = document.getElementById('order-items-list');
+                if (orderData.items && orderData.items.length > 0) {
+                    itemsContainer.innerHTML = orderData.items.map(item => {
+                        let imageUrl = 'https://via.placeholder.com/100x100?text=Sin+Imagen';
+                        if (item.images && Array.isArray(item.images) && item.images.length > 0) {
+                            imageUrl = item.images[0];
+                        } else if (item.image) {
+                            imageUrl = item.image;
+                        }
+
+                        const itemPrice = parseFloat(item.price) || 0;
+                        const itemQuantity = parseInt(item.quantity) || 1;
+                        const itemTotal = itemPrice * itemQuantity;
+
+                        return `
+                            <div class="flex items-center gap-4 pb-4 border-b border-gray-200 last:border-0">
+                                <img src="${imageUrl}" alt="${item.name || 'Producto'}" class="w-20 h-20 object-cover rounded" onerror="this.src='https://via.placeholder.com/100x100?text=Sin+Imagen'">
+                                <div class="flex-1">
+                                    <p class="font-medium text-gray-900">${item.name || 'Producto sin nombre'}</p>
+                                    ${item.brand ? `<p class="text-sm text-gray-500">${item.brand}</p>` : ''}
+                                    <p class="text-sm text-gray-600">Cantidad: ${itemQuantity}</p>
+                                    <p class="text-sm text-gray-500 mt-1">Precio unitario: $${itemPrice.toFixed(2)}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-semibold text-gray-900">$${itemTotal.toFixed(2)}</p>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    itemsContainer.innerHTML = '<p class="text-gray-600">No hay productos en esta orden.</p>';
                 }
 
-                if (address.phone) {
-                    addressHTML += `<p>Tel: ${address.phone}</p>`;
-                }
-
-                if (address.references) {
-                    addressHTML += `<p class="mt-2 text-sm italic text-gray-600">Referencias: ${address.references}</p>`;
-                }
-
-                if (addressHTML) {
-                    document.getElementById('shipping-address').innerHTML = addressHTML;
+                // Dirección de envío
+                if (orderData.shippingAddress) {
+                    const address = orderData.shippingAddress;
+                    let addressHTML = '';
+                    if (address.fullName) addressHTML += `<p class="font-medium mb-2">${address.fullName}</p>`;
+                    if (address.street) addressHTML += `<p>${address.street}</p>`;
+                    const locationParts = [];
+                    if (address.colonia) locationParts.push(address.colonia);
+                    if (address.city) locationParts.push(address.city);
+                    if (address.state) locationParts.push(address.state);
+                    if (locationParts.length > 0) addressHTML += `<p>${locationParts.join(', ')}</p>`;
+                    if (address.postalCode) addressHTML += `<p>CP: ${address.postalCode}</p>`;
+                    if (address.phone) addressHTML += `<p>Tel: ${address.phone}</p>`;
+                    if (address.references) addressHTML += `<p class="mt-2 text-sm italic text-gray-600">Referencias: ${address.references}</p>`;
+                    document.getElementById('shipping-address').innerHTML = addressHTML || '<p class="text-gray-600">Dirección no disponible</p>';
                 } else {
                     document.getElementById('shipping-address').innerHTML = '<p class="text-gray-600">Dirección no disponible</p>';
                 }
-            } else {
-                document.getElementById('shipping-address').innerHTML = '<p class="text-gray-600">Dirección no disponible</p>';
+
+                // Método de pago
+                const paymentMethod = orderData.paymentMethod || 'cash';
+                const paymentMethods = {
+                    'cash': { name: 'Pago en Efectivo', icon: 'fa-money-bill-wave', color: 'text-green-600' },
+                    'transfer': { name: 'Transferencia Bancaria', icon: 'fa-university', color: 'text-blue-600' },
+                    'card': { name: 'Tarjeta de Crédito/Débito', icon: 'fa-credit-card', color: 'text-purple-600' }
+                };
+                const method = paymentMethods[paymentMethod] || paymentMethods['cash'];
+                document.getElementById('payment-method-info').innerHTML = `
+                    <div class="flex items-center">
+                        <i class="fas ${method.icon} ${method.color} text-2xl mr-3"></i>
+                        <span class="font-medium">${method.name}</span>
+                    </div>
+                `;
             }
 
-            // Método de pago
-            const paymentMethod = orderData.paymentMethod || 'cash';
-            const paymentMethods = {
-                'cash': { name: 'Pago en Efectivo', icon: 'fa-money-bill-wave', color: 'text-green-600' },
-                'transfer': { name: 'Transferencia Bancaria', icon: 'fa-university', color: 'text-blue-600' },
-                'card': { name: 'Tarjeta de Crédito/Débito', icon: 'fa-credit-card', color: 'text-purple-600' }
-            };
+            function renderCustomerTrackingBar(history, currentStatus) {
+                const statusMap = {
+                    'pending': 'pendiente',
+                    'processing': 'procesando',
+                    'shipped': 'enviado',
+                    'delivered': 'entregado',
+                    'entrega': 'entrega'
+                };
+                const normalizedStatus = statusMap[currentStatus] || currentStatus;
+                const stages = ['pendiente', 'procesando', 'enviado', 'entrega', 'entregado'];
+                const bar = document.getElementById('customerTrackingBar');
+                if (!bar) return;
 
-            const method = paymentMethods[paymentMethod] || paymentMethods['cash'];
-            document.getElementById('payment-method-info').innerHTML = `
-                <div class="flex items-center">
-                    <i class="fas ${method.icon} ${method.color} text-2xl mr-3"></i>
-                    <span class="font-medium">${method.name}</span>
-                </div>
-            `;
-        }
-
-        function renderCustomerTrackingBar(history, currentStatus) {
-            // Normalizar estado actual a los IDs usados en el admin
-            const statusMap = {
-                'pending': 'pendiente',
-                'processing': 'procesando',
-                'shipped': 'enviado',
-                'delivered': 'entregado',
-                'entrega': 'entrega'
-            };
-
-            const normalizedStatus = statusMap[currentStatus] || currentStatus;
-            const stages = ['pendiente', 'procesando', 'enviado', 'entrega', 'entregado'];
-            const bar = document.getElementById('customerTrackingBar');
-            if (!bar) return;
-
-            // Resetear items por si acaso (aunque es una carga única)
-            stages.forEach(s => {
-                const item = document.getElementById(`stage-${s}`);
-                if (item) {
-                    item.classList.remove('active', 'completed');
-                    item.querySelector('.tracking-date').textContent = '--:--';
-                    item.querySelector('.tracking-location').textContent = '';
-                }
-            });
-
-            let lastCompletedIndex = -1;
-
-            history.forEach(point => {
-                const stageIdx = stages.indexOf(point.status);
-                if (stageIdx !== -1) {
-                    const item = document.getElementById(`stage-${stages[stageIdx]}`);
+                stages.forEach(s => {
+                    const item = document.getElementById(`stage-${s}`);
                     if (item) {
-                        item.classList.add('completed');
-                        if (stageIdx > lastCompletedIndex) lastCompletedIndex = stageIdx;
+                        item.classList.remove('active', 'completed');
+                        item.querySelector('.tracking-date').textContent = '--:--';
+                        item.querySelector('.tracking-location').textContent = '';
+                    }
+                });
 
-                        // Actualizar label con el texto descriptivo
-                        if (point.label) {
-                            const labelEl = item.querySelector('.tracking-label');
-                            if (labelEl) labelEl.textContent = point.label;
-                        }
-
-                        // Formatear fecha y hora
-                        if (point.timestamp) {
-                            let date;
-                            if (point.timestamp.toDate) {
-                                date = point.timestamp.toDate();
-                            } else if (point.timestamp instanceof Date) {
-                                date = point.timestamp;
-                            } else if (point.timestamp.seconds) {
-                                date = new Date(point.timestamp.seconds * 1000);
-                            } else {
-                                date = new Date(point.timestamp);
+                let lastCompletedIndex = -1;
+                history.forEach(point => {
+                    const stageIdx = stages.indexOf(point.status);
+                    if (stageIdx !== -1) {
+                        const item = document.getElementById(`stage-${stages[stageIdx]}`);
+                        if (item) {
+                            item.classList.add('completed');
+                            if (stageIdx > lastCompletedIndex) lastCompletedIndex = stageIdx;
+                            if (point.label) {
+                                const labelEl = item.querySelector('.tracking-label');
+                                if (labelEl) labelEl.textContent = point.label;
                             }
-
-                            if (date && !isNaN(date.getTime())) {
-                                const timeStr = date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
-                                const dateStr = date.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit' });
-                                const dateEl = item.querySelector('.tracking-date');
-                                if (dateEl) dateEl.innerHTML = `${timeStr}<br>${dateStr}`;
+                            if (point.timestamp) {
+                                let date;
+                                if (point.timestamp.toDate) date = point.timestamp.toDate();
+                                else if (point.timestamp instanceof Date) date = point.timestamp;
+                                else if (point.timestamp.seconds) date = new Date(point.timestamp.seconds * 1000);
+                                else date = new Date(point.timestamp);
+                                if (date && !isNaN(date.getTime())) {
+                                    const timeStr = date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+                                    const dateStr = date.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit' });
+                                    const dateEl = item.querySelector('.tracking-date');
+                                    if (dateEl) dateEl.innerHTML = `${timeStr}<br>${dateStr}`;
+                                }
+                            }
+                            if (point.location) {
+                                const locEl = item.querySelector('.tracking-location');
+                                if (locEl) locEl.textContent = point.location;
                             }
                         }
-                        if (point.location) {
-                            const locEl = item.querySelector('.tracking-location');
-                            if (locEl) locEl.textContent = point.location;
+                    }
+                });
+
+                const currentIdx = stages.indexOf(normalizedStatus);
+                if (currentIdx !== -1) {
+                    const currentItem = document.getElementById(`stage-${stages[currentIdx]}`);
+                    if (currentItem) {
+                        currentItem.classList.add('active');
+                        if (normalizedStatus === 'pendiente' && !currentItem.classList.contains('completed')) {
+                            currentItem.classList.add('completed');
+                            if (orderData.createdAt) {
+                                const date = orderData.createdAt.toDate ? orderData.createdAt.toDate() : new Date(orderData.createdAt);
+                                if (date && !isNaN(date.getTime())) {
+                                    const timeStr = date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+                                    const dateStr = date.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit' });
+                                    const dateEl = currentItem.querySelector('.tracking-date');
+                                    if (dateEl) dateEl.innerHTML = `${timeStr}<br>${dateStr}`;
+                                }
+                            }
+                        }
+                        if (!currentItem.classList.contains('completed') || normalizedStatus === 'pendiente') {
+                            const labels = {
+                                'pendiente': 'Se acaba de realizar el pago',
+                                'procesando': 'Se está procesando y pronto será enviado',
+                                'enviado': 'El envío está en tránsito',
+                                'entrega': 'Tu paquete está en tránsito de entrega',
+                                'entregado': 'Tu pedido ha sido entregado correctamente'
+                            };
+                            const labelEl = currentItem.querySelector('.tracking-label');
+                            if (labelEl) labelEl.textContent = labels[normalizedStatus] || normalizedStatus;
                         }
                     }
                 }
-            });
-
-            // Marcar el estado actual como activo
-            const currentIdx = stages.indexOf(normalizedStatus);
-            if (currentIdx !== -1) {
-                const currentItem = document.getElementById(`stage-${stages[currentIdx]}`);
-                if (currentItem) {
-                    currentItem.classList.add('active');
-
-                    // Si es el primer punto (pendiente) y no tiene historial, usar la fecha de creación de la orden
-                    if (normalizedStatus === 'pendiente' && !currentItem.classList.contains('completed')) {
-                        currentItem.classList.add('completed');
-                        if (orderData.createdAt) {
-                            const date = orderData.createdAt.toDate ? orderData.createdAt.toDate() : new Date(orderData.createdAt);
-                            if (date && !isNaN(date.getTime())) {
-                                const timeStr = date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
-                                const dateStr = date.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit' });
-                                const dateEl = currentItem.querySelector('.tracking-date');
-                                if (dateEl) dateEl.innerHTML = `${timeStr}<br>${dateStr}`;
-                            }
-                        }
-                    }
-
-                    // Si el estado actual no tiene historial aún, poner el label por defecto
-                    if (!currentItem.classList.contains('completed') || normalizedStatus === 'pendiente') {
-                        const labels = {
-                            'pendiente': 'Se acaba de realizar el pago',
-                            'procesando': 'Se está procesando y pronto será enviado',
-                            'enviado': 'El envío está en tránsito',
-                            'entrega': 'Tu paquete está en tránsito de entrega',
-                            'entregado': 'Tu pedido ha sido entregado correctamente'
-                        };
-                        const labelEl = currentItem.querySelector('.tracking-label');
-                        if (labelEl) labelEl.textContent = labels[normalizedStatus] || normalizedStatus;
-                    }
-                }
+                const progressWidth = lastCompletedIndex >= 0 ? (lastCompletedIndex / (stages.length - 1)) * 80 : 0;
+                bar.parentElement.style.setProperty('--progress-width', `${progressWidth}%`);
             }
-
-            // Calcular ancho de la línea de progreso
-            const progressWidth = lastCompletedIndex >= 0 ? (lastCompletedIndex / (stages.length - 1)) * 80 : 0;
-            bar.parentElement.style.setProperty('--progress-width', `${progressWidth}%`);
-        }
+        })();
     </script>
     {% include 'partials/footer.html' %}
 </body>
