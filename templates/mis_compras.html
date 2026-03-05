@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,13 +8,14 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 </head>
+
 <body class="bg-gray-50">
     {% include 'partials/navbar.html' %}
 
@@ -22,7 +24,7 @@
             <div class="max-w-6xl mx-auto">
                 <div class="bg-white rounded-lg shadow-md p-6">
                     <h1 class="text-2xl font-semibold text-gray-800 mb-6">Mis Compras</h1>
-                    
+
                     <!-- Loading state -->
                     <div id="orders-loading" class="text-center py-12">
                         <div class="flex flex-col items-center">
@@ -39,7 +41,8 @@
                             <i class="fas fa-shopping-bag text-gray-300 text-6xl mb-4"></i>
                             <h3 class="text-xl font-semibold text-gray-900 mb-2">No tienes compras aún</h3>
                             <p class="text-gray-600 mb-6">Cuando realices una compra, aparecerá aquí</p>
-                            <a href="/fragancias" class="inline-block bg-gray-900 hover:bg-gray-800 text-white font-semibold py-3 px-6 rounded-lg transition">
+                            <a href="/fragancias"
+                                class="inline-block bg-gray-900 hover:bg-gray-800 text-white font-semibold py-3 px-6 rounded-lg transition">
                                 Ver Fragancias
                             </a>
                         </div>
@@ -60,7 +63,7 @@
     <script src="{{ url_for('static', filename='js/auth-manager.js') }}"></script>
     <script src="{{ url_for('static', filename='js/navbar-auth.js') }}"></script>
     <script src="{{ url_for('static', filename='js/navbar-persistent.js') }}"></script>
-    
+
     <script>
         if (typeof currentUser === 'undefined') {
             var currentUser = null;
@@ -69,42 +72,40 @@
         // Cargar órdenes del usuario
         async function loadOrders() {
             // Esperar a que auth y db estén disponibles
-            if (typeof auth === 'undefined' || typeof db === 'undefined') {
-                setTimeout(loadOrders, 500);
-                return;
-            }
-
-            if (!currentUser) {
-                // Esperar a que el usuario esté disponible
-                setTimeout(loadOrders, 500);
+            if (typeof auth === 'undefined' || typeof db === 'undefined' || !currentUser) {
+                console.log('Esperando disponibilidad de Auth/DB/User...');
+                setTimeout(loadOrders, 1000);
                 return;
             }
 
             try {
-                document.getElementById('orders-loading').classList.remove('hidden');
-                document.getElementById('orders-empty').classList.add('hidden');
-                document.getElementById('orders-list').classList.add('hidden');
+                const loadingEl = document.getElementById('orders-loading');
+                const emptyEl = document.getElementById('orders-empty');
+                const listEl = document.getElementById('orders-list');
+
+                if (loadingEl) loadingEl.classList.remove('hidden');
+                if (emptyEl) emptyEl.classList.add('hidden');
+                if (listEl) listEl.classList.add('hidden');
 
                 // Buscar órdenes del usuario en Firestore
                 const ordersSnapshot = await db.collection('orders')
                     .where('userId', '==', currentUser.uid)
                     .get();
 
-                document.getElementById('orders-loading').classList.add('hidden');
+                if (loadingEl) loadingEl.classList.add('hidden');
 
                 if (ordersSnapshot.empty) {
-                    document.getElementById('orders-empty').classList.remove('hidden');
+                    if (emptyEl) emptyEl.classList.remove('hidden');
                     return;
                 }
 
-                const ordersList = document.getElementById('orders-list');
-                ordersList.innerHTML = '';
+                if (!listEl) return;
+                listEl.innerHTML = '';
 
-                // Convertir a array y ordenar por fecha (más reciente primero)
                 let orders = [];
                 ordersSnapshot.forEach((doc) => {
-                    const order = doc.data();
-                    const orderDate = order.createdAt?.toDate ? order.createdAt.toDate() : new Date();
+                    const order = doc.id ? { id: doc.id, ...doc.data() } : doc.data();
+                    const orderDate = (order.createdAt && order.createdAt.toDate) ? order.createdAt.toDate() : (order.createdAt ? new Date(order.createdAt) : new Date());
                     orders.push({
                         id: doc.id,
                         data: order,
@@ -119,38 +120,58 @@
                 orders.forEach((orderItem) => {
                     const order = orderItem.data;
                     const orderDate = orderItem.date;
-                    const formattedDate = orderDate.toLocaleDateString('es-ES', { 
-                        day: '2-digit', 
-                        month: '2-digit', 
+                    const formattedDate = orderDate.toLocaleDateString('es-MX', {
+                        day: '2-digit',
+                        month: '2-digit',
                         year: 'numeric',
                         hour: '2-digit',
                         minute: '2-digit'
                     });
 
-                    const total = order.total || order.items?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0;
-                    const status = order.status || 'pending';
-                    
-                    // Mapear estados en inglés a español
+                    // Cálculo robusto del total
+                    let total = 0;
+                    if (typeof order.total === 'number') {
+                        total = order.total;
+                    } else if (order.items && Array.isArray(order.items)) {
+                        total = order.items.reduce((sum, item) => {
+                            const price = parseFloat(item.price) || 0;
+                            const qty = parseInt(item.quantity) || 0;
+                            return sum + (price * qty);
+                        }, 0);
+                        // Añadir envío si existe
+                        total += (parseFloat(order.shipping) || 0);
+                    }
+
+                    const status = (order.status || 'pending').toLowerCase();
+
+                    // Mapear estados (soporta ambos idiomas para evitar errores)
                     const statusMap = {
                         'pending': 'Pendiente',
-                        'processing': 'Procesando',
-                        'shipped': 'Enviado',
+                        'pendiente': 'Pendiente',
+                        'processing': 'En Proceso',
+                        'procesando': 'En Proceso',
+                        'shipped': 'En Camino',
+                        'enviado': 'En Camino',
+                        'entrega': 'En Entrega',
                         'delivered': 'Entregado',
-                        'cancelled': 'Cancelado'
+                        'entregado': 'Entregado',
+                        'cancelled': 'Cancelado',
+                        'cancelado': 'Cancelado'
                     };
-                    
+
                     const statusText = statusMap[status] || status;
                     const statusColors = {
                         'pending': 'bg-yellow-100 text-yellow-800',
-                        'Pendiente': 'bg-yellow-100 text-yellow-800',
+                        'pendiente': 'bg-yellow-100 text-yellow-800',
                         'processing': 'bg-blue-100 text-blue-800',
-                        'Procesando': 'bg-blue-100 text-blue-800',
-                        'shipped': 'bg-purple-100 text-purple-800',
-                        'Enviado': 'bg-purple-100 text-purple-800',
+                        'procesando': 'bg-blue-100 text-blue-800',
+                        'shipped': 'bg-indigo-100 text-indigo-800',
+                        'enviado': 'bg-indigo-100 text-indigo-800',
+                        'entrega': 'bg-purple-100 text-purple-800',
                         'delivered': 'bg-green-100 text-green-800',
-                        'Entregado': 'bg-green-100 text-green-800',
+                        'entregado': 'bg-green-100 text-green-800',
                         'cancelled': 'bg-red-100 text-red-800',
-                        'Cancelado': 'bg-red-100 text-red-800'
+                        'cancelado': 'bg-red-100 text-red-800'
                     };
 
                     const orderCard = document.createElement('div');
@@ -158,11 +179,11 @@
                     orderCard.innerHTML = `
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
                             <div>
-                                <h3 class="text-lg font-semibold text-gray-900 mb-1">Pedido #${orderItem.id.substring(0, 8)}</h3>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-1">Pedido #${orderItem.id.substring(0, 8).toUpperCase()}</h3>
                                 <p class="text-sm text-gray-600">${formattedDate}</p>
                             </div>
                             <div class="mt-2 md:mt-0">
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusColors[status] || statusColors[statusText] || 'bg-gray-100 text-gray-800'}">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusColors[status] || 'bg-gray-100 text-gray-800'}">
                                     ${statusText}
                                 </span>
                             </div>
@@ -172,53 +193,59 @@
                                 <span class="text-sm text-gray-600">${order.items?.length || 0} producto(s)</span>
                                 <span class="text-lg font-bold text-gray-900">$${total.toFixed(2)}</span>
                             </div>
-                            <div class="space-y-2">
+                            <div class="space-y-3">
                                 ${(order.items || []).slice(0, 3).map(item => {
-                                    // Obtener imagen: puede ser item.image (string) o item.images (array)
-                                    const imageUrl = item.images && item.images.length > 0 
-                                        ? item.images[0] 
-                                        : (item.image || 'https://via.placeholder.com/50?text=Sin+Imagen');
-                                    
-                                    return `
+                        const imageUrl = item.images && item.images.length > 0
+                            ? item.images[0]
+                            : (item.image || 'https://via.placeholder.com/50?text=Sin+Imagen');
+
+                        const price = parseFloat(item.price) || 0;
+                        const qty = parseInt(item.quantity) || 1;
+
+                        return `
                                     <div class="flex items-center gap-3 text-sm">
                                         <img src="${imageUrl}" 
-                                             alt="${item.name}" 
+                                             alt="${item.name || 'Producto'}" 
                                              class="w-12 h-12 object-cover rounded"
                                              onerror="this.src='https://via.placeholder.com/50?text=Sin+Imagen'">
                                         <div class="flex-grow">
-                                            <p class="font-medium text-gray-900">${item.name}</p>
-                                            ${item.brand ? `<p class="text-xs text-gray-500">${item.brand}</p>` : ''}
-                                            <p class="text-gray-600">Cantidad: ${item.quantity}</p>
+                                            <p class="font-medium text-gray-900">${item.name || 'Producto'}</p>
+                                            <p class="text-gray-600 text-xs">Cant: ${qty} • $${price.toFixed(2)} c/u</p>
                                         </div>
-                                        <p class="font-semibold text-gray-900">$${(item.price * item.quantity).toFixed(2)}</p>
+                                        <p class="font-semibold text-gray-900">$${(price * qty).toFixed(2)}</p>
                                     </div>
                                     `;
-                                }).join('')}
-                                ${(order.items || []).length > 3 ? `<p class="text-sm text-gray-500 mt-2">+${(order.items || []).length - 3} producto(s) más</p>` : ''}
+                    }).join('')}
+                                ${(order.items || []).length > 3 ? `<p class="text-xs text-blue-600 font-medium mt-2">+${(order.items || []).length - 3} producto(s) adicionales</p>` : ''}
                             </div>
-                            <div class="mt-4 pt-4 border-t border-gray-200">
-                                <a href="/orden-detalle?orderId=${orderItem.id}" class="text-sm text-gray-900 hover:text-gray-700 font-medium inline-flex items-center">
-                                    Ver detalles completos
-                                    <i class="fas fa-arrow-right ml-2"></i>
+                            <div class="mt-5 pt-4 border-t border-gray-200">
+                                <a href="/orden-detalle?orderId=${orderItem.id}" class="text-sm text-gray-900 hover:text-black font-semibold inline-flex items-center transition">
+                                    Ver detalles y seguimiento
+                                    <i class="fas fa-chevron-right ml-2 text-xs"></i>
                                 </a>
                             </div>
                         </div>
                     `;
-                    ordersList.appendChild(orderCard);
+                    listEl.appendChild(orderCard);
                 });
 
-                document.getElementById('orders-list').classList.remove('hidden');
+                listEl.classList.remove('hidden');
             } catch (error) {
                 console.error('Error al cargar órdenes:', error);
-                document.getElementById('orders-loading').classList.add('hidden');
-                document.getElementById('orders-empty').classList.remove('hidden');
-                document.getElementById('orders-empty').innerHTML = `
-                    <div class="flex flex-col items-center">
-                        <i class="fas fa-exclamation-triangle text-red-300 text-6xl mb-4"></i>
-                        <h3 class="text-xl font-semibold text-gray-900 mb-2">Error al cargar compras</h3>
-                        <p class="text-gray-600">Por favor, intenta recargar la página</p>
-                    </div>
-                `;
+                const loadingEl = document.getElementById('orders-loading');
+                const emptyEl = document.getElementById('orders-empty');
+                if (loadingEl) loadingEl.classList.add('hidden');
+                if (emptyEl) {
+                    emptyEl.classList.remove('hidden');
+                    emptyEl.innerHTML = `
+                        <div class="flex flex-col items-center">
+                            <i class="fas fa-exclamation-triangle text-red-300 text-5xl mb-4"></i>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Hubo un problema al cargar tus compras</h3>
+                            <p class="text-gray-600 mb-4">${error.message}</p>
+                            <button onclick="location.reload()" class="bg-gray-900 text-white px-6 py-2 rounded-lg text-sm font-medium">Reintentar</button>
+                        </div>
+                    `;
+                }
             }
         }
 
@@ -235,5 +262,5 @@
     </script>
     {% include 'partials/footer.html' %}
 </body>
-</html>
 
+</html>

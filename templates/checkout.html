@@ -533,6 +533,12 @@
                     shipping: 0,
                     total: cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
                     status: 'pending',
+                    trackingHistory: [{
+                        status: 'pendiente',
+                        label: 'Se acaba de realizar el pago',
+                        timestamp: new Date(),
+                        location: 'Alabaztrum Shop'
+                    }],
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
 

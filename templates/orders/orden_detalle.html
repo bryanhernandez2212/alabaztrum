@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,12 +8,13 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
+
 <body class="bg-gray-50">
     {% include 'partials/navbar.html' %}
 
@@ -40,11 +42,62 @@
                 <div class="bg-white rounded-lg shadow-md p-6">
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
                         <div>
-                            <h1 class="text-2xl font-bold text-gray-900 mb-2">Pedido #<span id="order-number"></span></h1>
+                            <h1 class="text-2xl font-bold text-gray-900 mb-2">Pedido #<span id="order-number"></span>
+                            </h1>
                             <p class="text-gray-600" id="order-date"></p>
                         </div>
                         <div class="mt-4 md:mt-0">
-                            <span id="order-status" class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium"></span>
+                            <span id="order-status"
+                                class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tracking Progress Bar -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-6">Seguimiento del Pedido</h2>
+                    <div class="tracking-wrapper">
+                        <div class="tracking-list" id="customerTrackingBar">
+                            <div class="tracking-item" id="stage-pendiente">
+                                <div class="tracking-icon"><i class="fas fa-box"></i></div>
+                                <div class="tracking-content">
+                                    <span class="tracking-label">Recibido</span>
+                                    <span class="tracking-date">--:--</span>
+                                    <span class="tracking-location"></span>
+                                </div>
+                            </div>
+                            <div class="tracking-item" id="stage-procesando">
+                                <div class="tracking-icon"><i class="fas fa-cog"></i></div>
+                                <div class="tracking-content">
+                                    <span class="tracking-label">Procesando</span>
+                                    <span class="tracking-date">--:--</span>
+                                    <span class="tracking-location"></span>
+                                </div>
+                            </div>
+                            <div class="tracking-item" id="stage-enviado">
+                                <div class="tracking-icon"><i class="fas fa-shipping-fast"></i></div>
+                                <div class="tracking-content">
+                                    <span class="tracking-label">En Camino</span>
+                                    <span class="tracking-date">--:--</span>
+                                    <span class="tracking-location"></span>
+                                </div>
+                            </div>
+                            <div class="tracking-item" id="stage-entrega">
+                                <div class="tracking-icon"><i class="fas fa-map-marker-alt"></i></div>
+                                <div class="tracking-content">
+                                    <span class="tracking-label">En Entrega</span>
+                                    <span class="tracking-date">--:--</span>
+                                    <span class="tracking-location"></span>
+                                </div>
+                            </div>
+                            <div class="tracking-item" id="stage-entregado">
+                                <div class="tracking-icon"><i class="fas fa-check-circle"></i></div>
+                                <div class="tracking-content">
+                                    <span class="tracking-label">Entregado</span>
+                                    <span class="tracking-date">--:--</span>
+                                    <span class="tracking-location"></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -55,7 +108,7 @@
                     <div id="order-items-list" class="space-y-4">
                         <!-- Los productos se cargarán aquí -->
                     </div>
-                    
+
                     <div class="border-t border-gray-200 mt-6 pt-4">
                         <div class="flex justify-between text-gray-600 mb-2">
                             <span>Subtotal</span>
@@ -97,14 +150,13 @@
     <script src="{{ url_for('static', filename='js/auth-manager.js') }}"></script>
     <script src="{{ url_for('static', filename='js/navbar-auth.js') }}"></script>
     <script src="{{ url_for('static', filename='js/navbar-persistent.js') }}"></script>
-    
+
     <script>
-        if (typeof currentUser === 'undefined') {
-            var currentUser = null;
-        }
-        if (typeof orderData === 'undefined') {
-            var orderData = null;
-        }
+        // Variables globales
+        if (typeof currentUser === 'undefined') var currentUser = null;
+        if (typeof orderData === 'undefined') var orderData = null;
+        let loadRetries = 0;
+        const MAX_RETRIES = 10;
 
         // Obtener ID de orden de la URL
         const urlParams = new URLSearchParams(window.location.search);
@@ -115,27 +167,48 @@
             window.location.href = '/mis-compras';
         }
 
-        // Verificar autenticación y cargar orden
-        auth.onAuthStateChanged(async (user) => {
-            if (!user) {
-                window.location.href = '/login';
+        // Función de inicialización robusta
+        function initPage() {
+            if (typeof auth === 'undefined') {
+                console.log('Esperando Firebase Auth...');
+                setTimeout(initPage, 500);
                 return;
             }
 
-            currentUser = user;
-            await loadOrder();
-        });
+            auth.onAuthStateChanged(async (user) => {
+                if (!user) {
+                    console.log('Usuario no autenticado, redirigiendo...');
+                    window.location.href = '/login';
+                    return;
+                }
+
+                currentUser = user;
+                console.log('Usuario autenticado:', user.uid);
+                await loadOrder();
+            });
+        }
+
+        // Iniciar proceso
+        initPage();
 
         // Cargar información de la orden
         async function loadOrder() {
             try {
                 if (typeof db === 'undefined') {
-                    setTimeout(loadOrder, 500);
+                    loadRetries++;
+                    console.log(`Esperando Firestore... Intento ${loadRetries}/${MAX_RETRIES}`);
+
+                    if (loadRetries >= MAX_RETRIES) {
+                        showLoadError('No se pudo conectar con la base de datos. Por favor, recarga la página.');
+                        return;
+                    }
+
+                    setTimeout(loadOrder, 800);
                     return;
                 }
 
                 const orderDoc = await db.collection('orders').doc(orderId).get();
-                
+
                 if (!orderDoc.exists) {
                     alert('Orden no encontrada');
                     window.location.href = '/mis-compras';
@@ -155,11 +228,34 @@
                 }
 
                 displayOrderInfo();
+
+                // Intentar renderizar la barra
+                try {
+                    renderCustomerTrackingBar(orderData.trackingHistory || [], orderData.status || 'pending');
+                } catch (trError) {
+                    console.error('Error renderizando barra de seguimiento:', trError);
+                }
+
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('order-content').classList.remove('hidden');
+
             } catch (error) {
                 console.error('Error cargando orden:', error);
-                alert('Error al cargar la información de la orden');
+                showLoadError(error.message);
+            }
+        }
+
+        function showLoadError(message) {
+            const loadingText = document.querySelector('#loading p');
+            if (loadingText) loadingText.innerHTML = `
+                <span class="text-red-600 font-bold">Error de conexión</span><br>
+                <span class="text-sm text-gray-500">${message}</span><br>
+                <button onclick="location.reload()" class="mt-4 bg-gray-900 text-white px-4 py-2 rounded-lg text-xs hover:bg-black transition">Recargar página</button>
+            `;
+            const loadingIcon = document.querySelector('#loading i');
+            if (loadingIcon) {
+                loadingIcon.classList.remove('fa-spinner', 'fa-spin');
+                loadingIcon.classList.add('fa-exclamation-triangle', 'text-red-500');
             }
         }
 
@@ -167,7 +263,7 @@
         function displayOrderInfo() {
             // Número de orden
             document.getElementById('order-number').textContent = orderData.id.substring(0, 8).toUpperCase();
-            
+
             // Fecha
             if (orderData.createdAt) {
                 let date;
@@ -180,7 +276,7 @@
                 } else {
                     date = new Date(orderData.createdAt);
                 }
-                
+
                 document.getElementById('order-date').textContent = date.toLocaleDateString('es-MX', {
                     year: 'numeric',
                     month: 'long',
@@ -191,7 +287,7 @@
             } else {
                 document.getElementById('order-date').textContent = 'Fecha no disponible';
             }
-            
+
             // Total
             let subtotal = 0;
             if (orderData.subtotal !== undefined && orderData.subtotal !== null) {
@@ -203,12 +299,12 @@
                     return sum + (price * quantity);
                 }, 0);
             }
-            
+
             const shipping = parseFloat(orderData.shipping) || 0;
             const total = parseFloat(orderData.total) || (subtotal + shipping);
-            
+
             document.getElementById('order-subtotal').textContent = `$${subtotal.toFixed(2)}`;
-            
+
             // Actualizar costo de envío
             const shippingCostElement = document.getElementById('shipping-cost');
             if (shipping > 0) {
@@ -220,9 +316,9 @@
                 shippingCostElement.classList.remove('text-gray-900');
                 shippingCostElement.classList.add('text-green-600');
             }
-            
+
             document.getElementById('order-total').textContent = `$${total.toFixed(2)}`;
-            
+
             // Estado
             const statusElement = document.getElementById('order-status');
             const status = orderData.status || 'pending';
@@ -233,11 +329,11 @@
                 'delivered': { text: 'Entregado', class: 'bg-green-100 text-green-800' },
                 'cancelled': { text: 'Cancelado', class: 'bg-red-100 text-red-800' }
             };
-            
+
             const statusInfo = statusMap[status] || { text: status, class: 'bg-gray-100 text-gray-800' };
             statusElement.textContent = statusInfo.text;
             statusElement.className = `inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${statusInfo.class}`;
-            
+
             // Productos
             const itemsContainer = document.getElementById('order-items-list');
             if (orderData.items && orderData.items.length > 0) {
@@ -249,11 +345,11 @@
                     } else if (item.image) {
                         imageUrl = item.image;
                     }
-                    
+
                     const itemPrice = parseFloat(item.price) || 0;
                     const itemQuantity = parseInt(item.quantity) || 1;
                     const itemTotal = itemPrice * itemQuantity;
-                    
+
                     return `
                         <div class="flex items-center gap-4 pb-4 border-b border-gray-200 last:border-0">
                             <img 
@@ -277,41 +373,41 @@
             } else {
                 itemsContainer.innerHTML = '<p class="text-gray-600">No hay productos en esta orden.</p>';
             }
-            
+
             // Dirección de envío
             if (orderData.shippingAddress) {
                 const address = orderData.shippingAddress;
                 let addressHTML = '';
-                
+
                 if (address.fullName) {
                     addressHTML += `<p class="font-medium mb-2">${address.fullName}</p>`;
                 }
-                
+
                 if (address.street) {
                     addressHTML += `<p>${address.street}</p>`;
                 }
-                
+
                 const locationParts = [];
                 if (address.colonia) locationParts.push(address.colonia);
                 if (address.city) locationParts.push(address.city);
                 if (address.state) locationParts.push(address.state);
-                
+
                 if (locationParts.length > 0) {
                     addressHTML += `<p>${locationParts.join(', ')}</p>`;
                 }
-                
+
                 if (address.postalCode) {
                     addressHTML += `<p>CP: ${address.postalCode}</p>`;
                 }
-                
+
                 if (address.phone) {
                     addressHTML += `<p>Tel: ${address.phone}</p>`;
                 }
-                
+
                 if (address.references) {
                     addressHTML += `<p class="mt-2 text-sm italic text-gray-600">Referencias: ${address.references}</p>`;
                 }
-                
+
                 if (addressHTML) {
                     document.getElementById('shipping-address').innerHTML = addressHTML;
                 } else {
@@ -320,7 +416,7 @@
             } else {
                 document.getElementById('shipping-address').innerHTML = '<p class="text-gray-600">Dirección no disponible</p>';
             }
-            
+
             // Método de pago
             const paymentMethod = orderData.paymentMethod || 'cash';
             const paymentMethods = {
@@ -328,7 +424,7 @@
                 'transfer': { name: 'Transferencia Bancaria', icon: 'fa-university', color: 'text-blue-600' },
                 'card': { name: 'Tarjeta de Crédito/Débito', icon: 'fa-credit-card', color: 'text-purple-600' }
             };
-            
+
             const method = paymentMethods[paymentMethod] || paymentMethods['cash'];
             document.getElementById('payment-method-info').innerHTML = `
                 <div class="flex items-center">
@@ -337,8 +433,118 @@
                 </div>
             `;
         }
+
+        function renderCustomerTrackingBar(history, currentStatus) {
+            // Normalizar estado actual a los IDs usados en el admin
+            const statusMap = {
+                'pending': 'pendiente',
+                'processing': 'procesando',
+                'shipped': 'enviado',
+                'delivered': 'entregado',
+                'entrega': 'entrega'
+            };
+
+            const normalizedStatus = statusMap[currentStatus] || currentStatus;
+            const stages = ['pendiente', 'procesando', 'enviado', 'entrega', 'entregado'];
+            const bar = document.getElementById('customerTrackingBar');
+            if (!bar) return;
+
+            // Resetear items por si acaso (aunque es una carga única)
+            stages.forEach(s => {
+                const item = document.getElementById(`stage-${s}`);
+                if (item) {
+                    item.classList.remove('active', 'completed');
+                    item.querySelector('.tracking-date').textContent = '--:--';
+                    item.querySelector('.tracking-location').textContent = '';
+                }
+            });
+
+            let lastCompletedIndex = -1;
+
+            history.forEach(point => {
+                const stageIdx = stages.indexOf(point.status);
+                if (stageIdx !== -1) {
+                    const item = document.getElementById(`stage-${stages[stageIdx]}`);
+                    if (item) {
+                        item.classList.add('completed');
+                        if (stageIdx > lastCompletedIndex) lastCompletedIndex = stageIdx;
+
+                        // Actualizar label con el texto descriptivo
+                        if (point.label) {
+                            const labelEl = item.querySelector('.tracking-label');
+                            if (labelEl) labelEl.textContent = point.label;
+                        }
+
+                        // Formatear fecha y hora
+                        if (point.timestamp) {
+                            let date;
+                            if (point.timestamp.toDate) {
+                                date = point.timestamp.toDate();
+                            } else if (point.timestamp instanceof Date) {
+                                date = point.timestamp;
+                            } else if (point.timestamp.seconds) {
+                                date = new Date(point.timestamp.seconds * 1000);
+                            } else {
+                                date = new Date(point.timestamp);
+                            }
+
+                            if (date && !isNaN(date.getTime())) {
+                                const timeStr = date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+                                const dateStr = date.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit' });
+                                const dateEl = item.querySelector('.tracking-date');
+                                if (dateEl) dateEl.innerHTML = `${timeStr}<br>${dateStr}`;
+                            }
+                        }
+                        if (point.location) {
+                            const locEl = item.querySelector('.tracking-location');
+                            if (locEl) locEl.textContent = point.location;
+                        }
+                    }
+                }
+            });
+
+            // Marcar el estado actual como activo
+            const currentIdx = stages.indexOf(normalizedStatus);
+            if (currentIdx !== -1) {
+                const currentItem = document.getElementById(`stage-${stages[currentIdx]}`);
+                if (currentItem) {
+                    currentItem.classList.add('active');
+
+                    // Si es el primer punto (pendiente) y no tiene historial, usar la fecha de creación de la orden
+                    if (normalizedStatus === 'pendiente' && !currentItem.classList.contains('completed')) {
+                        currentItem.classList.add('completed');
+                        if (orderData.createdAt) {
+                            const date = orderData.createdAt.toDate ? orderData.createdAt.toDate() : new Date(orderData.createdAt);
+                            if (date && !isNaN(date.getTime())) {
+                                const timeStr = date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+                                const dateStr = date.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit' });
+                                const dateEl = currentItem.querySelector('.tracking-date');
+                                if (dateEl) dateEl.innerHTML = `${timeStr}<br>${dateStr}`;
+                            }
+                        }
+                    }
+
+                    // Si el estado actual no tiene historial aún, poner el label por defecto
+                    if (!currentItem.classList.contains('completed') || normalizedStatus === 'pendiente') {
+                        const labels = {
+                            'pendiente': 'Se acaba de realizar el pago',
+                            'procesando': 'Se está procesando y pronto será enviado',
+                            'enviado': 'El envío está en tránsito',
+                            'entrega': 'Tu paquete está en tránsito de entrega',
+                            'entregado': 'Tu pedido ha sido entregado correctamente'
+                        };
+                        const labelEl = currentItem.querySelector('.tracking-label');
+                        if (labelEl) labelEl.textContent = labels[normalizedStatus] || normalizedStatus;
+                    }
+                }
+            }
+
+            // Calcular ancho de la línea de progreso
+            const progressWidth = lastCompletedIndex >= 0 ? (lastCompletedIndex / (stages.length - 1)) * 80 : 0;
+            bar.parentElement.style.setProperty('--progress-width', `${progressWidth}%`);
+        }
     </script>
     {% include 'partials/footer.html' %}
 </body>
-</html>
 
+</html>

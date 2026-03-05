@@ -334,20 +334,51 @@ async function loadAdminOrders() {
                 const s = (status || 'pendiente').toLowerCase();
                 const classes = {
                     'pendiente': 'bg-yellow-100 text-yellow-800',
-                    'enviado': 'bg-blue-100 text-blue-800',
+                    'procesando': 'bg-blue-100 text-blue-800',
+                    'enviado': 'bg-indigo-100 text-indigo-800',
+                    'entrega': 'bg-purple-100 text-purple-800',
                     'entregado': 'bg-green-100 text-green-800',
                     'cancelado': 'bg-red-100 text-red-800'
                 };
+                const labels = {
+                    'pendiente': 'Pendiente',
+                    'procesando': 'En Proceso',
+                    'enviado': 'En Camino',
+                    'entrega': 'En Entrega',
+                    'entregado': 'Entregado',
+                    'cancelado': 'Cancelado'
+                };
                 return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${classes[s] || classes['pendiente']}">
-                    ${s.charAt(0).toUpperCase() + s.slice(1)}
+                    ${labels[s] || s.charAt(0).toUpperCase() + s.slice(1)}
                 </span>`;
             };
 
             const row = document.createElement('tr');
             row.className = 'hover:bg-gray-50 transition-colors duration-150';
+
+            // Obtener información del primer producto
+            let productInfo = { name: 'Sin productos', image: 'https://via.placeholder.com/50?text=N/A' };
+            if (order.items && order.items.length > 0) {
+                const firstItem = order.items[0];
+                productInfo.name = firstItem.name || 'Producto sin nombre';
+                if (firstItem.images && firstItem.images.length > 0) {
+                    productInfo.image = firstItem.images[0];
+                } else if (firstItem.image) {
+                    productInfo.image = firstItem.image;
+                }
+            }
+
             row.innerHTML = `
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="text-xs font-mono text-gray-500">#${doc.id.substring(0, 8)}...</span>
+                    <span class="text-xs font-mono text-gray-500">#${doc.id.substring(0, 8).toUpperCase()}</span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                        <img src="${productInfo.image}" alt="${productInfo.name}" 
+                             class="w-10 h-10 object-cover rounded mr-3 border border-gray-100"
+                             onerror="this.src='https://via.placeholder.com/50?text=N/A'">
+                        <div class="text-sm font-medium text-gray-900 truncate max-w-[150px]">${productInfo.name}</div>
+                    </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <div class="text-sm font-medium text-gray-900">${order.shippingAddress?.fullName || 'Desconocido'}</div>
@@ -359,14 +390,13 @@ async function loadAdminOrders() {
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                     $${order.total ? order.total.toFixed(2) : '0.00'}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-600">
-                    ${order.paymentMethod === 'card' ? '<i class="far fa-credit-card mr-1"></i> Tarjeta' : order.paymentMethod}
-                </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <select onchange="updateOrderStatus('${doc.id}', this.value)" 
                         class="text-xs border border-gray-300 rounded-md px-2 py-1 focus:ring-gray-900 focus:border-gray-900">
                         <option value="pendiente" ${order.status === 'pendiente' ? 'selected' : ''}>Pendiente</option>
-                        <option value="enviado" ${order.status === 'enviado' ? 'selected' : ''}>Enviado</option>
+                        <option value="procesando" ${order.status === 'procesando' ? 'selected' : ''}>En Proceso</option>
+                        <option value="enviado" ${order.status === 'enviado' ? 'selected' : ''}>En Camino</option>
+                        <option value="entrega" ${order.status === 'entrega' ? 'selected' : ''}>En Entrega</option>
                         <option value="entregado" ${order.status === 'entregado' ? 'selected' : ''}>Entregado</option>
                         <option value="cancelado" ${order.status === 'cancelado' ? 'selected' : ''}>Cancelado</option>
                     </select>
@@ -396,13 +426,59 @@ async function loadAdminOrders() {
 
 // Función para actualizar estado de pedido
 async function updateOrderStatus(orderId, newStatus) {
+    // Si el nuevo estado es 'enviado', no actualizar directamente desde la tabla.
+    // En su lugar, abrir el modal para requerir los datos de envío.
+    if (newStatus === 'enviado') {
+        showMessage('Por favor, completa los datos de envío para marcar como Enviado', 'info');
+        // Abrir el modal de detalles
+        await viewOrderDetails(orderId);
+        // Forzar la selección de 'enviado' en el modal y mostrar campos
+        const modalSelect = document.getElementById('trackingStatusSelect');
+        if (modalSelect) {
+            modalSelect.value = 'enviado';
+            toggleShippingFields();
+        }
+
+        // Regresar el select de la tabla a su valor anterior para evitar confusión visual
+        loadAdminOrders();
+        return;
+    }
+
     try {
-        await db.collection('orders').doc(orderId).update({
+        const orderRef = db.collection('orders').doc(orderId);
+        const orderDoc = await orderRef.get();
+        const data = orderDoc.data();
+        let history = data.trackingHistory || [];
+
+        const newPoint = {
             status: newStatus,
+            timestamp: new Date(),
+            label: getStatusLabel(newStatus)
+        };
+
+        const existingIdx = history.findIndex(h => h.status === newStatus);
+        if (existingIdx !== -1) {
+            history[existingIdx] = newPoint;
+        } else {
+            history.push(newPoint);
+        }
+
+        await orderRef.update({
+            status: newStatus,
+            trackingHistory: history,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
         showMessage(`Estado del pedido #${orderId.substring(0, 8)} actualizado a ${newStatus}`, 'success');
+
+        // También actualizar la barra de seguimiento si el modal está abierto
+        if (selectedOrderData && selectedOrderData.id === orderId) {
+            selectedOrderData.status = newStatus;
+            selectedOrderData.trackingHistory = history;
+            // No llamamos a updateTracking aquí porque ese guarda en DB, nosotros ya guardamos.
+        }
+
+        loadAdminOrders();
     } catch (error) {
         console.error('Error al actualizar estado:', error);
         showMessage('Error al actualizar el estado del pedido', 'error');
@@ -459,6 +535,13 @@ async function viewOrderDetails(orderId) {
 
         document.getElementById('detailSubtotal').textContent = `$${subtotal.toFixed(2)}`;
         document.getElementById('detailTotal').textContent = `$${(data.total || subtotal).toFixed(2)}`;
+
+        // Sincronizar select y campos condicionales
+        const statusSelect = document.getElementById('trackingStatusSelect');
+        if (statusSelect) {
+            statusSelect.value = data.status || 'pendiente';
+            toggleShippingFields(); // Resetear visibilidad
+        }
 
         // Mostrar Modal
         document.getElementById('orderDetailModal').classList.remove('hidden');
@@ -565,6 +648,122 @@ async function downloadShippingGuidePDF() {
     }
 }
 
+// Funciones para manejo de UI condicional de envío
+function toggleShippingFields() {
+    const status = document.getElementById('trackingStatusSelect').value;
+    const section = document.getElementById('shippingDetailsSection');
+    if (status === 'enviado') {
+        section.classList.remove('hidden');
+        toggleGuideField(); // Verificar también la guía
+    } else {
+        section.classList.add('hidden');
+    }
+}
+
+function toggleGuideField() {
+    const carrier = document.getElementById('shippingCarrier').value;
+    const guideContainer = document.getElementById('guideNumberContainer');
+    // Guía obligatoria solo para Estafeta, DHL y otros que no sean Taxi o Entrega Personal
+    if (carrier === 'Estafeta' || carrier === 'DHL' || carrier === 'Otro') {
+        guideContainer.classList.remove('hidden');
+    } else {
+        guideContainer.classList.add('hidden');
+    }
+}
+
+// Función para actualizar seguimiento desde el admin
+async function updateTracking(forcedStatus = null) {
+    if (!selectedOrderData) return;
+
+    const status = forcedStatus || document.getElementById('trackingStatusSelect').value;
+    const carrier = document.getElementById('shippingCarrier').value;
+    const origin = document.getElementById('shippingOrigin').value || '';
+    const guide = document.getElementById('shippingGuide').value || '';
+
+    // Validación obligatoria para 'enviado'
+    if (status === 'enviado') {
+        if (!origin) {
+            showMessage('El origen es obligatorio para el envío', 'error');
+            return;
+        }
+        if ((carrier === 'Estafeta' || carrier === 'DHL') && !guide) {
+            showMessage(`El número de guía es obligatorio para ${carrier}`, 'error');
+            return;
+        }
+    }
+
+    try {
+        const orderRef = db.collection('orders').doc(selectedOrderData.id);
+        const orderDoc = await orderRef.get();
+        const data = orderDoc.data();
+
+        let history = data.trackingHistory || [];
+
+        // Construir ubicación descriptiva si es necesario
+        let finalLocation = origin;
+        if (status === 'enviado' && carrier !== 'Taxi' && carrier !== 'Personal') {
+            if (guide) finalLocation = `${origin} (Vía ${carrier}, Guía: ${guide})`;
+            else finalLocation = `${origin} (Vía ${carrier})`;
+        } else if (status === 'enviado' && carrier === 'Taxi') {
+            finalLocation = `${origin} (Vía Taxi)`;
+        }
+
+        const newPoint = {
+            status: status,
+            location: finalLocation,
+            carrier: carrier,
+            guideNumber: guide,
+            timestamp: new Date(), // Usar fecha local para el historial (serverTimestamp no se permite dentro de arrays)
+            label: getStatusLabel(status)
+        };
+
+        const existingIdx = history.findIndex(h => h.status === status);
+        if (existingIdx !== -1) {
+            history[existingIdx] = newPoint;
+        } else {
+            history.push(newPoint);
+        }
+
+        // Actualizar Firestore
+        await orderRef.update({
+            status: status,
+            shippingMethod: carrier,
+            trackingId: guide,
+            trackingHistory: history,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Actualizar UI local
+        selectedOrderData.status = status;
+        selectedOrderData.trackingHistory = history;
+
+        if (!forcedStatus) {
+            showMessage('Seguimiento actualizado correctamente', 'success');
+            // Limpiar campos
+            document.getElementById('shippingOrigin').value = '';
+            document.getElementById('shippingGuide').value = '';
+        }
+
+        loadAdminOrders();
+
+    } catch (error) {
+        console.error('Error al actualizar seguimiento:', error);
+        showMessage('Error al actualizar el seguimiento', 'error');
+    }
+}
+
+function getStatusLabel(status) {
+    const labels = {
+        'pendiente': 'Se acaba de realizar el pago',
+        'procesando': 'Se está procesando y pronto será enviado',
+        'enviado': 'El envío está en tránsito',
+        'entrega': 'Tu paquete está en tránsito de entrega',
+        'entregado': 'Tu pedido ha sido entregado correctamente',
+        'cancelado': 'Pedido Cancelado'
+    };
+    return labels[status] || status;
+}
+
 // Exportar funciones globalmente
 window.loadAdminOrders = loadAdminOrders;
 window.updateOrderStatus = updateOrderStatus;
@@ -572,3 +771,6 @@ window.viewOrderDetails = viewOrderDetails;
 window.closeOrderDetailModal = closeOrderDetailModal;
 window.generateShippingGuideUI = generateShippingGuideUI;
 window.downloadShippingGuidePDF = downloadShippingGuidePDF;
+window.updateTracking = updateTracking;
+window.toggleShippingFields = toggleShippingFields;
+window.toggleGuideField = toggleGuideField;

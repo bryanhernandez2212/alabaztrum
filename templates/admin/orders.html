@@ -56,6 +56,9 @@
                                         ID PEDIDO</th>
                                     <th
                                         class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                        Producto</th>
+                                    <th
+                                        class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                         Cliente</th>
                                     <th
                                         class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
@@ -63,9 +66,6 @@
                                     <th
                                         class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                         Total</th>
-                                    <th
-                                        class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                        Método de Pago</th>
                                     <th
                                         class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                         Estado</th>
@@ -115,6 +115,60 @@
                             class="text-gray-400 hover:text-gray-500 transition-colors">
                             <i class="fas fa-times text-xl"></i>
                         </button>
+                    </div>
+
+                    <!-- Conditional Shipping Form -->
+                    <div class="mb-8 border-b pb-6">
+                        <div
+                            class="flex flex-col md:flex-row gap-4 items-end bg-gray-50 p-6 rounded-xl border border-gray-100">
+                            <div class="flex-1 min-w-[150px]">
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Estado del
+                                    Pedido</label>
+                                <select id="trackingStatusSelect" onchange="toggleShippingFields()"
+                                    class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all">
+                                    <option value="pendiente">Recibido</option>
+                                    <option value="procesando">En Proceso</option>
+                                    <option value="enviado">Enviado</option>
+                                    <option value="entrega">En Ruta de Entrega</option>
+                                    <option value="entregado">Entregado</option>
+                                    <option value="cancelado">Cancelado</option>
+                                </select>
+                            </div>
+
+                            <!-- Optional Shipping Details -->
+                            <div id="shippingDetailsSection"
+                                class="hidden flex-[2] grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Paquetería /
+                                        Medio</label>
+                                    <select id="shippingCarrier" onchange="toggleGuideField()"
+                                        class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all">
+                                        <option value="Taxi">Taxi</option>
+                                        <option value="Estafeta">Estafeta</option>
+                                        <option value="DHL">DHL</option>
+                                        <option value="Personal">Entrega Personal</option>
+                                        <option value="Otro">Otro</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Origen (Desde
+                                        dónde)</label>
+                                    <input type="text" id="shippingOrigin" placeholder="Ej: Sucursal Centro"
+                                        class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all">
+                                </div>
+                                <div id="guideNumberContainer" class="hidden">
+                                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Número de
+                                        Guía</label>
+                                    <input type="text" id="shippingGuide" placeholder="Número de rastreo"
+                                        class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all">
+                                </div>
+                            </div>
+
+                            <button onclick="updateTracking()"
+                                class="px-6 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-bold hover:bg-black transform active:scale-95 transition-all shadow-sm">
+                                Actualizar
+                            </button>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -304,12 +358,13 @@
                 const rows = document.querySelectorAll('#ordersList tr');
 
                 rows.forEach(row => {
-                    if (row.cells.length === 1 && row.cells[0].colSpan > 1) return;
+                    if (row.cells.length < 3) return; // Saltar filas de carga o vacías
 
                     const id = row.cells[0] ? row.cells[0].textContent.toLowerCase() : '';
-                    const client = row.cells[1] ? row.cells[1].textContent.toLowerCase() : '';
+                    const product = row.cells[1] ? row.cells[1].textContent.toLowerCase() : '';
+                    const client = row.cells[2] ? row.cells[2].textContent.toLowerCase() : '';
 
-                    if (id.includes(searchTerm) || client.includes(searchTerm)) {
+                    if (id.includes(searchTerm) || client.includes(searchTerm) || product.includes(searchTerm)) {
                         row.style.display = '';
                     } else {
                         row.style.display = 'none';
