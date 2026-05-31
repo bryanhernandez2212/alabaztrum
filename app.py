@@ -1,7 +1,13 @@
-from flask import Flask, render_template, redirect
+from flask import Flask, render_template, redirect, request, jsonify
 import os
 import traceback
 import logging
+import stripe
+from dotenv import load_dotenv
+
+# Cargar variables de entorno (claves de Stripe)
+load_dotenv()
+stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 
 # Configurar logging
 logging.basicConfig(
@@ -35,6 +41,29 @@ def internal_error(error):
     return {'error': 'Internal server error', 'traceback': traceback.format_exc()}, 500
 
 
+
+@app.route('/api/create-payment-intent', methods=['POST'])
+def create_payment_intent():
+    try:
+        data = request.get_json()
+        total = data.get('total', 0)
+        
+        # Stripe maneja montos en centavos (ej. 100 MXN = 10000)
+        amount = int(total * 100)
+        
+        # Crear PaymentIntent
+        intent = stripe.PaymentIntent.create(
+            amount=amount,
+            currency='mxn',
+            automatic_payment_methods={'enabled': True},
+        )
+        
+        return jsonify({
+            'clientSecret': intent['client_secret']
+        })
+    except Exception as e:
+        logger.error(f"Error creating PaymentIntent: {str(e)}")
+        return jsonify(error=str(e)), 403
 
 @app.route('/')
 def index():
@@ -95,6 +124,11 @@ def admin_products():
 def admin_orders():
     breadcrumbs = get_breadcrumbs([('Administración', '/admin'), ('Pedidos', '/admin/orders')])
     return render_template('admin/orders.html', breadcrumbs=breadcrumbs)
+
+@app.route('/admin/orders-today')
+def admin_orders_today():
+    breadcrumbs = get_breadcrumbs([('Administración', '/admin'), ('Pedidos de Hoy', '/admin/orders-today')])
+    return render_template('admin/orders-today.html', breadcrumbs=breadcrumbs)
 
 @app.route('/admin/messages')
 def admin_messages():
@@ -174,7 +208,7 @@ def carrito():
 @app.route('/checkout')
 def checkout():
     breadcrumbs = get_breadcrumbs([('Mi Carrito', '/carrito'), ('Checkout', '/checkout')])
-    return render_template('checkout.html', breadcrumbs=breadcrumbs)
+    return render_template('checkout.html', breadcrumbs=breadcrumbs, stripe_public_key=os.getenv('STRIPE_PUBLISHABLE_KEY'))
 
 @app.route('/orden-confirmada')
 def orden_confirmada():

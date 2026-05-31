@@ -289,7 +289,7 @@ async function loadAdminOrders() {
 
     try {
         console.log("Intentando cargar pedidos para usuario:", auth.currentUser.uid);
-        const ordersSnapshot = await db.collection('orders').get();
+        const ordersSnapshot = await db.collection('orders').orderBy('createdAt', 'desc').get();
         console.log("Pedidos cargados exitosamente, total:", ordersSnapshot.size);
 
         if (ordersSnapshot.empty) {
@@ -321,42 +321,22 @@ async function loadAdminOrders() {
             if (order.createdAt) {
                 const date = order.createdAt.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
                 formattedDate = date.toLocaleDateString('es-ES', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
                 });
             }
 
-            // Badge de estado
-            const getStatusBadge = (status) => {
-                const s = (status || 'pendiente').toLowerCase();
-                const classes = {
-                    'pendiente': 'bg-yellow-100 text-yellow-800',
-                    'procesando': 'bg-blue-100 text-blue-800',
-                    'enviado': 'bg-indigo-100 text-indigo-800',
-                    'entrega': 'bg-purple-100 text-purple-800',
-                    'entregado': 'bg-green-100 text-green-800',
-                    'cancelado': 'bg-red-100 text-red-800'
-                };
-                const labels = {
-                    'pendiente': 'Pendiente',
-                    'procesando': 'En Proceso',
-                    'enviado': 'En Camino',
-                    'entrega': 'En Entrega',
-                    'entregado': 'Entregado',
-                    'cancelado': 'Cancelado'
-                };
-                return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${classes[s] || classes['pendiente']}">
-                    ${labels[s] || s.charAt(0).toUpperCase() + s.slice(1)}
-                </span>`;
-            };
+            // Verificar si es de hoy (para indicador visual)
+            let isToday = false;
+            if (order.createdAt) {
+                const date = order.createdAt.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
+                const now = new Date();
+                const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+                const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+                isToday = date >= todayStart && date <= todayEnd;
+            }
 
-            const row = document.createElement('tr');
-            row.className = 'hover:bg-gray-50 transition-colors duration-150';
-
-            // Obtener información del primer producto
+            // Info del producto
             let productInfo = { name: 'Sin productos', image: 'https://via.placeholder.com/50?text=N/A' };
             if (order.items && order.items.length > 0) {
                 const firstItem = order.items[0];
@@ -368,9 +348,14 @@ async function loadAdminOrders() {
                 }
             }
 
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-gray-50 transition-colors duration-150';
+
             row.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="text-xs font-mono text-gray-500">#${doc.id.substring(0, 8).toUpperCase()}</span>
+                <td class="px-6 py-4 whitespace-nowrap relative">
+                    ${isToday ? '<span class="absolute top-2 -left-1 flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span></span>' : ''}
+                    <span class="text-xs font-mono text-gray-500 ${isToday ? 'ml-3' : ''}">#${doc.id.substring(0, 8).toUpperCase()}</span>
+                    ${isToday ? '<div class="text-[10px] text-red-600 font-bold ml-3 mt-1">¡NUEVO!</div>' : ''}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <div class="flex items-center">

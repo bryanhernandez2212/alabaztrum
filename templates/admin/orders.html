@@ -45,33 +45,19 @@
                 <!-- Mensaje de error/éxito -->
                 <div id="message" class="hidden mb-4 p-3 rounded-lg text-sm"></div>
 
-                <!-- Tabla de pedidos -->
+                <!-- Tabla de pedidos (Historial) -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th
-                                        class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                        ID PEDIDO</th>
-                                    <th
-                                        class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                        Producto</th>
-                                    <th
-                                        class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                        Cliente</th>
-                                    <th
-                                        class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                        Fecha</th>
-                                    <th
-                                        class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                        Total</th>
-                                    <th
-                                        class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                        Estado</th>
-                                    <th
-                                        class="px-6 py-4 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                        Acciones</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">ID PEDIDO</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Producto</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Cliente</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Fecha</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Total</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Estado</th>
+                                    <th class="px-6 py-4 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="ordersList" class="bg-white divide-y divide-gray-200">
@@ -88,7 +74,6 @@
                             </tbody>
                         </table>
                     </div>
-                    <!-- Footer -->
                     <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
                         <p class="text-sm text-gray-600 font-medium" id="ordersCount">Mostrando 0 pedido(s)</p>
                     </div>

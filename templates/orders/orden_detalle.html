@@ -13,6 +13,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <!-- html2pdf.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 
 <body class="bg-gray-50">
@@ -46,9 +49,13 @@
                             </h1>
                             <p class="text-gray-600" id="order-date"></p>
                         </div>
-                        <div class="mt-4 md:mt-0">
+                        <div class="mt-4 md:mt-0 flex flex-col md:items-end gap-3">
                             <span id="order-status"
                                 class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium"></span>
+                            
+                            <button onclick="descargarPDF()" class="inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-800 transition">
+                                <i class="fas fa-file-pdf mr-2"></i>Descargar Factura PDF
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -495,6 +502,142 @@
                 const progressWidth = lastCompletedIndex >= 0 ? (lastCompletedIndex / (stages.length - 1)) * 80 : 0;
                 bar.parentElement.style.setProperty('--progress-width', `${progressWidth}%`);
             }
+
+            // Exponer función de descarga PDF al scope global
+            window.descargarPDF = function() {
+                // Generar HTML específico para la factura
+                const invoiceContainer = document.createElement('div');
+                invoiceContainer.style.padding = '40px';
+                invoiceContainer.style.fontFamily = 'Arial, sans-serif';
+                invoiceContainer.style.color = '#333';
+                
+                // Formateo de fecha
+                let dateStr = 'Fecha no disponible';
+                if (orderData.createdAt) {
+                    const date = orderData.createdAt.toDate ? orderData.createdAt.toDate() : new Date(orderData.createdAt);
+                    if (date && !isNaN(date.getTime())) {
+                        dateStr = date.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                    }
+                }
+
+                // Generar filas de productos
+                let itemsHtml = '';
+                if (orderData.items && orderData.items.length > 0) {
+                    itemsHtml = orderData.items.map(item => {
+                        const price = parseFloat(item.price) || 0;
+                        const qty = parseInt(item.quantity) || 1;
+                        return `
+                            <tr>
+                                <td style="padding: 12px 8px; border-bottom: 1px solid #eee;">${item.name}</td>
+                                <td style="padding: 12px 8px; border-bottom: 1px solid #eee; text-align: center;">${qty}</td>
+                                <td style="padding: 12px 8px; border-bottom: 1px solid #eee; text-align: right;">$${price.toFixed(2)}</td>
+                                <td style="padding: 12px 8px; border-bottom: 1px solid #eee; text-align: right;">$${(price * qty).toFixed(2)}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+
+                // Datos de la dirección
+                const address = orderData.shippingAddress || {};
+                const paymentMethods = {
+                    'cash': 'Efectivo',
+                    'transfer': 'Transferencia Bancaria',
+                    'card': 'Tarjeta de Crédito/Débito'
+                };
+                const paymentMethod = paymentMethods[orderData.paymentMethod] || 'Efectivo';
+
+                invoiceContainer.innerHTML = `
+                    <!-- Encabezado de Factura -->
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #111; padding-bottom: 20px; margin-bottom: 30px;">
+                        <div>
+                            <h1 style="font-size: 32px; font-weight: bold; margin: 0; color: #111; letter-spacing: 2px;">ALABAZTRUM</h1>
+                            <p style="margin: 5px 0 0; color: #666; font-size: 14px;">Perfumería Exclusiva</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <h2 style="font-size: 24px; color: #333; margin: 0 0 10px 0;">FACTURA</h2>
+                            <p style="margin: 0; font-size: 14px;"><strong>No. Pedido:</strong> #${orderData.id.substring(0,8).toUpperCase()}</p>
+                            <p style="margin: 5px 0 0; font-size: 14px;"><strong>Fecha:</strong> ${dateStr}</p>
+                        </div>
+                    </div>
+
+                    <!-- Datos del Vendedor y Comprador -->
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 40px;">
+                        <div style="width: 45%;">
+                            <h3 style="font-size: 14px; text-transform: uppercase; color: #666; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 10px;">Datos del Vendedor</h3>
+                            <p style="margin: 0 0 5px; font-size: 14px;"><strong>ALABAZTRUM SHOP</strong></p>
+                            <p style="margin: 0 0 5px; font-size: 14px; color: #555;">RFC: XAXX010101000</p>
+                            <p style="margin: 0; font-size: 14px; color: #555;">contacto@alabaztrum.com</p>
+                        </div>
+                        <div style="width: 45%;">
+                            <h3 style="font-size: 14px; text-transform: uppercase; color: #666; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 10px;">Datos del Comprador</h3>
+                            <p style="margin: 0 0 5px; font-size: 14px;"><strong>${address.fullName || 'Cliente'}</strong></p>
+                            <p style="margin: 0 0 5px; font-size: 14px; color: #555;">Tel: ${address.phone || 'N/A'}</p>
+                            <p style="margin: 0; font-size: 14px; color: #555;">
+                                ${address.street || ''}<br>
+                                ${address.colonia || ''}, ${address.city || ''}, ${address.state || ''}<br>
+                                CP: ${address.postalCode || ''}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de Productos -->
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+                        <thead>
+                            <tr style="background-color: #f9fafb;">
+                                <th style="padding: 12px 8px; text-align: left; border-bottom: 2px solid #ddd; font-size: 14px; color: #333;">Descripción</th>
+                                <th style="padding: 12px 8px; text-align: center; border-bottom: 2px solid #ddd; font-size: 14px; color: #333;">Cant.</th>
+                                <th style="padding: 12px 8px; text-align: right; border-bottom: 2px solid #ddd; font-size: 14px; color: #333;">Precio Unit.</th>
+                                <th style="padding: 12px 8px; text-align: right; border-bottom: 2px solid #ddd; font-size: 14px; color: #333;">Importe</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${itemsHtml}
+                        </tbody>
+                    </table>
+
+                    <!-- Totales y Método de Pago -->
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                        <div style="width: 50%;">
+                            <h3 style="font-size: 14px; text-transform: uppercase; color: #666; margin-bottom: 10px;">Método de Pago</h3>
+                            <p style="margin: 0; font-size: 14px; font-weight: bold; color: #333;">${paymentMethod}</p>
+                        </div>
+                        <div style="width: 40%;">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <td style="padding: 8px 0; text-align: right; font-size: 14px; color: #555;">Subtotal:</td>
+                                    <td style="padding: 8px 0; text-align: right; font-size: 14px; font-weight: bold;">$${(parseFloat(orderData.subtotal) || 0).toFixed(2)}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 0; text-align: right; font-size: 14px; color: #555;">Envío:</td>
+                                    <td style="padding: 8px 0; text-align: right; font-size: 14px; font-weight: bold;">${(parseFloat(orderData.shipping) || 0) > 0 ? '$' + parseFloat(orderData.shipping).toFixed(2) : 'Gratis'}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 12px 0 0 0; border-top: 2px solid #111; text-align: right; font-size: 18px; font-weight: bold; color: #111;">Total:</td>
+                                    <td style="padding: 12px 0 0 0; border-top: 2px solid #111; text-align: right; font-size: 18px; font-weight: bold; color: #111;">$${(parseFloat(orderData.total) || 0).toFixed(2)}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Pie de página -->
+                    <div style="margin-top: 60px; text-align: center; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 20px;">
+                        <p style="margin: 0;">Gracias por su compra en Alabaztrum.</p>
+                        <p style="margin: 5px 0 0;">Este documento es un comprobante de compra y no tiene validez fiscal.</p>
+                    </div>
+                `;
+
+                // Configuración de html2pdf
+                const opt = {
+                    margin:       0, // Los márgenes ya están en el div padding
+                    filename:     `${orderData.id.substring(0,8).toUpperCase()}.pdf`,
+                    image:        { type: 'jpeg', quality: 1.0 },
+                    html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+                    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+                };
+
+                html2pdf().set(opt).from(invoiceContainer).save();
+            };
+
         })();
     </script>
     {% include 'partials/footer.html' %}

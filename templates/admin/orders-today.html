@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedidos de Hoy - Administración - ALABAZTRUM</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+
+<body class="bg-gray-50 admin-body">
+    {% include 'partials/navbar-admin.html' %}
+
+    <main class="min-h-screen py-8 bg-gray-50">
+        <div class="container mx-auto px-6">
+            <div class="max-w-7xl mx-auto">
+                <!-- Header -->
+                <div class="mb-8">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h1 class="text-3xl font-bold text-gray-900 mb-2 flex items-center">
+                                <i class="fas fa-calendar-day mr-3 text-indigo-600"></i>
+                                Pedidos de Hoy
+                            </h1>
+                            <p class="text-sm text-gray-600" id="todayDateLabel">Cargando fecha...</p>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <a href="/admin/orders"
+                                class="inline-flex items-center px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-black transition-colors">
+                                <i class="fas fa-history mr-2"></i> Ver Historial Completo
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resumen rápido -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Pedidos Hoy</p>
+                                <p class="text-3xl font-bold text-gray-900 mt-1" id="todayTotalOrders">0</p>
+                            </div>
+                            <div class="bg-indigo-100 rounded-full p-3">
+                                <i class="fas fa-shopping-bag text-indigo-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Ventas del Día</p>
+                                <p class="text-3xl font-bold text-green-600 mt-1" id="todayTotalSales">$0.00</p>
+                            </div>
+                            <div class="bg-green-100 rounded-full p-3">
+                                <i class="fas fa-dollar-sign text-green-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Pendientes</p>
+                                <p class="text-3xl font-bold text-yellow-600 mt-1" id="todayPendingOrders">0</p>
+                            </div>
+                            <div class="bg-yellow-100 rounded-full p-3">
+                                <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mensaje de error/éxito -->
+                <div id="message" class="hidden mb-4 p-3 rounded-lg text-sm"></div>
+
+                <!-- Tabla de Pedidos de Hoy -->
+                <div class="bg-white rounded-xl shadow-sm border border-indigo-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-indigo-50">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-indigo-800 uppercase tracking-wider">ID Pedido</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-indigo-800 uppercase tracking-wider">Producto</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-indigo-800 uppercase tracking-wider">Cliente</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-indigo-800 uppercase tracking-wider">Hora</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-indigo-800 uppercase tracking-wider">Total</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-indigo-800 uppercase tracking-wider">Método Pago</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-indigo-800 uppercase tracking-wider">Estado</th>
+                                    <th class="px-6 py-4 text-right text-xs font-semibold text-indigo-800 uppercase tracking-wider">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="todayOrdersList" class="bg-white divide-y divide-gray-100">
+                                <tr>
+                                    <td colspan="8" class="px-6 py-16 text-center">
+                                        <div class="flex flex-col items-center">
+                                            <div class="bg-indigo-100 rounded-full p-4 mb-3">
+                                                <i class="fas fa-spinner fa-spin text-indigo-500 text-2xl"></i>
+                                            </div>
+                                            <p class="text-gray-600 font-medium">Buscando pedidos de hoy...</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="px-6 py-3 bg-indigo-50 border-t border-indigo-100">
+                        <p class="text-xs text-indigo-800 font-medium" id="todayOrdersCount">0 pedido(s) hoy</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts Firebase y administración -->
+    <script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/navbar-admin.js') }}"></script>
+
+    <script>
+        // Mostrar fecha de hoy
+        const todayLabel = document.getElementById('todayDateLabel');
+        const now = new Date();
+        todayLabel.textContent = now.toLocaleDateString('es-MX', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+
+        // Cargar pedidos de hoy
+        document.addEventListener('DOMContentLoaded', function () {
+            auth.onAuthStateChanged(async (user) => {
+                if (user) {
+                    // Verificar que sea admin
+                    const userDoc = await db.collection('users').doc(user.uid).get();
+                    if (!userDoc.exists || userDoc.data().role !== 'administrador') {
+                        window.location.href = '/';
+                        return;
+                    }
+                    loadTodayOrders();
+                }
+            });
+        });
+
+        async function loadTodayOrders() {
+            const todayOrdersList = document.getElementById('todayOrdersList');
+
+            try {
+                // Rango del día de hoy
+                const now = new Date();
+                const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+                const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+
+                const ordersSnapshot = await db.collection('orders')
+                    .orderBy('createdAt', 'desc')
+                    .get();
+
+                todayOrdersList.innerHTML = '';
+                let todayCount = 0;
+                let todaySales = 0;
+                let pendingCount = 0;
+
+                ordersSnapshot.forEach((doc) => {
+                    const order = doc.data();
+
+                    // Filtrar solo pedidos de hoy
+                    if (!order.createdAt) return;
+                    const orderDate = order.createdAt.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
+                    if (orderDate < todayStart || orderDate > todayEnd) return;
+
+                    todayCount++;
+                    todaySales += parseFloat(order.total) || 0;
+                    if ((order.status || 'pendiente') === 'pendiente') pendingCount++;
+
+                    // Hora del pedido
+                    const timeStr = orderDate.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+
+                    // Info del producto
+                    let productInfo = { name: 'Sin productos', image: 'https://via.placeholder.com/50?text=N/A' };
+                    if (order.items && order.items.length > 0) {
+                        const firstItem = order.items[0];
+                        productInfo.name = firstItem.name || 'Producto sin nombre';
+                        if (firstItem.images && firstItem.images.length > 0) {
+                            productInfo.image = firstItem.images[0];
+                        } else if (firstItem.image) {
+                            productInfo.image = firstItem.image;
+                        }
+                    }
+
+                    // Método de pago
+                    const paymentMethods = {
+                        'cash': 'Efectivo',
+                        'transfer': 'Transferencia',
+                        'card': 'Tarjeta'
+                    };
+                    const paymentMethod = paymentMethods[order.paymentMethod] || 'Efectivo';
+                    const paymentIcons = {
+                        'cash': 'fa-money-bill-wave text-green-600',
+                        'transfer': 'fa-building-columns text-blue-600',
+                        'card': 'fa-credit-card text-purple-600'
+                    };
+                    const paymentIcon = paymentIcons[order.paymentMethod] || 'fa-money-bill-wave text-green-600';
+
+                    // Estado
+                    const statusClasses = {
+                        'pendiente': 'bg-yellow-100 text-yellow-800',
+                        'procesando': 'bg-blue-100 text-blue-800',
+                        'enviado': 'bg-indigo-100 text-indigo-800',
+                        'entrega': 'bg-purple-100 text-purple-800',
+                        'entregado': 'bg-green-100 text-green-800',
+                        'cancelado': 'bg-red-100 text-red-800'
+                    };
+                    const statusLabels = {
+                        'pendiente': 'Pendiente',
+                        'procesando': 'En Proceso',
+                        'enviado': 'En Camino',
+                        'entrega': 'En Entrega',
+                        'entregado': 'Entregado',
+                        'cancelado': 'Cancelado'
+                    };
+                    const s = (order.status || 'pendiente').toLowerCase();
+
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-indigo-50 transition-colors duration-150';
+
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap relative">
+                            <span class="absolute top-2 -left-1 flex h-3 w-3">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                            </span>
+                            <span class="text-xs font-mono text-gray-700 ml-3 font-bold">#${doc.id.substring(0, 8).toUpperCase()}</span>
+                            <div class="text-[10px] text-red-600 font-bold ml-3 mt-1">¡NUEVO!</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <img src="${productInfo.image}" alt="${productInfo.name}" 
+                                     class="w-10 h-10 object-cover rounded mr-3 border border-gray-100"
+                                     onerror="this.src='https://via.placeholder.com/50?text=N/A'">
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900 truncate max-w-[150px]">${productInfo.name}</div>
+                                    ${order.items && order.items.length > 1 ? `<div class="text-[10px] text-gray-400">+${order.items.length - 1} más</div>` : ''}
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">${order.shippingAddress?.fullName || 'Desconocido'}</div>
+                            <div class="text-xs text-gray-500">${order.shippingAddress?.phone || ''}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-sm font-semibold text-indigo-700">${timeStr}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
+                            $${order.total ? order.total.toFixed(2) : '0.00'}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center gap-1.5">
+                                <i class="fas ${paymentIcon} text-xs"></i>
+                                <span class="text-xs font-medium text-gray-700">${paymentMethod}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClasses[s] || statusClasses['pendiente']}">
+                                ${statusLabels[s] || s}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                            <a href="/admin/orders" class="text-indigo-600 hover:text-indigo-900 font-medium">
+                                <i class="fas fa-eye mr-1"></i> Gestionar
+                            </a>
+                        </td>
+                    `;
+                    todayOrdersList.appendChild(row);
+                });
+
+                // Actualizar contadores
+                document.getElementById('todayTotalOrders').textContent = todayCount;
+                document.getElementById('todayTotalSales').textContent = `$${todaySales.toFixed(2)}`;
+                document.getElementById('todayPendingOrders').textContent = pendingCount;
+                document.getElementById('todayOrdersCount').textContent = `${todayCount} pedido(s) hoy`;
+
+                if (todayCount === 0) {
+                    todayOrdersList.innerHTML = `
+                        <tr>
+                            <td colspan="8" class="px-6 py-20 text-center">
+                                <div class="flex flex-col items-center">
+                                    <div class="bg-gray-100 rounded-full p-6 mb-4">
+                                        <i class="fas fa-inbox text-gray-400 text-4xl"></i>
+                                    </div>
+                                    <p class="text-gray-600 text-base font-medium mb-1">No hay pedidos hoy todavía</p>
+                                    <p class="text-gray-400 text-sm">Los nuevos pedidos aparecerán aquí automáticamente</p>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }
+
+            } catch (error) {
+                console.error('Error al cargar pedidos de hoy:', error);
+                todayOrdersList.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="px-6 py-16 text-center text-red-600">
+                            Error al cargar los pedidos. Por favor, intenta de nuevo.
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -14,6 +14,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
+    <!-- Stripe.js -->
+    <script src="https://js.stripe.com/v3/"></script>
+
     <!-- Google Maps API -->
     <script
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDRDVUk8uwmI3gplHFNbr_jlTyfbE8vMJ8&libraries=places"></script>
@@ -219,9 +222,12 @@
                                 <div id="card-info">
                                     <p class="text-sm text-gray-600 mb-4">
                                         <i class="fas fa-info-circle mr-2"></i>
-                                        El procesamiento de pago con tarjeta se realizará de forma segura.
+                                        El procesamiento de pago con tarjeta se realizará de forma segura usando Stripe.
                                     </p>
-                                    <!-- Aquí se podría integrar un procesador de pagos como Stripe -->
+                                    <div id="payment-element">
+                                        <!-- Stripe Elements se inyectará aquí -->
+                                    </div>
+                                    <div id="payment-message" class="hidden text-red-500 font-medium text-sm mt-4 p-3 bg-red-50 rounded-lg border border-red-200"></div>
                                 </div>
                             </div>
 
@@ -300,6 +306,46 @@
         }
         if (typeof currentStep === 'undefined') {
             var currentStep = 1;
+        }
+
+        let stripe;
+        let elements;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            // Inicializar Stripe con la llave pública inyectada por Flask
+            stripe = Stripe('{{ stripe_public_key }}');
+        });
+
+        // Función para inicializar Stripe Elements
+        async function initializeStripe() {
+            if (elements) return; // Ya inicializado
+            
+            const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            try {
+                const response = await fetch("/api/create-payment-intent", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ total: subtotal }),
+                });
+                
+                if (!response.ok) {
+                    throw new Error("No se pudo inicializar el pago");
+                }
+                
+                const { clientSecret } = await response.json();
+
+                const appearance = { theme: 'stripe' };
+                elements = stripe.elements({ appearance, clientSecret });
+
+                const paymentElement = elements.create("payment");
+                paymentElement.mount("#payment-element");
+            } catch (error) {
+                console.error("Error al cargar Stripe:", error);
+                const messageContainer = document.querySelector('#payment-message');
+                messageContainer.classList.remove('hidden');
+                messageContainer.textContent = "Hubo un problema cargando el procesador de pago. Por favor intenta más tarde.";
+            }
         }
 
         // Verificar autenticación
@@ -486,6 +532,9 @@
 
                 document.getElementById('step-2-indicator').innerHTML = '<i class="fas fa-check"></i>';
                 document.getElementById('step-2-indicator').className = 'flex items-center justify-center w-10 h-10 rounded-full bg-gray-900 text-white font-semibold mr-3';
+                
+                // Cargar Stripe al cambiar al paso 2
+                initializeStripe();
             }
         }
 
@@ -515,8 +564,40 @@
             button.disabled = true;
             button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Procesando...';
 
+            const messageContainer = document.querySelector('#payment-message');
+            messageContainer.classList.add('hidden');
+
             try {
-                // Crear la orden
+                // Confirmar el pago con Stripe
+                if (paymentMethod === 'card') {
+                    const { error, paymentIntent } = await stripe.confirmPayment({
+                        elements,
+                        confirmParams: {
+                            // URL de retorno, aunque no se use de inmediato si es síncrono
+                            return_url: window.location.origin + "/checkout", 
+                        },
+                        redirect: "if_required"
+                    });
+
+                    if (error) {
+                        // Hubo un error procesando el pago (tarjeta declinada, fondos insuficientes, etc)
+                        messageContainer.classList.remove('hidden');
+                        messageContainer.textContent = error.message;
+                        button.disabled = false;
+                        button.innerHTML = originalText;
+                        return; // Detener ejecución
+                    }
+                    
+                    if (paymentIntent && paymentIntent.status !== 'succeeded') {
+                        messageContainer.classList.remove('hidden');
+                        messageContainer.textContent = "El pago no pudo ser procesado o requiere acción adicional.";
+                        button.disabled = false;
+                        button.innerHTML = originalText;
+                        return;
+                    }
+                }
+
+                // Crear la orden en Firebase SOLO SI EL PAGO FUE EXITOSO
                 const orderData = {
                     userId: currentUser.uid,
                     items: cartItems.map(item => ({
