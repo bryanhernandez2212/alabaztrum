@@ -381,13 +381,13 @@
                             void mainImage.offsetHeight;
                         };
                         img.onerror = function () {
-                            mainImage.src = 'https://via.placeholder.com/600x600?text=No+Image';
+                            mainImage.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%25%22 height=%22100%25%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23f3f4f6%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2214%22 fill=%22%239ca3af%22%3ESin imagen%3C/text%3E%3C/svg%3E';
                             mainImage.alt = 'Sin imagen';
                             void mainImage.offsetHeight;
                         };
                         img.src = images[0];
                     } else {
-                        mainImage.src = 'https://via.placeholder.com/600x600?text=No+Image';
+                        mainImage.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%25%22 height=%22100%25%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23f3f4f6%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2214%22 fill=%22%239ca3af%22%3ESin imagen%3C/text%3E%3C/svg%3E';
                         mainImage.alt = 'Sin imagen';
                     }
                 }
@@ -396,7 +396,7 @@
                     if (images.length > 0) {
                         gallery.innerHTML = images.map((img, index) => `
                             <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer border-2 ${index === 0 ? 'border-gray-900' : 'border-transparent'}" onclick="changeMainImage('${img}', ${index})">
-                                <img src="${img}" alt="${product.name || ''}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150x150?text=No+Image'">
+                                <img src="${img}" alt="${product.name || ''}" class="w-full h-full object-cover" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%25%22 height=%22100%25%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23f3f4f6%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2214%22 fill=%22%239ca3af%22%3ESin imagen%3C/text%3E%3C/svg%3E'">
                             </div>
                         `).join('');
                     } else {

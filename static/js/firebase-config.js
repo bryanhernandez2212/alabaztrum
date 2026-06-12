@@ -28,6 +28,20 @@ try {
             experimentalForceLongPolling: true,
             useFetchStreams: false
         });
+        
+        // Habilitar persistencia offline para carga instantánea
+        try {
+            db.enablePersistence({ synchronizeTabs: true })
+              .catch(function(err) {
+                  if (err.code == 'failed-precondition') {
+                      console.warn('Persistencia falló: Múltiples pestañas abiertas.');
+                  } else if (err.code == 'unimplemented') {
+                      console.warn('Persistencia no soportada por el navegador.');
+                  }
+              });
+        } catch(e) {
+            console.warn('No se pudo inicializar persistencia:', e);
+        }
     }
     if (firebase.firestore && typeof firebase.firestore.setLogLevel === 'function') {
         firebase.firestore.setLogLevel('silent');

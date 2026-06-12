@@ -40,6 +40,13 @@ def not_found(error):
 def internal_error(error):
     return {'error': 'Internal server error', 'traceback': traceback.format_exc()}, 500
 
+@app.after_request
+def add_header(response):
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '-1'
+    return response
+
 
 
 @app.route('/api/create-payment-intent', methods=['POST'])
@@ -170,6 +177,11 @@ def admin_orders_delivered():
 def admin_orders_today():
     breadcrumbs = get_breadcrumbs([('Administración', '/admin'), ('Pedidos de Hoy', '/admin/orders-today')])
     return render_template('admin/orders-today.html', breadcrumbs=breadcrumbs)
+
+@app.route('/admin/pos')
+def admin_pos():
+    breadcrumbs = get_breadcrumbs([('Administración', '/admin'), ('Terminal de Cobro', '/admin/pos')])
+    return render_template('admin/pos.html', breadcrumbs=breadcrumbs)
 
 @app.route('/admin/messages')
 def admin_messages():

@@ -417,7 +417,7 @@ function createOrderRow(order) {
     }
 
     // Info del producto
-    let productInfo = { name: 'Sin productos', image: 'https://via.placeholder.com/50?text=N/A' };
+    let productInfo = { name: 'Sin productos', image: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%25%22 height=%22100%25%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23f3f4f6%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2214%22 fill=%22%239ca3af%22%3ESin imagen%3C/text%3E%3C/svg%3E' };
     if (order.items && order.items.length > 0) {
         const firstItem = order.items[0];
         productInfo.name = firstItem.name || 'Producto sin nombre';
@@ -439,7 +439,7 @@ function createOrderRow(order) {
                 <div class="flex items-center">
                     <img src="${productInfo.image}" alt="${productInfo.name}" 
                          class="w-10 h-10 object-cover rounded mr-3 border border-gray-100"
-                         onerror="this.src='https://via.placeholder.com/50?text=N/A'">
+                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%25%22 height=%22100%25%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23f3f4f6%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2214%22 fill=%22%239ca3af%22%3ESin imagen%3C/text%3E%3C/svg%3E'">
                     <div class="text-sm font-medium text-gray-900 truncate max-w-[150px]">${productInfo.name}</div>
                 </div>
             </td>

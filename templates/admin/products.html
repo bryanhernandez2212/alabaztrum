@@ -169,7 +169,7 @@
                     // Imagen por defecto o primera imagen
                     const imageUrl = product.images && product.images.length > 0
                         ? product.images[0]
-                        : 'https://via.placeholder.com/40x40?text=No+Image';
+                        : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%25%22 height=%22100%25%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23f3f4f6%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2214%22 fill=%22%239ca3af%22%3ESin imagen%3C/text%3E%3C/svg%3E';
 
                     // Género simple
                     const genderText = product.gender === 'hombre' ? 'Hombre' : 'Mujer';
@@ -178,7 +178,7 @@
                     row.className = 'hover:bg-gray-50 transition-colors duration-150';
                     row.innerHTML = `
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <img src="${imageUrl}" alt="${product.name || ''}" class="w-12 h-12 object-cover rounded-lg border border-gray-200 shadow-sm" onerror="this.src='https://via.placeholder.com/48x48?text=No+Image'">
+                            <img src="${imageUrl}" alt="${product.name || ''}" class="w-12 h-12 object-cover rounded-lg border border-gray-200 shadow-sm" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%25%22 height=%22100%25%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23f3f4f6%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2214%22 fill=%22%239ca3af%22%3ESin imagen%3C/text%3E%3C/svg%3E'">
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm font-medium text-gray-900">${product.name || 'Sin nombre'}</div>
@@ -287,20 +287,29 @@
 
         window.loadProducts = loadProducts;
 
-        // Búsqueda en tiempo real
+        // Búsqueda en tiempo real (Buscador Inteligente)
+        function normalizeText(text) {
+            return String(text || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        }
+
         document.getElementById('searchInput').addEventListener('input', function (e) {
-            const searchTerm = e.target.value.toLowerCase();
+            const searchTerms = normalizeText(e.target.value).split(' ').filter(t => t.trim().length > 0);
             const rows = document.querySelectorAll('#productsList tr');
 
             rows.forEach(row => {
+                // Saltar la fila de "cargando" o "sin productos"
                 if (row.cells.length === 1 && row.cells[0].colSpan > 1) return;
+                if (row.cells.length === 1 && row.cells[0].colSpan === 10) return; // fila de estado
 
-                const name = row.cells[1] ? row.cells[1].textContent.toLowerCase() : '';
-                const brand = row.cells[2] ? row.cells[2].textContent.toLowerCase() : '';
-                const gender = row.cells[3] ? row.cells[3].textContent.toLowerCase() : '';
-                const type = row.cells[4] ? row.cells[4].textContent.toLowerCase() : '';
+                const name = row.cells[1] ? row.cells[1].textContent : '';
+                const brand = row.cells[2] ? row.cells[2].textContent : '';
+                const gender = row.cells[3] ? row.cells[3].textContent : '';
+                const type = row.cells[4] ? row.cells[4].textContent : '';
 
-                if (name.includes(searchTerm) || brand.includes(searchTerm) || gender.includes(searchTerm) || type.includes(searchTerm)) {
+                const rowText = normalizeText(name + ' ' + brand + ' ' + gender + ' ' + type);
+
+                // Mostrar fila solo si TODOS los términos de búsqueda están presentes
+                if (searchTerms.length === 0 || searchTerms.every(term => rowText.includes(term))) {
                     row.style.display = '';
                 } else {
                     row.style.display = 'none';

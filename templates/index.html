@@ -298,7 +298,7 @@
             container.innerHTML = products.map((product, index) => {
                 const imageUrl = product.images && product.images.length > 0
                     ? product.images[0]
-                    : 'https://via.placeholder.com/300x300?text=Sin+Imagen';
+                    : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%25%22 height=%22100%25%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23f3f4f6%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2214%22 fill=%22%239ca3af%22%3ESin imagen%3C/text%3E%3C/svg%3E';
 
                 let price = 'Precio no disponible';
                 if (product.price) {
@@ -318,7 +318,7 @@
                                     src="${imageUrl}" 
                                     alt="${product.name || 'Producto'}"
                                     class="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-500 ease-out"
-                                    onerror="this.src='https://via.placeholder.com/300x300?text=Sin+Imagen'"
+                                    onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%25%22 height=%22100%25%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23f3f4f6%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2214%22 fill=%22%239ca3af%22%3ESin imagen%3C/text%3E%3C/svg%3E'"
                                 >
                                 ${stock === 0 ? '<div class="absolute top-3 right-3 bg-red-500 text-white px-2.5 py-1 rounded-md text-xs font-semibold z-20 shadow-lg">AGOTADO</div>' : ''}
                                 <button 
