@@ -1,5 +1,8 @@
 // Script para actualizar el navbar de administrador
 
+// Bandera para evitar bucle en redirección al cerrar sesión
+let isLoggingOut = false;
+
 // Función para actualizar el nombre del usuario en el navbar de admin
 async function updateAdminNavbar() {
     const currentUser = getCurrentUser();
@@ -7,7 +10,6 @@ async function updateAdminNavbar() {
     
     if (currentUser && adminUserName) {
         try {
-            // Intentar obtener el nombre completo de Firestore
             const userDoc = await db.collection('users').doc(currentUser.uid).get();
             if (userDoc.exists) {
                 const userData = userDoc.data();
@@ -16,7 +18,6 @@ async function updateAdminNavbar() {
                     ? displayName.substring(0, 15) + '...' 
                     : displayName;
             } else {
-                // Si no existe en Firestore, usar el displayName o email
                 const displayName = currentUser.displayName || currentUser.email || 'Mi cuenta';
                 adminUserName.textContent = displayName.length > 15 
                     ? displayName.substring(0, 15) + '...' 
@@ -24,7 +25,6 @@ async function updateAdminNavbar() {
             }
         } catch (error) {
             console.warn('Error al obtener datos del usuario:', error);
-            // Usar datos básicos del usuario
             const displayName = currentUser.displayName || currentUser.email || 'Mi cuenta';
             adminUserName.textContent = displayName.length > 15 
                 ? displayName.substring(0, 15) + '...' 
@@ -37,33 +37,38 @@ async function updateAdminNavbar() {
 async function handleLogout(event) {
     event.preventDefault();
     
-    if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-        const result = await logoutUser();
-        
-        if (result.success) {
-            // Redirigir a la página principal
-            window.location.href = '/';
-        } else {
-            alert('Error al cerrar sesión: ' + result.error);
+    if (!confirm('¿Estás seguro de que quieres cerrar sesión?')) return;
+
+    try {
+        isLoggingOut = true;
+
+        // Cerrar sesión en Firebase
+        if (typeof auth !== 'undefined') {
+            await auth.signOut();
         }
+
+        // Redirigir al inicio
+        window.location.replace('/');
+    } catch (error) {
+        isLoggingOut = false;
+        console.error('Error al cerrar sesión:', error);
+        alert('Error al cerrar sesión. Inténtalo de nuevo.');
     }
 }
 
-// Actualizar navbar cuando Firebase esté listo
+// Observador de estado de autenticación para páginas admin
 if (typeof auth !== 'undefined') {
     auth.onAuthStateChanged((user) => {
         if (user) {
             updateAdminNavbar();
         } else {
-            // No autenticado, redirigir al login
-            window.location.href = '/login';
+            // Solo redirigir a login si la página sigue activa
+            // (no redirigir si ya se está haciendo el logout manual con el modal)
+            if (!window._loggingOut) {
+                window.location.replace('/login');
+            }
         }
     });
-    
-    // Verificar estado inicial
-    const currentUser = getCurrentUser();
-    if (currentUser) {
-        updateAdminNavbar();
-    }
 }
+
 

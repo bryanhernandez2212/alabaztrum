@@ -18,7 +18,15 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'administrador';
+      return request.auth != null && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'administrador';
+    }
+
+    // Configuración del sistema (Solo administradores escriben, lectura pública)
+    match /config/{doc} {
+      allow read: if true;
+      allow write: if request.auth != null && isAdmin();
     }
 
     // Reseñas del sitio (solo aprobadas son públicas)

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pedidos - Administración - ALABAZTRUM</title>
+    <title>{{ title }} - Administración - ALABAZTRUM</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -28,14 +28,8 @@
                 <div class="mb-8">
                     <div class="flex items-center justify-between">
                         <div>
-                            <h1 class="text-3xl font-bold text-gray-900 mb-2">Gestión de Pedidos</h1>
+                            <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ title }}</h1>
                             <p class="text-sm text-gray-600">Visualiza y gestiona las ventas de tu tienda</p>
-                            <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                                <p class="text-blue-800 font-medium">
-                                    <i class="fas fa-info-circle mr-2"></i>
-                                    Usa las pestañas de abajo para filtrar los pedidos por estado
-                                </p>
-                            </div>
                         </div>
                         <div class="flex items-center gap-4">
                             <div class="relative">
@@ -46,17 +40,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Tabs de filtro -->
-                <div class="border-b border-gray-200 mb-8">
-                    <nav class="flex space-x-2 bg-gray-50 p-2 rounded-lg">
-                        <button data-tab="pending" id="tab-pending" class="tab-button px-6 py-3 rounded-lg border-b-2 border-gray-900 text-sm font-semibold text-gray-900 bg-white shadow"> <i class="fas fa-boxes mr-2"></i>Pedidos Pendientes</button>
-                        <button data-tab="tracking" id="tab-tracking" class="tab-button px-6 py-3 rounded-lg border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:bg-gray-100"> <i class="fas fa-truck-fast mr-2"></i>En Seguimiento</button>
-                        <button data-tab="canceled" id="tab-canceled" class="tab-button px-6 py-3 rounded-lg border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:bg-gray-100"> <i class="fas fa-times-circle mr-2"></i>Pedidos Cancelados</button>
-                        <button data-tab="delivered" id="tab-delivered" class="tab-button px-6 py-3 rounded-lg border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:bg-gray-100"> <i class="fas fa-check-circle mr-2"></i>Pedidos Entregados</button>
-                        <button data-tab="all" id="tab-all" class="tab-button px-6 py-3 rounded-lg border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:bg-gray-100"> <i class="fas fa-list mr-2"></i>Todos los Pedidos</button>
-                    </nav>
                 </div>
 
                 <!-- Mensaje de error/éxito -->
@@ -358,37 +341,12 @@
     <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 
     <script>
-        // Variable global para el tab seleccionado
-        let currentTab = 'all';
+        // Variable global para el tab seleccionado dinámicamente desde el backend
+        let currentTab = '{{ filter_type }}';
         let allOrders = [];
 
-        // Función para cambiar el estado visual de las pestañas
-        function setActiveTab(tabId) {
-            const tabButtons = document.querySelectorAll('.tab-button');
-            tabButtons.forEach(btn => {
-                btn.classList.remove('border-gray-900', 'text-gray-900', 'bg-white', 'shadow', 'font-semibold');
-                btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300', 'hover:bg-gray-100');
-            });
-            const activeBtn = document.getElementById(`tab-${tabId}`);
-            if (activeBtn) {
-                activeBtn.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300', 'hover:bg-gray-100');
-                activeBtn.classList.add('border-gray-900', 'text-gray-900', 'bg-white', 'shadow', 'font-semibold');
-            }
-        }
-
-        // Inicializar carga de pedidos y pestañas
+        // Inicializar carga de pedidos
         document.addEventListener('DOMContentLoaded', function () {
-            // Configurar event listeners para las pestañas
-            const tabButtons = document.querySelectorAll('.tab-button');
-            tabButtons.forEach(button => {
-                button.addEventListener('click', function () {
-                    const tabId = this.dataset.tab;
-                    currentTab = tabId;
-                    setActiveTab(tabId);
-                    renderOrders();
-                });
-            });
-
             auth.onAuthStateChanged((user) => {
                 if (user) {
                     if (typeof loadAdminOrders === 'function') {

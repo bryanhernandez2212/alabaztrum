@@ -699,15 +699,31 @@ nav .group::after {
 }
 
 /* Estilos para pestañas del perfil */
-.tab-button {
+/* Asegurar que SOLO las pestañas del perfil tengan fondo transparente */
+body.profile-page .tab-button {
     transition: all 0.2s ease;
     background-color: transparent !important;
 }
 
-.tab-button.active {
+body.profile-page .tab-button.active {
     border-bottom-color: #111827 !important;
     color: #111827 !important;
     background-color: transparent !important;
+}
+
+/* Estilos específicos para pestañas de ADMIN (gestión de pedidos) */
+/* Estos estilos prevalecen sobre los del perfil */
+body.admin-body .tab-button {
+    transition: all 0.2s ease !important;
+    background-color: transparent !important;
+}
+
+body.admin-body .tab-button.bg-white {
+    background-color: white !important;
+}
+
+body.admin-body .tab-button:hover {
+    background-color: #f3f4f6 !important;
 }
 
 /* Asegurar que el contenedor de pestañas tenga fondo blanco - solo en página de perfil */

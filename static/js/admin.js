@@ -171,13 +171,13 @@ function updateUsersTable(users) {
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     ${createdAt}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    ${user.role !== 'administrador'
-                ? `<button onclick="changeUserRole('${user.id}', 'administrador')" class="text-blue-600 hover:text-blue-900 mr-3">
-                            <i class="fas fa-user-shield mr-1"></i>Hacer Admin
-                           </button>`
-                : `<button onclick="changeUserRole('${user.id}', 'cliente')" class="text-orange-600 hover:text-orange-900">
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    ${user.role === 'administrador'
+                ? `<button onclick="changeUserRole('${user.id}', 'cliente')" class="text-orange-600 hover:text-orange-900">
                             <i class="fas fa-user mr-1"></i>Quitar Admin
+                           </button>`
+                : `<button onclick="changeUserRole('${user.id}', 'administrador')" class="text-indigo-600 hover:text-indigo-900">
+                            <i class="fas fa-user-shield mr-1"></i>Hacer Admin
                            </button>`
             }
                 </td>
@@ -285,6 +285,7 @@ async function loadFragranceTypes() {
 // Función para cargar pedidos en el panel admin
 async function loadAdminOrders() {
     const ordersList = document.getElementById('ordersList');
+    
     if (!ordersList) return;
 
     try {
@@ -292,121 +293,185 @@ async function loadAdminOrders() {
         const ordersSnapshot = await db.collection('orders').orderBy('createdAt', 'desc').get();
         console.log("Pedidos cargados exitosamente, total:", ordersSnapshot.size);
 
-        if (ordersSnapshot.empty) {
-            ordersList.innerHTML = `
-                <tr>
-                    <td colspan="7" class="px-6 py-20 text-center">
-                        <div class="flex flex-col items-center">
-                            <div class="bg-gray-100 rounded-full p-6 mb-4">
-                                <i class="fas fa-shopping-bag text-gray-400 text-4xl"></i>
-                            </div>
-                            <p class="text-gray-600 mb-1 text-base font-medium">No hay pedidos registrados</p>
-                        </div>
-                    </td>
-                </tr>
-            `;
-            document.getElementById('ordersCount').textContent = 'Mostrando 0 pedido(s)';
-            return;
-        }
-
-        ordersList.innerHTML = '';
-        let orderCount = 0;
-
+        // Guardar todos los pedidos en la variable global
+        allOrders = [];
         ordersSnapshot.forEach((doc) => {
-            const order = doc.data();
-            orderCount++;
-
-            // Formatear fecha
-            let formattedDate = 'N/A';
-            if (order.createdAt) {
-                const date = order.createdAt.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
-                formattedDate = date.toLocaleDateString('es-ES', {
-                    day: '2-digit', month: '2-digit', year: 'numeric',
-                    hour: '2-digit', minute: '2-digit'
-                });
-            }
-
-            // Verificar si es de hoy (para indicador visual)
-            let isToday = false;
-            if (order.createdAt) {
-                const date = order.createdAt.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
-                const now = new Date();
-                const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-                const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-                isToday = date >= todayStart && date <= todayEnd;
-            }
-
-            // Info del producto
-            let productInfo = { name: 'Sin productos', image: 'https://via.placeholder.com/50?text=N/A' };
-            if (order.items && order.items.length > 0) {
-                const firstItem = order.items[0];
-                productInfo.name = firstItem.name || 'Producto sin nombre';
-                if (firstItem.images && firstItem.images.length > 0) {
-                    productInfo.image = firstItem.images[0];
-                } else if (firstItem.image) {
-                    productInfo.image = firstItem.image;
-                }
-            }
-
-            const row = document.createElement('tr');
-            row.className = 'hover:bg-gray-50 transition-colors duration-150';
-
-            row.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap relative">
-                    ${isToday ? '<span class="absolute top-2 -left-1 flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span></span>' : ''}
-                    <span class="text-xs font-mono text-gray-500 ${isToday ? 'ml-3' : ''}">#${doc.id.substring(0, 8).toUpperCase()}</span>
-                    ${isToday ? '<div class="text-[10px] text-red-600 font-bold ml-3 mt-1">¡NUEVO!</div>' : ''}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center">
-                        <img src="${productInfo.image}" alt="${productInfo.name}" 
-                             class="w-10 h-10 object-cover rounded mr-3 border border-gray-100"
-                             onerror="this.src='https://via.placeholder.com/50?text=N/A'">
-                        <div class="text-sm font-medium text-gray-900 truncate max-w-[150px]">${productInfo.name}</div>
-                    </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-medium text-gray-900">${order.shippingAddress?.fullName || 'Desconocido'}</div>
-                    <div class="text-xs text-gray-500">${order.shippingAddress?.phone || ''}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    ${formattedDate}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                    $${order.total ? order.total.toFixed(2) : '0.00'}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <select onchange="updateOrderStatus('${doc.id}', this.value)" 
-                        class="text-xs border border-gray-300 rounded-md px-2 py-1 focus:ring-gray-900 focus:border-gray-900">
-                        <option value="pendiente" ${order.status === 'pendiente' ? 'selected' : ''}>Pendiente</option>
-                        <option value="procesando" ${order.status === 'procesando' ? 'selected' : ''}>En Proceso</option>
-                        <option value="enviado" ${order.status === 'enviado' ? 'selected' : ''}>En Camino</option>
-                        <option value="entrega" ${order.status === 'entrega' ? 'selected' : ''}>En Entrega</option>
-                        <option value="entregado" ${order.status === 'entregado' ? 'selected' : ''}>Entregado</option>
-                        <option value="cancelado" ${order.status === 'cancelado' ? 'selected' : ''}>Cancelado</option>
-                    </select>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                    <button onclick="viewOrderDetails('${doc.id}')" class="text-gray-900 hover:text-black font-medium">
-                        Ver Detalles
-                    </button>
-                </td>
-            `;
-            ordersList.appendChild(row);
+            allOrders.push({ id: doc.id, ...doc.data() });
         });
 
-        document.getElementById('ordersCount').textContent = `Mostrando ${orderCount} pedido(s)`;
+        // Establecer la pestaña activa y renderizar
+        if (typeof setActiveTab === 'function') {
+            setActiveTab(currentTab);
+        }
+        renderOrders();
 
     } catch (error) {
         console.error('Error al cargar pedidos:', error);
+        const ordersList = document.getElementById('ordersList');
+        if (ordersList) {
+            ordersList.innerHTML = `
+                <tr>
+                    <td colspan="7" class="px-6 py-16 text-center text-red-600">
+                        Error al cargar los pedidos. Por favor, intenta de nuevo.
+                    </td>
+                </tr>
+            `;
+        }
+    }
+}
+
+// Función para renderizar pedidos según el tab seleccionado
+function renderOrders(searchTerm = '') {
+
+    const ordersList = document.getElementById('ordersList');
+    const ordersCountEl = document.getElementById('ordersCount');
+    
+    if (!ordersList || !allOrders) return;
+
+    // Filtrar pedidos según el tab actual
+    let filteredOrders = allOrders.filter(order => {
+        if (currentTab === 'pending') {
+            // Pendientes: not yet processed or awaiting verification
+            return order.status === 'pendiente' || order.status === 'pending_verification';
+        } else if (currentTab === 'tracking') {
+            // En Seguimiento: processing, shipped, or in delivery
+            return order.status === 'procesando' || order.status === 'enviado' || order.status === 'entrega';
+        } else if (currentTab === 'pending_and_tracking') {
+            // Combinado para la vista filtrada
+            return order.status === 'pendiente' || order.status === 'pending_verification' || 
+                   order.status === 'procesando' || order.status === 'enviado' || order.status === 'entrega';
+        } else if (currentTab === 'delivered') {
+            return order.status === 'entregado';
+        } else if (currentTab === 'canceled') {
+            return order.status === 'cancelado';
+        } else { // 'all'
+            return true;
+        }
+
+    });
+
+    // Aplicar filtro de búsqueda
+    if (searchTerm) {
+        filteredOrders = filteredOrders.filter(order => {
+            const id = order.id.toLowerCase();
+            const clientName = (order.shippingAddress?.fullName || '').toLowerCase();
+            const productName = (order.items && order.items.length > 0) 
+                ? order.items[0].name.toLowerCase() 
+                : '';
+            
+            return id.includes(searchTerm) || 
+                   clientName.includes(searchTerm) || 
+                   productName.includes(searchTerm);
+        });
+    }
+
+    // Renderizar
+    if (filteredOrders.length === 0) {
+        let message = 'No hay pedidos';
+        if (currentTab === 'pending') message = 'No hay pedidos pendientes';
+        if (currentTab === 'tracking') message = 'No hay pedidos en seguimiento';
+        if (currentTab === 'delivered') message = 'No hay pedidos entregados';
+        if (currentTab === 'canceled') message = 'No hay pedidos cancelados';
+        
         ordersList.innerHTML = `
             <tr>
-                <td colspan="7" class="px-6 py-16 text-center text-red-600">
-                    Error al cargar los pedidos. Por favor, intenta de nuevo.
+                <td colspan="7" class="px-6 py-16 text-center">
+                    <div class="flex flex-col items-center">
+                        <div class="bg-gray-100 rounded-full p-6 mb-4">
+                            <i class="fas fa-boxes text-gray-400 text-4xl"></i>
+                        </div>
+                        <p class="text-gray-600 mb-1 text-base font-medium">${message}</p>
+                    </div>
                 </td>
             </tr>
         `;
+    } else {
+        ordersList.innerHTML = filteredOrders.map(order => createOrderRow(order)).join('');
     }
+
+    if (ordersCountEl) {
+        ordersCountEl.textContent = `Mostrando ${filteredOrders.length} pedido(s)`;
+    }
+}
+
+// Función para crear fila de pedido
+function createOrderRow(order) {
+    // Formatear fecha
+    let formattedDate = 'N/A';
+    if (order.createdAt) {
+        const date = order.createdAt.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
+        formattedDate = date.toLocaleDateString('es-ES', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
+    }
+
+    // Verificar si es de hoy (para indicador visual)
+    let isToday = false;
+    if (order.createdAt) {
+        const date = order.createdAt.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
+        const now = new Date();
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+        const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+        isToday = date >= todayStart && date <= todayEnd;
+    }
+
+    // Info del producto
+    let productInfo = { name: 'Sin productos', image: 'https://via.placeholder.com/50?text=N/A' };
+    if (order.items && order.items.length > 0) {
+        const firstItem = order.items[0];
+        productInfo.name = firstItem.name || 'Producto sin nombre';
+        if (firstItem.images && firstItem.images.length > 0) {
+            productInfo.image = firstItem.images[0];
+        } else if (firstItem.image) {
+            productInfo.image = firstItem.image;
+        }
+    }
+
+    return `
+        <tr class="hover:bg-gray-50 transition-colors duration-150">
+            <td class="px-6 py-4 whitespace-nowrap relative">
+                ${isToday ? '<span class="absolute top-2 -left-1 flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span></span>' : ''}
+                <span class="text-xs font-mono text-gray-500 ${isToday ? 'ml-3' : ''}">#${order.id.substring(0, 8).toUpperCase()}</span>
+                ${isToday ? '<div class="text-[10px] text-red-600 font-bold ml-3 mt-1">¡NUEVO!</div>' : ''}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                    <img src="${productInfo.image}" alt="${productInfo.name}" 
+                         class="w-10 h-10 object-cover rounded mr-3 border border-gray-100"
+                         onerror="this.src='https://via.placeholder.com/50?text=N/A'">
+                    <div class="text-sm font-medium text-gray-900 truncate max-w-[150px]">${productInfo.name}</div>
+                </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900">${order.shippingAddress?.fullName || 'Desconocido'}</div>
+                <div class="text-xs text-gray-500">${order.shippingAddress?.phone || ''}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                ${formattedDate}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                $${order.total ? order.total.toFixed(2) : '0.00'}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <select onchange="updateOrderStatus('${order.id}', this.value)" 
+                    class="text-xs border border-gray-300 rounded-md px-2 py-1 focus:ring-gray-900 focus:border-gray-900">
+                    <option value="pendiente" ${order.status === 'pendiente' ? 'selected' : ''}>Pendiente</option>
+                    <option value="pending_verification" ${order.status === 'pending_verification' ? 'selected' : ''}>Pago en Verificación</option>
+                    <option value="procesando" ${order.status === 'procesando' ? 'selected' : ''}>En Proceso</option>
+                    <option value="enviado" ${order.status === 'enviado' ? 'selected' : ''}>En Camino</option>
+                    <option value="entrega" ${order.status === 'entrega' ? 'selected' : ''}>En Entrega</option>
+                    <option value="entregado" ${order.status === 'entregado' ? 'selected' : ''}>Entregado</option>
+                    <option value="cancelado" ${order.status === 'cancelado' ? 'selected' : ''}>Cancelado</option>
+                </select>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                <button onclick="viewOrderDetails('${order.id}')" class="text-gray-900 hover:text-black font-medium">
+                    Ver Detalles
+                </button>
+            </td>
+        </tr>
+    `;
 }
 
 // Función para actualizar estado de pedido
@@ -496,6 +561,33 @@ async function viewOrderDetails(orderId) {
         document.getElementById('detailAddressCityState').textContent = `${data.shippingAddress?.city || ''}, ${data.shippingAddress?.state || ''}`;
         document.getElementById('detailAddressZip').textContent = data.shippingAddress?.postalCode || '';
 
+        // Poblar Método de Pago
+        const paymentMethodEl = document.getElementById('detailPaymentMethod');
+        if (paymentMethodEl) {
+            let methodText = 'Desconocido';
+            let iconClass = 'fa-credit-card';
+            
+            if (data.paymentMethod === 'card') {
+                methodText = 'Tarjeta de Crédito / Débito';
+                if (data.cardLast4) {
+                    methodText += ` (**** **** **** ${data.cardLast4})`;
+                } else if (data.paymentDetails?.last4) {
+                    methodText += ` (**** **** **** ${data.paymentDetails.last4})`;
+                }
+                iconClass = 'fa-cc-visa';
+            } else if (data.paymentMethod === 'cash') {
+                methodText = 'Pago en Efectivo (OXXO)';
+                iconClass = 'fa-money-bill-wave';
+            } else if (data.paymentMethod === 'transfer') {
+                methodText = 'Transferencia o Depósito';
+                iconClass = 'fa-university';
+            } else if (data.paymentMethod) {
+                methodText = data.paymentMethod;
+            }
+            
+            paymentMethodEl.innerHTML = `<i class="fas ${iconClass} mr-2 text-gray-500"></i><span>${methodText}</span>`;
+        }
+
         // Poblar Items
         const itemsList = document.getElementById('detailItemsList');
         itemsList.innerHTML = '';
@@ -526,6 +618,18 @@ async function viewOrderDetails(orderId) {
         if (statusSelect) {
             statusSelect.value = data.status || 'pendiente';
             toggleShippingFields(); // Resetear visibilidad
+        }
+
+        // Mostrar comprobante de transferencia si existe
+        const proofSection = document.getElementById('transferProofSection');
+        const proofImage = document.getElementById('detailTransferProofImage');
+        if (proofSection && proofImage) {
+            if (data.paymentMethod === 'transfer' && data.proofImageUrl) {
+                proofImage.src = data.proofImageUrl;
+                proofSection.classList.remove('hidden');
+            } else {
+                proofSection.classList.add('hidden');
+            }
         }
 
         // Mostrar Modal
@@ -751,6 +855,7 @@ function getStatusLabel(status) {
 
 // Exportar funciones globalmente
 window.loadAdminOrders = loadAdminOrders;
+window.renderOrders = renderOrders;
 window.updateOrderStatus = updateOrderStatus;
 window.viewOrderDetails = viewOrderDetails;
 window.closeOrderDetailModal = closeOrderDetailModal;

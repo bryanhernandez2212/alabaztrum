@@ -229,25 +229,38 @@ async function updateNavbarForLoggedUser(user) {
 }
 
 // Función para manejar el cierre de sesión
+let isLoggingOut = false;
+
 async function handleLogout(event) {
     event.preventDefault();
 
-    if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-        const result = await logoutUser();
+    if (!confirm('¿Estás seguro de que quieres cerrar sesión?')) return;
 
-        if (result.success) {
-            // Limpiar AuthManager (esto notificará automáticamente a los listeners)
-            if (typeof authManager !== 'undefined') {
-                authManager.clearUser();
-            }
+    try {
+        isLoggingOut = true;
 
-            // Redirigir a la página principal
-            window.location.href = '/';
-        } else {
-            alert('Error al cerrar sesión: ' + result.error);
+        // Limpiar cache del AuthManager
+        if (typeof authManager !== 'undefined') {
+            authManager.clearUser();
         }
+
+        // Limpiar sessionStorage
+        sessionStorage.removeItem('authManager_cache');
+
+        // Cerrar sesión en Firebase directamente
+        if (typeof auth !== 'undefined') {
+            await auth.signOut();
+        }
+
+        // Redirigir a la página principal
+        window.location.replace('/');
+    } catch (error) {
+        isLoggingOut = false;
+        console.error('Error al cerrar sesión:', error);
+        alert('Error al cerrar sesión. Inténtalo de nuevo.');
     }
 }
+
 
 
 // Función para actualizar navbar desde cache inmediatamente (antes de que se renderice)

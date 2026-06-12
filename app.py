@@ -65,6 +65,32 @@ def create_payment_intent():
         logger.error(f"Error creating PaymentIntent: {str(e)}")
         return jsonify(error=str(e)), 403
 
+import werkzeug.utils
+
+UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'uploads', 'transfer_proofs')
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+@app.route('/api/upload-transfer-proof', methods=['POST'])
+def upload_transfer_proof():
+    try:
+        if 'transferProof' not in request.files:
+            return jsonify({'error': 'No file part'}), 400
+        file = request.files['transferProof']
+        if file.filename == '':
+            return jsonify({'error': 'No selected file'}), 400
+        if file:
+            import uuid
+            ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else 'png'
+            filename = f"{uuid.uuid4().hex}.{ext}"
+            filepath = os.path.join(UPLOAD_FOLDER, filename)
+            file.save(filepath)
+            # URL to access the image
+            url = f"/static/uploads/transfer_proofs/{filename}"
+            return jsonify({'url': url}), 200
+    except Exception as e:
+        logger.error(f"Error uploading proof: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/')
 def index():
     try:
@@ -122,8 +148,23 @@ def admin_products():
 
 @app.route('/admin/orders')
 def admin_orders():
-    breadcrumbs = get_breadcrumbs([('Administración', '/admin'), ('Pedidos', '/admin/orders')])
+    breadcrumbs = get_breadcrumbs([('Administración', '/admin'), ('Todos los Pedidos', '/admin/orders')])
     return render_template('admin/orders.html', breadcrumbs=breadcrumbs)
+
+@app.route('/admin/orders/pending')
+def admin_orders_pending():
+    breadcrumbs = get_breadcrumbs([('Administración', '/admin'), ('Pendientes y En Seguimiento', '/admin/orders/pending')])
+    return render_template('admin/orders_filtered.html', breadcrumbs=breadcrumbs, filter_type='pending_and_tracking', title='Pedidos Pendientes y En Seguimiento')
+
+@app.route('/admin/orders/canceled')
+def admin_orders_canceled():
+    breadcrumbs = get_breadcrumbs([('Administración', '/admin'), ('Pedidos Cancelados', '/admin/orders/canceled')])
+    return render_template('admin/orders_filtered.html', breadcrumbs=breadcrumbs, filter_type='canceled', title='Pedidos Cancelados')
+
+@app.route('/admin/orders/delivered')
+def admin_orders_delivered():
+    breadcrumbs = get_breadcrumbs([('Administración', '/admin'), ('Pedidos Entregados', '/admin/orders/delivered')])
+    return render_template('admin/orders_filtered.html', breadcrumbs=breadcrumbs, filter_type='delivered', title='Pedidos Entregados')
 
 @app.route('/admin/orders-today')
 def admin_orders_today():
@@ -144,6 +185,11 @@ def admin_comments():
 def admin_site_reviews():
     breadcrumbs = get_breadcrumbs([('Administración', '/admin'), ('Reseñas del Sitio', '/admin/site-reviews')])
     return render_template('admin/site_reviews.html', breadcrumbs=breadcrumbs)
+
+@app.route('/admin/payment-config')
+def admin_payment_config():
+    breadcrumbs = get_breadcrumbs([('Administración', '/admin'), ('Configurar Pago', '/admin/payment-config')])
+    return render_template('admin/payment_config.html', breadcrumbs=breadcrumbs)
 
 @app.route('/admin/products/add')
 def admin_add_product():

@@ -199,36 +199,74 @@
                         <h2 class="text-xl font-semibold text-gray-900 mb-6">Método de Pago</h2>
 
                         <form id="payment-form" class="space-y-6">
-                            <!-- Métodos de pago -->
+                            <!-- Método de pago: Transferencia Bancaria -->
                             <div class="space-y-3">
-                                <label
-                                    class="flex items-center p-4 border-2 border-gray-900 bg-gray-50 rounded-lg cursor-pointer transition payment-method">
-                                    <input type="radio" name="paymentMethod" value="card" checked
-                                        class="mr-4 w-4 h-4 text-gray-900 focus:ring-gray-900">
+                                <label id="transfer-option" class="flex items-center p-4 border-2 border-gray-900 bg-gray-50 rounded-lg cursor-pointer transition">
+                                    <input type="radio" name="paymentMethod" value="transfer" checked class="mr-4 w-4 h-4 text-gray-900 focus:ring-gray-900">
                                     <div class="flex-1">
                                         <div class="flex items-center">
-                                            <i class="fas fa-credit-card text-2xl text-purple-600 mr-3"></i>
+                                            <i class="fas fa-university text-2xl text-gray-900 mr-3"></i>
                                             <div>
-                                                <p class="font-semibold text-gray-900">Tarjeta de Crédito/Débito</p>
-                                                <p class="text-sm text-gray-500">Pago seguro con tarjeta</p>
+                                                <p class="font-semibold text-gray-900">Transferencia Bancaria</p>
+                                                <p class="text-sm text-gray-500">Paga mediante transferencia o depósito</p>
                                             </div>
                                         </div>
                                     </div>
                                 </label>
                             </div>
 
-                            <!-- Información de pago (mostrar según método seleccionado) -->
-                            <div id="payment-info" class="p-4 bg-gray-50 rounded-lg">
-                                <div id="card-info">
-                                    <p class="text-sm text-gray-600 mb-4">
-                                        <i class="fas fa-info-circle mr-2"></i>
-                                        El procesamiento de pago con tarjeta se realizará de forma segura usando Stripe.
-                                    </p>
-                                    <div id="payment-element">
-                                        <!-- Stripe Elements se inyectará aquí -->
-                                    </div>
-                                    <div id="payment-message" class="hidden text-red-500 font-medium text-sm mt-4 p-3 bg-red-50 rounded-lg border border-red-200"></div>
+                            <!-- Información de pago de transferencia (se muestra cuando la opción está seleccionada) -->
+                            <div id="payment-info" class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                <h3 class="text-lg font-bold text-gray-900 mb-4">Datos para Transferencia</h3>
+                                <div id="bank-info-container" class="bg-white p-4 rounded border border-gray-200 mb-4 whitespace-pre-wrap font-mono text-sm text-gray-700">
+                                    <!-- Datos de banco cargados dinámicamente -->
+                                    Cargando datos bancarios...
                                 </div>
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        Comprobante de Pago <span class="text-red-500">*</span>
+                                    </label>
+                                    <p class="text-xs text-gray-500 mb-3">Sube una captura de pantalla o foto de tu comprobante de transferencia.</p>
+
+                                    <!-- Zona de carga -->
+                                    <div id="upload-drop-zone"
+                                        class="relative border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-gray-900 hover:bg-gray-50 transition-all duration-200"
+                                        onclick="document.getElementById('transferProof').click()"
+                                        ondragover="event.preventDefault(); this.classList.add('border-gray-900','bg-gray-50')"
+                                        ondragleave="this.classList.remove('border-gray-900','bg-gray-50')"
+                                        ondrop="handleFileDrop(event)">
+                                        <input type="file" id="transferProof" name="transferProof" accept="image/*"
+                                            class="hidden" required onchange="handleFileSelect(this)">
+                                        <div id="upload-placeholder">
+                                            <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
+                                            <p class="text-sm font-medium text-gray-700">Haz clic o arrastra tu comprobante aquí</p>
+                                            <p class="text-xs text-gray-400 mt-1">PNG, JPG, JPEG o HEIC — Máx. 10MB</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Vista previa (oculta por defecto) -->
+                                    <div id="proof-preview" class="hidden mt-3">
+                                        <div class="flex items-start gap-3 p-3 bg-green-50 border border-green-200 rounded-xl">
+                                            <img id="proof-preview-img" src="" alt="Comprobante"
+                                                class="w-20 h-20 object-cover rounded-lg border border-green-300 cursor-pointer flex-shrink-0"
+                                                onclick="window.open(this.src,'_blank')">
+                                            <div class="flex-1 min-w-0">
+                                                <div class="flex items-center gap-1 mb-1">
+                                                    <i class="fas fa-check-circle text-green-500 text-sm"></i>
+                                                    <span class="text-sm font-semibold text-green-700">Comprobante listo</span>
+                                                </div>
+                                                <p id="proof-file-name" class="text-xs text-gray-600 truncate"></p>
+                                                <p id="proof-file-size" class="text-xs text-gray-400"></p>
+                                                <button type="button" onclick="removeProof()"
+                                                    class="mt-2 text-xs text-red-500 hover:text-red-700 font-medium transition">
+                                                    <i class="fas fa-trash-alt mr-1"></i>Cambiar archivo
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="payment-message" class="hidden text-red-500 font-medium text-sm mt-4 p-3 bg-red-50 rounded-lg border border-red-200"></div>
                             </div>
 
                             <!-- Botones -->
@@ -506,6 +544,24 @@
             deliveryInfo.classList.remove('hidden');
         }
 
+        // Función para cargar datos bancarios
+        async function loadBankInfo() {
+            try {
+                const container = document.getElementById('bank-info-container');
+                if (!container) return;
+                
+                const doc = await db.collection('config').doc('payment').get();
+                if (doc.exists && doc.data().bankInfo) {
+                    container.textContent = doc.data().bankInfo;
+                } else {
+                    container.textContent = "Por favor, contacta al administrador para obtener los datos de transferencia.";
+                }
+            } catch (error) {
+                console.error("Error al cargar datos bancarios:", error);
+                document.getElementById('bank-info-container').textContent = "Error al cargar los datos de transferencia. Intenta recargar la página.";
+            }
+        }
+
         // Cambiar de paso
         function goToStep(step) {
             currentStep = step;
@@ -533,8 +589,8 @@
                 document.getElementById('step-2-indicator').innerHTML = '<i class="fas fa-check"></i>';
                 document.getElementById('step-2-indicator').className = 'flex items-center justify-center w-10 h-10 rounded-full bg-gray-900 text-white font-semibold mr-3';
                 
-                // Cargar Stripe al cambiar al paso 2
-                initializeStripe();
+                // Cargar datos del banco al cambiar al paso 2
+                loadBankInfo();
             }
         }
 
@@ -543,9 +599,9 @@
             goToStep(1);
         });
 
-        // Inicializar método de pago por defecto
-        const cardRadio = document.querySelector('input[name="paymentMethod"][value="card"]');
-        if (cardRadio) cardRadio.checked = true;
+        // Inicializar método de pago por defecto (transferencia)
+        const transferRadio = document.querySelector('input[name="paymentMethod"][value="transfer"]');
+        if (transferRadio) transferRadio.checked = true;
 
         // Manejar envío de formulario de pago
         document.getElementById('payment-form').addEventListener('submit', async function (e) {
@@ -556,48 +612,24 @@
                 goToStep(1);
                 return;
             }
+            
+            const fileInput = document.getElementById('transferProof');
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert('Por favor, sube tu comprobante de transferencia.');
+                return;
+            }
 
-            const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
             const button = document.getElementById('complete-order-btn');
             const originalText = button.innerHTML;
 
             button.disabled = true;
-            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Procesando...';
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Procesando Pedido...';
 
             const messageContainer = document.querySelector('#payment-message');
             messageContainer.classList.add('hidden');
 
             try {
-                // Confirmar el pago con Stripe
-                if (paymentMethod === 'card') {
-                    const { error, paymentIntent } = await stripe.confirmPayment({
-                        elements,
-                        confirmParams: {
-                            // URL de retorno, aunque no se use de inmediato si es síncrono
-                            return_url: window.location.origin + "/checkout", 
-                        },
-                        redirect: "if_required"
-                    });
-
-                    if (error) {
-                        // Hubo un error procesando el pago (tarjeta declinada, fondos insuficientes, etc)
-                        messageContainer.classList.remove('hidden');
-                        messageContainer.textContent = error.message;
-                        button.disabled = false;
-                        button.innerHTML = originalText;
-                        return; // Detener ejecución
-                    }
-                    
-                    if (paymentIntent && paymentIntent.status !== 'succeeded') {
-                        messageContainer.classList.remove('hidden');
-                        messageContainer.textContent = "El pago no pudo ser procesado o requiere acción adicional.";
-                        button.disabled = false;
-                        button.innerHTML = originalText;
-                        return;
-                    }
-                }
-
-                // Crear la orden en Firebase SOLO SI EL PAGO FUE EXITOSO
+                // Preparar datos del pedido
                 const orderData = {
                     userId: currentUser.uid,
                     items: cartItems.map(item => ({
@@ -609,28 +641,45 @@
                         images: item.images
                     })),
                     shippingAddress: shippingAddress,
-                    paymentMethod: paymentMethod,
+                    paymentMethod: 'transfer',
                     subtotal: cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
                     shipping: 0,
                     total: cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
-                    status: 'pending',
+                    status: 'pending_verification',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                     trackingHistory: [{
                         status: 'pendiente',
-                        label: 'Se acaba de realizar el pago',
-                        timestamp: new Date(),
+                        label: 'Pedido recibido, pago en verificación',
+                        timestamp: new Date().toISOString(),
                         location: 'Alabaztrum Shop'
-                    }],
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }]
                 };
+
+                // Subir imagen al servidor
+                const formData = new FormData();
+                formData.append('transferProof', fileInput.files[0]);
+
+                const uploadResponse = await fetch('/api/upload-transfer-proof', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const uploadResult = await uploadResponse.json();
+
+                if (!uploadResponse.ok) {
+                    throw new Error(uploadResult.error || 'Error al subir el comprobante');
+                }
+
+                orderData.proofImageUrl = uploadResult.url;
 
                 // Guardar orden en Firestore
                 const orderRef = await db.collection('orders').add(orderData);
+                const orderId = orderRef.id;
 
-                // Limpiar carrito usando la función clearCart de cart.js
+                // Limpiar carrito en Firestore
                 if (typeof clearCart !== 'undefined') {
                     await clearCart(currentUser.uid);
                 } else {
-                    // Fallback: limpiar manualmente
                     const cartRef = db.collection('carts').doc(currentUser.uid);
                     await cartRef.set({
                         items: [],
@@ -639,11 +688,12 @@
                 }
 
                 // Redirigir a página de confirmación
-                window.location.href = `/orden-confirmada?orderId=${orderRef.id}`;
+                window.location.href = `/orden-confirmada?orderId=${orderId}`;
 
             } catch (error) {
                 console.error('Error completando pedido:', error);
-                alert('Error al procesar el pedido. Por favor, intenta de nuevo.');
+                messageContainer.classList.remove('hidden');
+                messageContainer.textContent = error.message || 'Error al procesar el pedido. Por favor, intenta de nuevo.';
                 button.disabled = false;
                 button.innerHTML = originalText;
             }
@@ -718,6 +768,65 @@
                 }
             });
         }
+        // --- Funciones para subida de comprobante ---
+        function handleFileSelect(input) {
+            if (input.files && input.files[0]) {
+                showProofPreview(input.files[0]);
+            }
+        }
+
+        function handleFileDrop(event) {
+            event.preventDefault();
+            const dropZone = document.getElementById('upload-drop-zone');
+            dropZone.classList.remove('border-gray-900', 'bg-gray-50');
+
+            const file = event.dataTransfer.files[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                alert('Por favor sube solo imágenes (PNG, JPG, JPEG, HEIC).');
+                return;
+            }
+
+            // Asignar al input real
+            const input = document.getElementById('transferProof');
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            input.files = dt.files;
+
+            showProofPreview(file);
+        }
+
+        function showProofPreview(file) {
+            if (file.size > 10 * 1024 * 1024) {
+                alert('El archivo es demasiado grande. Máximo 10MB.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById('proof-preview-img').src = e.target.result;
+                document.getElementById('proof-file-name').textContent = file.name;
+                document.getElementById('proof-file-size').textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+
+                // Ocultar zona de carga y mostrar preview
+                document.getElementById('upload-drop-zone').classList.add('hidden');
+                document.getElementById('proof-preview').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeProof() {
+            // Limpiar el input
+            const input = document.getElementById('transferProof');
+            input.value = '';
+
+            // Volver a mostrar la zona de carga
+            document.getElementById('upload-drop-zone').classList.remove('hidden');
+            document.getElementById('proof-preview').classList.add('hidden');
+            document.getElementById('proof-preview-img').src = '';
+        }
+
     </script>
     {% include 'partials/footer.html' %}
 </body>

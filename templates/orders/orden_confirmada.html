@@ -206,20 +206,25 @@
             const status = orderData.status || 'pending';
             const statusText = {
                 'pending': 'Pendiente',
+                'pending_verification': 'Pago en Verificación',
                 'processing': 'En Proceso',
+                'procesando': 'En Proceso',
                 'shipped': 'Enviado',
+                'enviado': 'Enviado',
                 'delivered': 'Entregado',
-                'cancelled': 'Cancelado'
+                'entregado': 'Entregado',
+                'cancelled': 'Cancelado',
+                'cancelado': 'Cancelado'
             };
             statusElement.textContent = statusText[status] || 'Pendiente';
             
             // Cambiar color según estado
             statusElement.className = 'px-3 py-1 rounded-full text-sm font-medium ';
-            if (status === 'pending') {
+            if (status === 'pending' || status === 'pending_verification') {
                 statusElement.className += 'bg-yellow-100 text-yellow-800';
-            } else if (status === 'processing' || status === 'shipped') {
+            } else if (status === 'processing' || status === 'procesando' || status === 'shipped' || status === 'enviado') {
                 statusElement.className += 'bg-blue-100 text-blue-800';
-            } else if (status === 'delivered') {
+            } else if (status === 'delivered' || status === 'entregado') {
                 statusElement.className += 'bg-green-100 text-green-800';
             } else {
                 statusElement.className += 'bg-red-100 text-red-800';
@@ -282,26 +287,35 @@
             // Instrucciones según método de pago
             const instructionsContainer = document.getElementById('payment-instructions');
             if (paymentMethod === 'transfer') {
-                instructionsContainer.innerHTML = `
-                    <div class="flex items-start">
-                        <i class="fas fa-info-circle text-blue-600 text-xl mr-3 mt-1"></i>
-                        <div>
-                            <h3 class="font-semibold text-blue-900 mb-2">Instrucciones para Transferencia</h3>
-                            <p class="text-blue-800 mb-3">Por favor, realiza la transferencia a la siguiente cuenta:</p>
-                            <div class="bg-white p-4 rounded border border-blue-200 mb-3">
-                                <p class="text-sm"><span class="font-medium">Banco:</span> BBVA</p>
-                                <p class="text-sm"><span class="font-medium">CLABE:</span> 012345678901234567</p>
-                                <p class="text-sm"><span class="font-medium">Cuenta:</span> 1234567890</p>
-                                <p class="text-sm"><span class="font-medium">Beneficiario:</span> ALABAZTRUM</p>
+                // Cargar datos bancarios desde Firebase
+                loadBankInfo().then(bankInfo => {
+                    instructionsContainer.innerHTML = `
+                        <div class="flex items-start">
+                            <i class="fas fa-info-circle text-blue-600 text-xl mr-3 mt-1"></i>
+                            <div>
+                                <h3 class="font-semibold text-blue-900 mb-2">Instrucciones para Transferencia</h3>
+                                <p class="text-blue-800 mb-3">Por favor, realiza la transferencia y sube el comprobante en la plataforma.</p>
+                                <div class="bg-white p-4 rounded border border-blue-200 mb-3">
+                                    <p class="text-sm whitespace-pre-wrap font-mono">${bankInfo}</p>
+                                </div>
+                                <p class="text-blue-800 text-sm">
+                                    Tu pedido está en estado de "Pago en Verificación" y será procesado una vez que confirmemos tu comprobante.
+                                </p>
                             </div>
-                            <p class="text-blue-800 text-sm">
-                                <i class="fas fa-whatsapp mr-1"></i>
-                                Envía el comprobante de transferencia a nuestro WhatsApp: 
-                                <a href="https://wa.me/9191936256" target="_blank" class="font-semibold underline">9191936256</a>
-                            </p>
                         </div>
-                    </div>
-                `;
+                    `;
+                }).catch(err => {
+                    console.error('Error loading bank info:', err);
+                    instructionsContainer.innerHTML = `
+                        <div class="flex items-start">
+                            <i class="fas fa-info-circle text-blue-600 text-xl mr-3 mt-1"></i>
+                            <div>
+                                <h3 class="font-semibold text-blue-900 mb-2">Instrucciones para Transferencia</h3>
+                                <p class="text-blue-800">Tu pedido está en estado de "Pago en Verificación".</p>
+                            </div>
+                        </div>
+                    `;
+                });
             } else if (paymentMethod === 'cash') {
                 instructionsContainer.innerHTML = `
                     <div class="flex items-start">
@@ -314,6 +328,23 @@
                 `;
             } else {
                 instructionsContainer.classList.add('hidden');
+            }
+        }
+        
+        // Función para cargar datos bancarios desde Firebase
+        async function loadBankInfo() {
+            try {
+                if (typeof db === 'undefined') {
+                    throw new Error('Firebase not initialized');
+                }
+                const doc = await db.collection('config').doc('payment').get();
+                if (doc.exists && doc.data().bankInfo) {
+                    return doc.data().bankInfo;
+                }
+                return 'Por favor contacta al administrador para obtener los datos de transferencia.';
+            } catch (error) {
+                console.error('Error loading bank info:', error);
+                throw error;
             }
         }
     </script>
