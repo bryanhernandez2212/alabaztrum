@@ -221,13 +221,171 @@
     <script>
         let selectedImages = [];
 
-        // ... rest of code ...
+        // Mostrar/ocultar campo de tamaño del decant
+        function toggleDecantSize() {
+            const isDecant = document.getElementById("isDecant").value;
+            const decantSizeContainer = document.getElementById("decantSizeContainer");
+            const decantSizeSelect = document.getElementById("decantSize");
+            
+            if (isDecant === "si") {
+                decantSizeContainer.classList.remove("hidden");
+                decantSizeSelect.required = true;
+            } else {
+                decantSizeContainer.classList.add("hidden");
+                decantSizeSelect.required = false;
+                decantSizeSelect.value = "";
+            }
+        }
+
+        // Hacer función global
+        window.toggleDecantSize = toggleDecantSize;
+
+        // Cargar marcas y tipos de fragancia
+        async function loadFormData() {
+            try {
+                // Cargar marcas
+                let brandsSnapshot;
+                try {
+                    brandsSnapshot = await db.collection('brands').orderBy('name').get();
+                } catch (e) {
+                    brandsSnapshot = await db.collection('brands').get();
+                }
+                const brandSelect = document.getElementById('productBrand');
+                brandSelect.innerHTML = '<option value="">Selecciona una marca (opcional)</option>';
+                const brands = [];
+                brandsSnapshot.forEach((doc) => {
+                    const brand = doc.data();
+                    if (brand && brand.name) {
+                        brands.push(brand.name);
+                    }
+                });
+                brands.sort((a, b) => a.localeCompare(b));
+                brands.forEach((brandName) => {
+                    const option = document.createElement('option');
+                    option.value = brandName;
+                    option.textContent = brandName;
+                    brandSelect.appendChild(option);
+                });
+
+                // Cargar tipos de fragancia
+                let typesSnapshot;
+                try {
+                    typesSnapshot = await db.collection('fragranceTypes').orderBy('name').get();
+                } catch (e) {
+                    typesSnapshot = await db.collection('fragranceTypes').get();
+                }
+                const typeSelect = document.getElementById('fragranceType');
+                typeSelect.innerHTML = '<option value="">Selecciona un tipo</option>';
+                const types = [];
+                typesSnapshot.forEach((doc) => {
+                    const type = doc.data();
+                    if (type && type.name) {
+                        types.push(type.name);
+                    }
+                });
+                types.sort((a, b) => a.localeCompare(b));
+                types.forEach((typeName) => {
+                    const option = document.createElement('option');
+                    option.value = typeName;
+                    option.textContent = typeName;
+                    typeSelect.appendChild(option);
+                });
+
+                // Inicializar el estado del decant size
+                toggleDecantSize();
+            } catch (error) {
+                console.error('Error al cargar datos del formulario:', error);
+            }
+        }
+
+        // Manejar selección de imágenes
+        function handleImageSelect(event) {
+            const files = Array.from(event.target.files);
+            const maxFiles = 5;
+            
+            if (selectedImages.length + files.length > maxFiles) {
+                alert(`Solo puedes subir un máximo de ${maxFiles} imágenes`);
+                return;
+            }
+
+            files.forEach(file => {
+                if (file.size > 10 * 1024 * 1024) {
+                    alert(`La imagen ${file.name} excede el tamaño máximo de 10MB`);
+                    return;
+                }
+
+                selectedImages.push(file);
+            });
+            updateImagePreviews();
+
+            // Limpiar el input para permitir seleccionar el mismo archivo de nuevo
+            event.target.value = '';
+        }
+
+        // Eliminar imagen
+        function removeImage(index) {
+            selectedImages.splice(index, 1);
+            updateImagePreviews();
+        }
+
+        // Actualizar previews de imágenes
+        function updateImagePreviews() {
+            const preview = document.getElementById('imagePreview');
+            preview.innerHTML = '';
+            selectedImages.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'relative';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" alt="Preview" class="w-full h-24 object-cover rounded border border-gray-300 image-preview-item">
+                        <button 
+                            type="button" 
+                            onclick="removeImage(${index})" 
+                            class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition image-remove-button"
+                        >
+                            <i class="fas fa-times text-xs"></i>
+                        </button>
+                    `;
+                    preview.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
 
         // Manejar envío del formulario
         async function handleSubmit(event) {
             event.preventDefault();
 
-            // ... validation code ...
+            const messageDiv = document.getElementById('message');
+            const submitButton = event.target.querySelector('button[type="submit"]');
+            const originalText = submitButton.innerHTML;
+
+            const productName = document.getElementById('productName').value.trim();
+            const productBrand = document.getElementById('productBrand').value;
+            const productPrice = parseFloat(document.getElementById('productPrice').value);
+            const productStock = parseInt(document.getElementById('productStock').value) || 0;
+            const productDescription = document.getElementById('productDescription').value.trim();
+            const genderRadio = document.querySelector('input[name="gender"]:checked');
+            const gender = genderRadio ? genderRadio.value : '';
+            const isDecant = document.getElementById('isDecant').value;
+            const decantSize = document.getElementById('decantSize').value;
+            const fragranceType = document.getElementById('fragranceType').value;
+
+            // Validar que si es decant, tenga tamaño seleccionado
+            if (isDecant === 'si' && !decantSize) {
+                messageDiv.className = 'mb-6 p-4 rounded-lg text-sm bg-red-500 text-white';
+                messageDiv.textContent = 'Por favor selecciona el tamaño del decant';
+                messageDiv.classList.remove('hidden');
+                return;
+            }
+
+            if (!productName || isNaN(productPrice) || productStock < 0 || !productDescription || !gender || !fragranceType) {
+                messageDiv.className = 'mb-6 p-4 rounded-lg text-sm bg-red-500 text-white';
+                messageDiv.textContent = 'Por favor completa todos los campos requeridos';
+                messageDiv.classList.remove('hidden');
+                return;
+            }
 
             submitButton.disabled = true;
             submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Guardando...';
@@ -242,28 +400,32 @@
                         const file = selectedImages[i];
 
                         // Optimizar imagen
-                        const compressedFile = await ImageOptimizer.compress(file, {
-                            maxWidth: 1200, // Productos requieren mejor calidad que marcas
-                            maxHeight: 1200,
-                            quality: 0.85,
-                            mimeType: 'image/webp'
-                        });
+                        let uploadBlob = file;
+                        if (typeof ImageOptimizer !== 'undefined' && ImageOptimizer.compress) {
+                            try {
+                                uploadBlob = await ImageOptimizer.compress(file, {
+                                    maxWidth: 1200,
+                                    maxHeight: 1200,
+                                    quality: 0.85,
+                                    mimeType: 'image/webp'
+                                });
+                            } catch (compressErr) {
+                                console.warn('Error al optimizar imagen, subiendo original:', compressErr);
+                                uploadBlob = file;
+                            }
+                        }
 
                         submitButton.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>Subiendo imagen ${i + 1}/${selectedImages.length}...`;
 
                         const fileName = `products/${Date.now()}_${i}_${file.name.replace(/\.[^/.]+$/, "")}.webp`;
                         const storageRef = storage.ref().child(fileName);
 
-                        console.log(`Subiendo imagen ${i + 1} optimizada. Original: ${file.size}, Optimizada: ${compressedFile.size}`);
-
                         // Subir el archivo
-                        await storageRef.put(compressedFile);
+                        await storageRef.put(uploadBlob);
 
                         // Obtener la URL de descarga
                         const downloadURL = await storageRef.getDownloadURL();
                         imageUrls.push(downloadURL);
-
-                        console.log(`Imagen ${i + 1}/${selectedImages.length} subida:`, downloadURL);
                     }
 
                     submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Guardando producto...';
@@ -282,7 +444,7 @@
                     fragranceType: fragranceType,
                     images: imageUrls,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    createdBy: auth.currentUser.uid
+                    createdBy: auth.currentUser ? auth.currentUser.uid : null
                 });
 
                 messageDiv.className = 'mb-6 p-4 rounded-lg text-sm bg-green-500 text-white';
@@ -305,23 +467,26 @@
         }
 
         // Cargar datos al iniciar
-        if (typeof db !== 'undefined') {
+        function initAddProduct() {
+            if (typeof db !== 'undefined') {
+                loadFormData();
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initAddProduct);
+        } else {
+            initAddProduct();
+        }
+
+        if (typeof auth !== 'undefined') {
             auth.onAuthStateChanged((user) => {
                 if (user) {
-                    loadFormData();
-                }
-            });
-        } else {
-            document.addEventListener('DOMContentLoaded', function () {
-                setTimeout(() => {
-                    if (typeof db !== 'undefined' && typeof auth !== 'undefined') {
-                        auth.onAuthStateChanged((user) => {
-                            if (user) {
-                                loadFormData();
-                            }
-                        });
+                    const brandSelect = document.getElementById('productBrand');
+                    if (brandSelect && brandSelect.options.length <= 1) {
+                        loadFormData();
                     }
-                }, 1000);
+                }
             });
         }
 
